@@ -7,10 +7,10 @@
 
   // hostující servery
   $ezer_server= 
-    $_SERVER["SERVER_NAME"]=='chap.bean'         ? 0 : -1;       // 0:lokální NTB
+    $_SERVER["SERVER_NAME"]=='policka.bean'         ? 0 : -1;       // 0:lokální NTB
 
   // parametry aplikace FiS
-  $app_name=  "ChaP";
+  $app_name=  "Polička";
   $app_root=  'chap';
   $app_js=    array();
   $app_css=   array('/chap/chap.css.php=skin',"/$kernel/client/wiki.css");
@@ -19,10 +19,10 @@
   $title_flag=  $ezer_server==0 ? 'lokální' : '';
 
   $abs_roots= array(
-      "C:/Ezer/beans/chap",
+      "C:/Ezer/beans/policka",
     );
   $rel_roots= array(
-      "http://chap.bean:8080"
+      "http://policka.bean:8080"
     );
 
   // (re)definice Ezer.options
