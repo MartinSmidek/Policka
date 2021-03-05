@@ -1,0 +1,408 @@
+# Systém FiS
+# (c) 2008-2010 Martin Šmídek <martin@smidek.eu>
+
+# modul_state.xxx obsahuje o každém tabs tyto informace (to je konvence, ne automatismus)
+#   .loaded  -- tabs bylo zavedeno
+#   .dirty   -- vynutí v onfocus refresh
+var modul_state:object
+
+menu chap { type:'main', active:*
+  const plus = 0;                       // rozšíření karet - jednotkou je výška řádku browse
+        klu_cle_cleni = 13;
+        klu_cle_dary = 334;
+        klu_kom_rows = 4;
+        klu_kom_zprava_t = 161;
+        klu_kom_zprava_h = 35
+  var global: text,
+  tabs klu {title:"[fa-users] Dárci", skill:'hd', _sys:'klu',  include:'onload', active:* }
+//  tabs eko {title:"[fa-line-chart] Ekonomika", skill:'he', _sys:'eko',  include:'onclick', active:*  }
+//  tabs dop {title:"[fa-envelope] Korespondence", skill:'hk', _sys:'dop',  include:'onclick', active:* }
+  tabs sys {title:"[fa-cogs] Nastavení", skill:'hn', _sys:'sys',  include:'onclick,ezer2.syst', active:*
+    //panel oso {type:'right', title:'Osobní nastavení', _sys:'*', include:'onclick' }
+    panel oso {type:'right', title:'Osobní nastavení', _sys:'*', include:'onclick,ezer2.pers' }
+    # ===================================================================================== DATABÁZE
+    panel DATA {type:'right', title:'[fa-database] Struktura dat'
+      use info: form right [12,4,,]
+      menu {type:'left', active:*
+        menu  {title:'Struktura dat aplikace', type:'group'
+          item {title:'[fa-object-group] Přehled struktury dat'
+            proc onclick (i) {
+              info.fill(replace_fa(conc(i.owner.title,' - ',i.title)),"<br>
+                Zjednodušené schema databáze<br><br>
+                <img src='chap/img/schema_db_2021.png' />
+              ");
+            }
+          }
+          item {title:'[fa-database] tabulka CLEN'        par:°{tab:'clen'} }
+          item {title:'[fa-database] tabulka DAR'         par:°{tab:'dar'} }
+          item {title:'[fa-database] tabulka VYPIS'       par:°{tab:'vypis'} }
+          item {title:'[fa-database] tabulka PREVOD'      par:°{tab:'prevod'} }
+          item {title:'[fa-database] tabulka OSLOVENI'    par:°{tab:'osloveni'} }
+          item {title:'[fa-database] tabulka DOPIS'       par:°{tab:'dopis'} }
+          item {title:'[fa-database] tabulka DOPIS_CAST'  par:°{tab:'dopis_cast'} }
+          item {title:'[fa-database] tabulka DAVKA'       par:°{tab:'davka'} }
+          item {title:'[fa-database] tabulka MAIL'        par:°{tab:'mail'} }
+          proc onclick (i) {
+            clear;
+            info.fill(replace_fa(conc(i.owner.title,' - ',i.title)),
+                ask('i_doc_table_struct',i.par.tab,0,'struc'));
+          }
+        }
+        menu  {title:'Struktura dat Ezer', type:'group'
+          item {title:'[fa-database] tabulka _cis'        par:°{tab:'_cis'} }
+          proc onclick (i) {
+            clear;
+            info.fill(replace_fa(conc(i.owner.title,' - ',i.title)),
+                ask('i_doc_table_struct',i.par.tab,1,'struc'));
+          }
+        }
+      }
+    }
+    # ============================================================================== (import/backup)
+    panel IMPO {type:'right', title:'[fa-download] (Import/Backup)', skill:'a'
+      use info: form right [12,4,,]
+      menu {type:'left', active:*
+        menu {title:'Záloha databáze', type:'group', skill:'m'
+//          item { title:"test denní zálohy"            par:°{direct:'1'}
+//            proc onclick(i) {
+//              info.fill(conc(i.owner.title,' - ',i.title),' ');
+//              [ {i.par.direct|confirm('Pokračovat?')}; info.append(ask('syst_db_save')) ]
+//            }
+//          }
+          item { title:"přehled záloh"                par:°{typ:'listing',direct:'1'} }
+          item { title:"zálohuj teď"                  par:°{typ:'special',direct:'0'} }
+          item { title:"obnova ze zálohy (jen local)" par:°{typ:'restore',direct:'1'}
+            proc onclick(i) { var heslo:text
+              info.fill(conc(i.owner.title,' - ',i.title),' ');
+              eq(sys('ezer','server'),0,3); // test na lokální server na NTB nebo Synology DOMA
+              confirm('Opravdu mám lokální databázi přepsat?'); 
+              info.append(ask('sys_backup_make',i.par))
+            | eq(sys('ezer','server'),1); // test na server v laboratoři
+              heslo.set(prompt2("Pro obnovu databáze na ostrém serveru je třeba znát heslo:"));
+              [ eq(heslo,'KoneLab');
+                [ confirm('Opravdu mám přepsat ostrou databázi?'); 
+                  info.append(ask('sys_backup_make',i.par))
+                ]
+              | alert('toto není správné heslo')
+            | alert('obnovu ze zálohy lze provádět pouze na lokální kopii systému');
+            }
+          }
+          proc onclick(i) {
+            info.fill(conc(i.owner.title,' - ',i.title),' ');
+            [ {i.par.direct|confirm('Pokračovat?')}; info.append(ask('sys_backup_make',i.par)) ]
+          }
+        }
+      }
+    }
+//    panel opr {type:'right', title:'Hromadné opravy', _sys:'*', skill:'a'
+//      menu {type:'left', active:*
+//        menu {title:'Oslovení',type:'group', _sys:'*', skill:'a'
+//          item {title:'---', proc onclick (i) {
+//            info.fill(conc(i.owner.title,' - ',i.title),' ');
+//          }}
+//          item {title:'Ukázat automatické tituly', proc onclick (i) {
+//            info.fill(conc(i.owner.title,' - ',i.title),' ');
+//            info.fill('',ask('sys_regenerate_titul',"1",0));
+//          }}
+//          item {title:'Přegenerovat automatické tituly (fm,fž)', proc onclick (i) {
+//            info.fill(conc(i.owner.title,' - ',i.title),' ');
+//            confirm("Opravdu přegenerovat automatické tituly ('',Vážený pán,Vážená paní) novými hodnotami?");
+//            info.fill('',ask('sys_regenerate_titul',"osoba=1 AND rod IN (1,2)",1));
+//          }}
+//          item {title:'vložení nových oslovení (bez anomálií)', proc onclick (i) {
+//            info.fill(conc(i.owner.title,' - ',i.title),' ');
+//            confirm('Opravdu vkopírovat všechna nová oslovení všem členům? Oslovení s anomáliemi budou vynechána.');
+//            info.fill('',ask('sys_copy_osloveni'));
+//          }}
+//          item {title:'zrušení nechráněných oslovení', proc onclick (i) {
+//            info.fill(conc(i.owner.title,' - ',i.title),' ');
+//            confirm('Opravdu zrušit všechna automatická oslovení všem členům?');
+//            info.fill('',ask('sys_trunc_osloveni'));
+//          }}
+//        }
+//        menu {title:'Příslušnost ke středisku',type:'group', _sys:'str'
+//          item {title:'---', proc onclick (i) {
+//            info.fill(conc(i.owner.title,' - ',i.title),' ');
+//          }}
+//          item {title:"přehled stavu 'auto'", proc onclick (i) {
+//            info.fill(conc(i.owner.title,' - ',i.title),' ');
+//            info.fill('',ask('klub_all_stredisko',0));
+//          }}
+//          item {title:"doplnění stavu 'auto'", proc onclick (i) {
+//            info.fill(conc(i.owner.title,' - ',i.title),' ');
+//            confirm('Opravdu vkopírovat automatickou příslušnost ke středisku podle darů (mimo corr)');
+//            info.fill('',ask('klub_all_stredisko',1));
+//          }}
+//        }
+//      }
+//      use info: form right [12,4,,]
+//    }
+//    panel str {type:'plain', title:"Střediska a účty", _sys:'*', skill:'hns|hns', include:'onclick' }
+//    panel dat {type:'right', title:"Zálohování", _sys:'*', skill:'m', include:'onclick' }
+  }
+  tabs doc  {title:"Nápověda", _sys:'nap',  include:'onload,ezer2.help', active:* }
+  tabs off  {type:'logoff', title:"[fa-power-off] Odhlásit"}
+  proc onstart () {
+    modul_state.set(°{klu:0,dop:0,ban:0,pok:0,eko:0,syst:0,doc:0});
+  }
+  # pokud je modul aktivní, nastaví mu dirty=1 aby došlo k překreslení obsahu při onfocus
+  # jméno modulu je zřetězením id od chap (nevčetně)
+  proc dirty (mod) {
+    modul_state.get(mod); modul_state.set(1,conc(mod,'.dirty'));
+  }
+  // univerzální procedury
+  proc the_formsave (f,b) {
+    f.same
+  | f.key; f.save; f.load; b.browse_seek;
+  | f.insert; f.load;
+    { b.browse_seek(conc(f.id_key,'=',f.key))
+    | b.browse_seek(conc(f.id_key,'=',f.key),1)
+    }
+  }
+}
+# -------------------------------------------------------------------------------------------------- rightf
+# formulář pro levostranné menu s postupným zápisem a spinnerem
+form right [,,*,50] {
+  label head [0,0,*,50]  { title:' ' }
+  label note [0,36,,530] { title:' ' }
+  proc fill(h,n) {
+    [ h; head.set(conc("<div class='karta'>",h,"</div>")) ];
+    [ n; note.set(n) ]
+  }
+  proc append(n) {
+    note.set(conc(note.get,n))
+  }
+  label working [348,256,64,64] { title:"<img src='chap/img/spinner.gif'>",
+    style:'z-index:999', format:'n' }
+  proc work(on) { working.display(on) }
+}
+# -------------------------------------------------------------------------------------------------- TABLES
+table _cis { key_id:'id_cis'
+  number id_cis { key:'primary' },
+  text druh,
+  text data,
+  text hodnota,
+  text zkratka,
+  text popis,
+  number poradi,
+  text barva,
+  text ikona
+}
+
+table vypis { key_id:'id_vypis'
+  number id_vypis { key:'primary' },
+  text ident { help:'ident' },
+  number vypis1 { help:'výpis|pořadí výpisu' },
+  number ucet { help:'náš účet' },
+  date datum { help:'datum', sql_pipe:'sql_date1' },
+  text soubor { help:'soubor' },
+  number stav { help:'stav' },
+  number stav_poc { help:'stav' },
+}
+
+table prevod { key_id:'id_prevod'
+  number id_prevod { key:'primary' },
+  text ident { help:'ident|Uyy_nnniii' },
+  number vypis { help:'výpis|pořadí výpisu' },
+  number ucet { help:'náš účet' },
+  text popis { help:'popis' },
+  number clen { help:'člen|dárce' },
+  number dar { help:'dar' },
+  number typ { help:'typ' },
+  number castka { help:'částka' },
+  text protiucet { help:'protiúčet' },
+  text banka { help:'banka' },
+  date splatnost { help:'splatnost', sql_pipe:'sql_date1' },
+  text ksym { help:'KS' },
+  text vsym { help:'VS' },
+  text vsym2 { help:'opravený VS' },
+  text ssym { help:'SS' },
+  text poznamka { help:'poznámka' },
+  text kat { help:'kat' }
+  text metoda { help:'metoda, kterou byl vytipován dárce' }
+}
+
+table balicek {
+  number id_balicek { key:'primary' }
+  text   ident      { help:'identifikace balíčku Brrvvv' }
+  number platby     { help:'součet částek, jejichž VS není označen jako dar' }
+}
+
+table ucet {
+  text protiucet { help:'protiúčet' },
+  text banka { help:'banka' },
+  text ksym { help:'KS' },
+  text vsym { help:'VS' },
+  text ssym { help:'SS' },
+  text jmeno { help:'jméno účtu' },
+  text nazev { help:'náš název účtu' },
+}
+
+table _track { key_id:'id_track'
+  number id_track { key:'primary' },
+  date   kdy  { help:'datum změny' },
+  text   kdo  { help:'pachatel' },
+  text   kde  { help:'tabulka' },
+  number klic { help:'klíč' },
+  text   fld  { help:'položka' },
+  text   op   { help:'operace' },
+  text   old  { help:'původní hodnota' },
+  text   val  { help:'původní hodnota' },
+}
+
+table _user { key_id:'id_user'
+  number id_user { key:'primary' },
+  text deleted,
+  text abbr,
+  text skills,
+  text username,
+  text password,
+  number state,
+  text forename,
+  text surname,
+  text history,
+  number zmena_kdo,
+  date zmena_kdy { sql_pipe:'sql_date1' },
+}
+
+table _jmena { key_id:'id_jmena'
+  number id_jmena
+  text jmeno,
+  number sex,
+  number cetnost,
+}
+
+table osloveni { key_id:'id_clen'
+  number id_clen
+  number _rod { help:'rod|mluvnický rod: neurčeno/mužský/ženský' },
+  number _osloveni { help:'oslovení|oslovení před jménem (5.pád)' },
+  text _prijmeni5p { help:'příjmení 5.p|příjmení (5.pád)' },
+  text _anomalie { help:'anomálie|o-f-r-a' }
+    // o - chybí právnická/fyzická => ručně
+    // f - právnická osoba má křestní jméno => fyzická osoba
+    // r - rod křestního jména a tvaru příjmení se liší => ručně
+    // a - ženské křestní jméno a koncovka -ova => -ová
+
+}
+
+table clen { key_id:'id_clen'
+  number id_clen        { key:'primary', help:'kontakt|jedinečné číslo kontaktu' },
+  number ID             { help:'ID|původní číslo kontaktu' },
+  number ID_RAYNET
+  number kod            { help:'kód|původní kód dárce' },
+  text   deleted        { help:'ok|prázdné nebo D=značka smazání kontaktu' },
+  date   umrti          { help:'úmrtí|datum úmrtí', sql_pipe:'sql_date1' },
+  text   historie       { help:'poznámky|poznámky ke kontaktu' },
+  text   ps             { help:'PS|text připojený do nejbližšího dopisu' },
+  text   rodcis         { help:'r.č.|narození:ddmmrrr rodčís:rrmmddxxxx' },
+  text   osoba          { help:'druh|fyzická nebo právnické osoba' },
+  number rodina         { help:'rodina|počet osob v rodině' },
+  text   titul          { help:'titul|akademický titul nebo zvláštní oslovení' },
+  text   jmeno          { help:'první jméno|křestní jméno fyzické osoby nebo plné jméno kontaktu' },
+  text   prijmeni       { help:'druhé jméno|příjmení fyzické osoby nebo jméno organizace' },
+  //text kategorie      { help:'kategorie|kód kategorie ve tvaru (D O H) x číslice' },
+  number kategorie      { help:'kategorie|-/město/nadace' },
+  text   firma          { help:'firma' },
+  text   ulice          { help:'ulice' },
+  text   obec           { help:'obec' },
+  number psc            { help:'psč' },
+  text   stat           { help:'stát' },
+  text   ulice2         { help:'pošt. ulice' },
+  text   obec2          { help:'pošt. obec' },
+  number psc2           { help:'pošt. psč' },
+  text   stat2          { help:'pošt. stát' },
+  text   telefony       { help:'telefony|seznam známých čísel oddělených čárkou' },
+  text   email          { help:'emaily|seznam emailových adres oddělených čárkou' },
+  number stredisko      { help:'středisko|posíláme materiály tohoto střediska' },
+  text   poznamka       { help:'poznámka|obecná poznámka k tomuto kontaktu' },
+  number svyjimka       { help:'svýjimka|přepínání mezi automatickou nebo ručně zadanou hodnotou pro středisko' },
+  number pvyjimka       { help:'pvýjimka|přepínání mezi automatickou nebo ručně zadanou hodnotou pro potvrzení' },
+  text   darce          { help:'dárce obvykle|jméno používané v daňovém povrzení' },
+  text   ucet           { help:'účet|účet/banka*ss' }
+  number potvrzeni      { help:'potvrzení|jak zasílat daňová potvrzení' },
+  number jen_mail       { help:'jen mailem|korespondenci vést jen přes emailovou adresu' },
+  number neslozenku     { help:'ne složenku|neposílat složenky' },
+  number neposilat      { help:'nic neposílat|na adresu nic neposílat' },
+  number jenpotvrzeni   { help:'jen potvrzení|posílat pouze daňová potvrzení' },
+  number jenvanocni     { help:'jen vánoční|chybná či neúplná poštovní adresa' },
+  number rod            { help:'rod|mluvnický rod: neurčeno/mužský/ženský' },
+  number osloveni       { help:'oslovení|oslovení před jménem (5.pád)' },
+  text   prijmeni5p     { help:'příjmení 5.p|příjmení (5.pád)' },
+  number vyjimka        { help:'výjimka|přepínání mezi automatickou nebo ručně zadanou hodnotou pro rok, oslovení, 5.pád' },
+  text   anomalie       { help:'anomálie|neočekávaná kombinace hodnot' },
+  text   zmena_kdo      { help:'změna kým|značka autora poslední změny' },
+  date   zmena_kdy      { help:'změna kdy|čas poslední změny' },
+}
+
+table dar { key_id:'id_dar'
+  text x
+  number id_dar      { key:'primary', help:'dar|jedinečné číslo daru' },
+  number id_clen     { help:'dárce|identifikace dárce' },
+  number IDPod       { help:'IDPod|původní číslo daru' },
+  text   deleted     { help:'ok|prázdné nebo D=značka smazání daru' },
+  number zpusob      { help:'způsob|způsob platby 1:pokladnou 2:převodem 3:složenkou 4:věcný' },
+  text   ucet        { help:'účet dárce|identifikace účtu vč. kódu banky nebo označení balíčku složenek' },
+  number nas_ucet    { help:'náš účet|kam došla platba' },
+  number stredisko   { help:'středisko|obdarované středisko' },
+  number varsym      { help:'vs|variabilní symbol' },
+  text   popis       { help:'popis|popis věcného daru' },
+  text   pozn        { help:'účel platby|účel platby nebo jiná poznámka' },
+  text   body        { help:'poznámka|poznámka k daru nebo dopisu' },
+  text   darce       { help:'jméno dárce|jméno použité v daňovém povrzení' },
+  // žádost
+  date   zadost_kdy  { help:'žádost poslána dne', sql_pipe:'sql_date1' }
+  text   zadost_kdo  { help:'žádost vyřídil' }
+  text   zadost_txt  { help:'text žádosti' }
+  // smlouva
+  date   smlouva_kdy { help:'smlouva poslána dne', sql_pipe:'sql_date1' }
+  text   smlouva_kdo  { help:'smlouvu vyřídil' }
+  text   smlouva_txt  { help:'text smlouvy' }
+  // podpis
+  date   podpis_kdy  { help:'podpis smlouvy poslán dne', sql_pipe:'sql_date1' }
+  // částka
+  number castka      { help:'částka|celková částka v celých korunách' },
+  date   castka_kdy  { help:'přijato|datum přijetí daru', sql_pipe:'sql_date1' }
+  // potvrzení
+  date   potvrz_kdy  { help:'potvrzení přijetí daru posláno dne', sql_pipe:'sql_date1' }
+  text   potvrz_kdo  { help:'potvrzení vyřídil' }
+  text   potvrz_txt  { help:'text potvrzení daru' }
+  text   zmena_kdo   { help:'změna kým|značka autora poslední změny' },
+  date   zmena_kdy   { help:'změna kdy|čas poslední změny' },
+}
+
+table ukol { key_id:'id_ukol'
+  number id_ukol        { key:'primary', help:'dar|jedinečné číslo úkolu' }
+  number id_clen        { help:'ID kontaktu|kontakt, kterého se úkol týká' }
+  number kdo_od         { help:'zadavatel|uživatel zadávající úkol' }
+  number kdo_pro        { help:'provádějící|uživatel realizující úkol' }
+  date cas_od           { help:'den zadání|den uložení úkolu',  sql_pipe:'sql_date1' }
+  date cas_bg           { help:'den zahájení|den zahájení práce',  sql_pipe:'sql_date1' }
+  date cas_do           { help:'termín|termín dokončení úkolu', sql_pipe:'sql_date1' }
+  date cas_ok           { help:'dokončení|drn dokončení úkolu', sql_pipe:'sql_date1' }
+  number stav           { help:'stav|normální nebo odložený či zrušený' }
+  text popis            { help:'popis|popis úkolu' }
+  number je_diskuse     { help:'ukázat diskusi nad řešením' }
+  text diskuse          { help:'diskuse o průběhu řešení' }
+}
+
+table zprava { key_id:'id_zprava'
+  number id_zprava      { key:'primary', help:'poznámka|jedinečné číslo zprávy ke kontaktu' }
+  number id_user	{ help:"autor|autor zprávy" }
+  number id_clen	{ help:"ID kontaktu|koho se poznámka týká" }
+  text   zprava	        { help:"zpráva|text poslané zprávy" }
+  date   kdy_z          { help:"kdy zpráva|datum poslání zprávy",  sql_pipe:'sql_date1' }
+  number jak_z          { help:"jak|jak byla zpráva poslána" }    // #k_zprava_jak
+  text   reakce	        { help:"reakce|text navrácené reakce" }
+  date   kdy_r          { help:"kdy reakce|datum obdržení reakce" }
+}
+
+# uživatelské číselníky
+map cis_k_osloveni:     table _cis { where:"druh='k_osloveni'", order:'poradi', key_id:'data'}
+map cis_varsym:         table _cis { where:"druh='varsym'", order:'data', key_id:'data'}
+map cis_deleni:         table _cis { where:"druh='deleni'", order:'poradi', key_id:'data'}
+map cis_stredisko:      table _cis { where:"druh='stredisko'", order:'poradi', key_id:'data'}
+map cis_darce:          table _cis { where:"druh='darce'", order:'poradi', key_id:'data'}
+map cis_k_ucet:         table _cis { where:"druh='k_ucet'", order:'data', key_id:'data'}
+map cis_u_stavy:        table _cis { where:"druh='u_stavy'", order:'data', key_id:'data'}
+map cis_k_zprava_jak:   table _cis { where:"druh='k_zprava_jak'", order:'data', key_id:'data'}
+map cis_kategorie:      table _cis { where:"druh='kategorie'", order:'data', key_id:'data'}

@@ -1,0 +1,25 @@
+= Nastavení/1 =
+
+Modul pro nastavení práce s aplikací.
+Obsahuje uživatelské, administrační a systémové karty.
+
+== Osobní nastavení ==
+Přístupové údaje si každý uživatel může nastavit sám.
+Oprávnění a osobní údaje mění administrátor systému (uživatel ''admin'').
+
+[[Image:wiki/img/ck_nastaveni.png||]]
+
+== admin: Střediska ==
+V záznamech o dárcích a darech jsou střediska a jejich účty zapamatovány jejich klíčem (sloupec id).
+Na to je třeba pamatovat při případných úpravách názvů (aby nedošlo k dezinterpretaci starších záznamů).
+
+V záznamu o středisku je ve sloupci ''právo přístupu'' seznam zkrateck uživatelů,
+kteří vidí dary tohoto střediska. Každý uživatel by měl mít svoji zkratku v právě jednom středisku
+označenu hvězdičkou - toto středisko se použije při vkládání nového dar.
+
+[[Image:wiki/img/ck_nastaveni_strediska.jpg||]]
+
+Dvojklikem na řádku nebo stiskem tlačítka '''Opravit''' je možné na této kartě záznamy měnit.
+
+[[Image:wiki/img/ck_nastaveni_ucty.png||]]
+

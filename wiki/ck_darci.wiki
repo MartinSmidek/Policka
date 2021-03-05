@@ -1,0 +1,240 @@
+= Dárci/1 =
+Modul pro správu dárců a darů pro ''Hospic Anežky České'' a související organizace.
+
+== Obecně k práci se seznamy ==
+V obrázku popsané prvky jsou platné pro všechna zobrazení seznamů v systému Ezer.
+
+[[Image:wiki/img/ck_browse.png||]]
+
+Po zvolení ''základního výběru'' je možné tento výběr dále zúžit zapsáním
+upřesňujících podmínek (viz obrázek), které provedou výběr stejně začínajících údajů.
+
+V podmínkách je možné použít "žolíky" tj. znaky * a ?
+s obvyklým významem (? nahrazuje jeden libovolný znak a * nahrazuje libovolný počet znaků).
+Znak $ (dolar) má význam ''konec řetězce''.
+Pokud je prvním znakem - (pomlčka) pak se bere negace podmínky
+
+Příklady na podmínky zapsané do sloupce '''obec''' v seznamu adres:
+; '''obec'''=Černá : nalezne ''Černá'' ale také ''Černá hora''
+; '''obec'''=*Hora : nalezne ''Kutná Hora'' ale také ''Zlatá Hora'' avšak nikoliv ''Pohora'',
+protože vyhledávání ctí velikost písmen
+; '''obec'''=O*va*- : nalezne části Ostravy jako např. ''Ostrava-Polanka''
+; '''obec'''=$ : najde kontakty s nevyplněnou obcí
+; '''obec'''=-Brno : najde kontakty, které nejsou z Brna
+
+Zpět k původnímu základnímu výběru se dostaneme dvojitým klikem myši do výběrového řádku.
+
+Složitějším dotazem zapsaným do více sloupců např:
+;'''příjmení'''=Nov '''obec'''=Olo : najdeme pana Novotného z Olomouce.
+
+Ve výběru se lze obvyklým způsobem - pomocí myši a posuvníku na pravém okraji výběru
+resp. kolečkem myši, nebo pomocí klávesnice - šipkami a dalšími polohovacími klávesami.
+
+Klávesové zkratky:
+; šipky, PageUp, PageDown : obvyklý význam
+; Home, End : přesun na první resp. poslední viditelný řádek
+; Ctrl+Home, Ctrl+End : přesun na první resp. poslední řádek vybraných záznamů
+; Ctrl+šipka nahoru : přesun na zadání první podmínky (musí být viditelná)
+
+// -------------------------------------------------------------------------------------------------- KONTAKTY
+== Kontakty ==
+Hlavní část aplikace, umožňující zakládání nových kontaktů a darů a jejich změny.
+
+Obsahuje čtyři části: '''výběr dárců''', '''detail dárce''', '''dary dárce''',
+'''detail daru dárce''', popsané dále na této stránce.
+
+[[Image:wiki/img/ck_kontakty_celek.png||]]
+
+// -------------------------------------------------------------------------------------------------- Výběr kontaktů
+=== Výběr kontaktů ===
+
+Pro pohodlnou práci slouží předdefinované ''pojmenované výběry''. Lze jimi například zvolit fyzické
+či právnické osoby, dárce s poznámkou uvedenou v jejich historii.
+Užitečný je také výběr ''změny dne ... kým ...'' který je potřeba doplnit
+výběrem uživatele a datem - slouží ke kontrole provedených změn (například vlastních).
+
+Klávesou Ins lze vybrat kontakty v různých výběrech k pozdějšímu zpracování. Takto vybrané kontakty
+jsou zobrazeny červeně a lze je zobrazit všechny najednou zašktnutím volby ''vybraní''.
+Výběr lze zrušit po kliknutí pravým tlačítkem myši v oblasti seznamu a po objevení se
+'''kontextové nabídky''' zvolením možnosti ''zrušit výběr''.
+
+Zaškrtnutím voleb ''i smazaní'' resp. ''i zemřelí'' lze každý výběr obohatit o smazané resp.
+o zesnulé dárce.
+
+[[Image:wiki/img/ck_kontakty_cleni.png||]]
+
+// ------------------------------------------------------------------------------------------------- Kontakty: detail
+== Kontakty: detail ==
+Informace o dárci jsou zobrazeny ve třech záložkách: ''Kontakt'', ''Historie'' a ''Oslovení''.
+Horní část obsahuje adresní údaje, včetně telefonu a emailu a je společná pro všechny záložky.
+Pole ''rč/IČ'' má u fyzických osob význam rodného čísla a u firem pak IČ. Daňové identifikační
+číslo (DIČ) se obdrží z IČ předponou '''CZ-'''.
+
+Záložka '''Kontakt''' obsahuje jako své specifické údaje sloupec zaškrtávacích polí,
+upřesňující způsob komunikace.
+
+Pokud má být na daňových potvrzeních o přijetí daru uváděno vždy jiné jméno, než jaké je v adrese,
+je třeba je zapsat do pole '''potvrzení na'''. Pokud je jiné jméno zapotřebí uvést jen u určitého
+daru, pak se napíše do stejnojmenné položky v detailu daru.
+
+Volba ''jen vánoční'' způsobí, že rozesílané Bulletiny budou posílány jen pro ta období, která
+mají nastaveno ''vánoční Bulletin''.
+
+[[Image:wiki/img/ck_kontakty_clen.png||]]
+
+Hodnota pole ''jen vánoční'' je svázána s hodnotou pole ''daň.potvrzení'' a s volbou pro případnou
+výjimku. Pokud uživatel zvolí nedovolenou kombinaci, bude vyzván k opravě následným dialogem,
+který definuje povolené kombinace.
+
+[[Image:wiki/img/ck_kontakty_clen_vanocni.png||]]
+
+Záložka '''Historie''' slouží k záznamu časových informací o kontaktu a případné datum úmrtí.
+Z databáze Access sem byly zhromážděny hodnoty položek ''Telefon'' a ''Email''
+a poznámky uvedené u darů (které mají často obecný charakter).
+
+Původ poznámky je uveden vždy v jejím záhlaví (u staré poznámky jménem položky u nové datem
+a zkratkou uživatele).
+Pokud byla v databázi Access poznámka o úmrtí bez uvedeného data, bylo do Ezer použito zástupné
+datum 21.8.1968.
+
+Nové záznamy se do historie vkládají zápisem na spodní část pole a stiskem '''Uložit'''.
+Předchozí záznamy v historii lze měnit po dvojkliku na záhlaví záznamu a poté opravou
+textu ve spodní části pole - a stiskem '''Uložit'''.
+
+[[Image:wiki/img/ck_kontakty_clen_h.png||]]
+
+Pod poslední záložkou je možné vidět/měnit oslovení použité do dopisů.
+Oslovení a 5. pád příjmení se automaticky změní po opravě či vložení osobních údajů,
+případně je hromadně změní administrátor dat v kartě '''Dárci|Oslovení''' a '''Nastavení|Oslovení'''.
+Pokud je zvolena hodnota ''corr'' pak je oslovení z těchto automatických
+změn vyňato a zůstává nezměněné.
+
+[[Image:wiki/img/ck_kontakty_clen_o.png||]]
+
+// -------------------------------------------------------------------------------------------------- Kontakty: přehled o změnách
+== Kontakty: přehled o změnách ==
+Po kliknutí pravým tlačítkem myši do oblasti detailu kontaktu je zobrazena kontextová nabídka.
+Volba ''Ukázat všechny změny'' vyvolá formulář s přehledem o provedených změnách v položkách kontaktu
+(zobrazují se pouze změny provedené systémem Ezer).
+
+Dvojklikem na řádek je možné v detailu kontaktu obnovit původní hodnotu položky.
+
+[[Image:wiki/img/ck_kontakty_track.png||]]
+
+// -------------------------------------------------------------------------------------------------- Kontakty: seznam darů
+== Kontakty: seznam darů ==
+Po zvolení kontaktu se ve formuláři '''Dary''' zobrazí dary od dárce.
+Pro přehlednost a efektivitu se nezobrazují všechny dary ale jen jejich výběr, daný nastavením
+zašktávacích polí ve výběrové části formuláře a také oprávněními uživatele.
+
+Zašktrtnutím volby ''jen naše'' se výběr zúží na dary středisek, na které má uživatel
+nastaveno právo přístupu v kartě  '''Nastavení|Střediska a účty'''.
+
+Právo zřizuje administrátor na kartě '''Nastavení|Střediska''' zapsáním zkratky uživatele ke střediskům,
+jejichž dary je oprávněn vidět. Zobrazení volby ''jen naše'' administrátor zřídí
+na kartě '''Nastavení|Uživatelé''' volbou oprávněním '''hdks'''.
+
+[[Image:wiki/img/ck_kontakty_dary.png||]]
+
+// -------------------------------------------------------------------------------------------------- Kontakty: dar v hotovosti
+== Kontakty: dar v hotovosti ==
+Při vkládání darů v hotovosti je použito jako příjemce středisko a účet svázaný administrátorem
+s uživatelem - viz heslo ''Kontakty: seznam darů''.
+
+[[Image:wiki/img/ck_kontakty_dar_P.png||]]
+
+// -------------------------------------------------------------------------------------------------- Kontakty: dar převodem
+== Kontakty: dar převodem ==
+Pro vkládání darů došlých bankovním převodem je určen nástroj na kartě '''Dárci|Převody'''.
+
+[[Image:wiki/img/ck_kontakty_dar_B.png||]]
+
+// -------------------------------------------------------------------------------------------------- Kontakty: dar složenkou
+== Kontakty: dar složenkou ==
+Pod ''složenkou'' se v dalším rozumí ''poštovní poukázka České pošty''.
+Pro záznam daru složenku je vhodné použít fizaci údajů - viz dále.
+Pro kontrolu úplnosti rozepsání balíčku je určen nástroj na kartě '''Dárci|Složenky'''
+
+[[Image:wiki/img/ck_kontakty_dar_S.png||]]
+
+Pro snažší zapisování balíčku složenek slouží tzv ''fixace údajů''.
+Tato funkce se aktivuje v kontextovém menu detailu daru (po stisku pravého tlačítka myši) volbou
+''zapamatuj fixované údaje''.
+Fixovaná pole jsou označena modrým rámečkem a hodnoty do nich zapsané se objeví jako defaultní
+při stisku tlačítka '''Nový''' dar.
+
+[[Image:wiki/img/ck_kontakty_dar_fix.png||]]
+
+// -------------------------------------------------------------------------------------------------- Kontakty: věcný dar
+== Kontakty: věcný dar ==
+Věcný dar je možné zakládat již v době, kdy je o něj požádáno.
+Nejprve je zapotřebí stiskem tlačítka '''Nový''' připravit prázdný formulář a potom v něm zvolit
+záložku '''Věcný dar''' a zvolit žádající organizaci. Po uložení je možné stiskem ikony otevřeného
+dopisu napsat text žádosti případně již darovací smlouvy.
+
+Jako počáteční texty dopisů jsou použity vzory, které se zapisují v kartě '''Dopisy|Vzory'''.
+
+Práci editoru dopisů popisuje heslo '''Kontakty: dopisy k daru'''.
+
+[[Image:wiki/img/ck_kontakty_dar_V.png||]]
+
+// -------------------------------------------------------------------------------------------------- Kontakty: dopisy k daru
+== Kontakty: dopisy k daru ==
+V systému Ezer je na editaci formátovaného textu použit editor ''CKeditor''.
+Pracuje se s ním podobně jako s Wordem.
+
+Nejdůležitější klávesové zkratky
+
+; Enter         : další text bude v novém odstavci
+; Shift+Enter   : další text začne na novém řádku (bez oddělení odstavce)
+; Ctrl+Z        : podobně jako ve Wordu vrátí provedené změny o krok zpět
+; Ctrl+C        : zapamatuje označený text (vznikna jako ve Wordu klávesou Shift a šipkami)
+; Ctrl+V        : vloží zapamatovaný text
+; Ctrl+B        : označený text naformátuje jako tučné písmo
+; Ctrl+I        : označený text naformátuje jako kurzívu
+
+Pokud je kopírován text z Wordu, je vhodné k tomu použít první tlačítko - viz obrázek.
+
+Tlačítko z nápisem '''Zdoj''' přepíná mezi normálním zobrazením a zobrazením HTML kódu.
+Pokud se neorientujete v HTML jazyce, raději je nepoužívejte. Je určeno spíše pro úpravy
+vzorů dopisů.
+
+[[Image:wiki/img/ck_kontakty_dopis.png||]]
+
+// -------------------------------------------------------------------------------------------------- Dary
+== Dary ==
+Část aplikace pro práci s dary. Zobrazený seznam darů lze ovládat analogicky jako seznam kontaktů
+a seznam darů na kartě '''Kontakty'''. Narozdíl od karty '''Kontakty''' však pracuje se všemi dary,
+bez ohledu na osobu dárce.
+
+Tato karta spolupracuje s kartou '''Složenky''' při zobrazení
+
+[[Image:wiki/img/ck_dary_celek.png||]]
+
+// -------------------------------------------------------------------------------------------------- Dary: detail
+== Dary: detail ==
+
+[[Image:wiki/img/ck_dary_dary.png||]]
+
+// -------------------------------------------------------------------------------------------------- Převody
+== Převody ==
+Část aplikace pro práci s dary došlými přes bankovní převod.
+
+[[Image:wiki/img/ck_prevody.png||]]
+
+// -------------------------------------------------------------------------------------------------- Složenky
+== Složenky ==
+Část aplikace pro práci s dary došlými složenkou (poukázkou České pošty).
+
+[[Image:wiki/img/ck_slozenky.png||]]
+
+// -------------------------------------------------------------------------------------------------- Informace
+== Informace ==
+Zobrazení souhrných informací o dárcích v tabulkové formě.
+
+[[Image:wiki/img/ck_informace_1.png||]]
+
+K dispozici je také grafické zobrazení údajů ve formě přehledových mapek, dělených podle okresů.
+
+[[Image:wiki/img/ck_informace_2.png||]]
+
