@@ -78,7 +78,7 @@ panel dop {type:'right', title:"Vzory/šablony", _sys:'*'
     proc append(n) {
       note.set(conc(note.get,n))
     }
-    label working [360,140,64,64] { title:"<img src='chap/img/spinner.gif'>",
+    label working [360,140,64,64] { title:"<img src='ch/img/spinner.gif'>",
       style:'z-index:999', format:'n' }
     proc work(on) { working.display(on) }
   }

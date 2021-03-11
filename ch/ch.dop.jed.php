@@ -1823,7 +1823,7 @@ function dop_mail_detach($id_dopis,$i) { trace();
   $names= explode(',',select('prilohy','dopis',"id_dopis=$id_dopis"));
                                                         debug($names,"names");
   list($name,$length)= explode(':',$names[$i]);
-  $file= "$ezer_path_root/docs/chap/bulletiny/$name";
+  $file= "$ezer_path_root/docs/ch/bulletiny/$name";
                                                         display("?= unlink($file)");
   $ok= @unlink($file);
                                                         display("$ok= unlink($file)");
@@ -1900,7 +1900,7 @@ function dop_mail_send($kolik,$id_dopis,$id_mail,$name,$zkus='') { trace();
       $dbg_prilohy= array();
       $bulletin= '';
       if ( count($prilohy) ) foreach ( $prilohy as $fname ) {
-        $fpath= "$ezer_path_root/docs/chap/bulletiny/$fname";
+        $fpath= "$ezer_path_root/docs/ch/bulletiny/$fname";
         $dbg_prilohy[]= $fpath;
         $bulletin.= " $fname";
         $mail->AddAttachment($fpath);

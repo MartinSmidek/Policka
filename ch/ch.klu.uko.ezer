@@ -146,9 +146,9 @@ form _ukoly [,,400,50] {
   button vytvor_ukol [L_ukol+8,T_butt+8,,] { tag:'be', title:'Nový úkol'
     help:'naplní položky základními hodnotami, vlastní vytvoření se provede uložením změn'
     proc onclick () {
-      confirm("Nový úkol se bude týkat kontaktu č.",chap.klu.cle.curr_clen(1),chr(10),
-        chap.klu.cle.curr_clen(2),chr(10),"nastaveného na kartě Kontakty");
-      ukol_novy(chap.klu.cle.curr_clen(1),chap.klu.cle.curr_clen(2));
+      confirm("Nový úkol se bude týkat kontaktu č.",ch.klu.cle.curr_clen(1),chr(10),
+        ch.klu.cle.curr_clen(2),chr(10),"nastaveného na kartě Kontakty");
+      ukol_novy(ch.klu.cle.curr_clen(1),ch.klu.cle.curr_clen(2));
       _form_state('bc','be|br')
     }
   }

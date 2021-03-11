@@ -1,6 +1,6 @@
 <?php
 
-$ezer_root= 'chap';
+$ezer_root= 'ch';
 
 if ( !isset($_SESSION) ) session_start();
 

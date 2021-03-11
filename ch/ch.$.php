@@ -751,7 +751,7 @@ function okresy_show ($okresy,$scale=1,$img_atr='',$bgcolor='0,255,255',$method=
     if ( $bgcolor ) $_SESSION['mapy'][$mapa]['bgcolor']= $bgcolor;
     $_SESSION['mapy'][$mapa]['scale']= $scale;
     $text.= "\n<map name='$id'>$map\n</map>";
-    $text.= "<img $img_atr src='chap/map/map_png.php?rand=".mt_rand()."&mapa=$mapa' border=0 usemap='#$id'/>";
+    $text.= "<img $img_atr src='ch/map/map_png.php?rand=".mt_rand()."&mapa=$mapa' border=0 usemap='#$id'/>";
 //                                                 debug($_SESSION['mapy'][$mapa],'mapa');
     break;
   case 'get':
@@ -765,7 +765,7 @@ function okresy_show ($okresy,$scale=1,$img_atr='',$bgcolor='0,255,255',$method=
     }
     $text.= "\n<map name='$id'>$map\n</map>";
     $_url= "mapa=$_mapa&bg=$_bg&scal=$_scale&parm=$_parm&rand=".mt_rand();
-    $text.= "<img $img_atr src='chap/map/map_png2.php?$_url' border=0 usemap='#$id'/>";
+    $text.= "<img $img_atr src='ch/map/map_png2.php?$_url' border=0 usemap='#$id'/>";
 //                                                 display($_url);
     break;
   }

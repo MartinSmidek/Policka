@@ -12,9 +12,9 @@
   $rel_root=     $_SESSION[$ezer_root]['rel_root'];
   chdir($abs_root);
 
-//  // rozlišení ostré verze a serveru proglas/chap
+//  // rozlišení ostré verze a serveru proglas/ch
 //  $ezer_local= preg_match('/^\w+\.bean$/',$_SERVER["SERVER_NAME"])?1:0;
-//  $chap= in_array($_SERVER["SERVER_NAME"],array("mail.telepace.cz","192.168.100.7","217.64.3.170"))?1:0;
+//  $ch= in_array($_SERVER["SERVER_NAME"],array("mail.telepace.cz","192.168.100.7","217.64.3.170"))?1:0;
 
   // inicializace objektu Ezer
   $EZER= (object)array(
@@ -37,11 +37,11 @@
     )[$ezer_server];
 
   // parametry aplikace Ark
-  $db= array('ezer_chap'); // pro ostrý server jméno db vynecháno
+  $db= array('ezer_ch'); // pro ostrý server jméno db vynecháno
   $dbs= array(
     array( // lokální
-      'ezer_chap'   => array(0,'localhost','gandi','radost','utf8','ezer_chap'),
-      'ezer_system' => array(0,'localhost','gandi','radost','utf8','ezer_chap','no dump'),
+      'ezer_ch'   => array(0,'localhost','gandi','radost','utf8','ezer_ch'),
+      'ezer_system' => array(0,'localhost','gandi','radost','utf8','ezer_ch','no dump'),
       'ezer_kernel' => array(0,'localhost','gandi','radost','utf8','','no dump')
     )
   );
@@ -50,13 +50,13 @@
   // PHP moduly aplikace Ark
   $app_php= array(
 //    "ck/ck.dop.php", ?
-    "chap/chap.dop.jed.php",
-    "chap/chap.$.php",
-    "chap/chap.klu.php",
-    "chap/chap.klu.pre.php",
-    "chap/chap.eko.php",
-    "chap/chap_pdf.php",
-    "chap/chap_tcpdf.php"
+    "ch/ch.dop.jed.php",
+    "ch/ch.$.php",
+    "ch/ch.klu.php",
+    "ch/ch.klu.pre.php",
+    "ch/ch.eko.php",
+    "ch/ch_pdf.php",
+    "ch/ch_tcpdf.php"
   );
   
   // PDF knihovny

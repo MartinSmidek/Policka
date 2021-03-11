@@ -11,9 +11,9 @@
 
   // parametry aplikace FiS
   $app_name=  "Polička";
-  $app_root=  'chap';
-  $app_js=    array('/chap/chap_user.js');
-  $app_css=   array('/chap/chap.css.php=skin',"/$kernel/client/wiki.css");
+  $app_root=  'ch';
+  $app_js=    array('/ch/ch_user.js');
+  $app_css=   array('/ch/ch.css.php=skin',"/$kernel/client/wiki.css");
   $skin=      'ck';
   $title_style= $ezer_server==0 ? " style='color:#ef7f13'" : '' ;
   $title_flag=  $ezer_server==0 ? 'lokální' : '';
@@ -32,7 +32,7 @@
       . "<br/>Za spolupráci děkuje <br/>Martin";
 
   $favicon= array(
-      "chap_local.png"
+      "ch_local.png"
     )[$ezer_server];
 
   $add_pars= array(

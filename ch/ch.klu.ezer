@@ -421,14 +421,14 @@ form _dar [,,565,240] {
   field darce   [48,159,166,17]  { data:d.darce },
   field dar_dne [467,103,87,17]  { format:'RUxr', type:'date', data:d.castka_kdy }
   // potvrzení
-  label pot_open [448,131,16,15] { tag:'d', title:"<img src='chap/img/letter_open.png'>", format:'n'
+  label pot_open [448,131,16,15] { tag:'d', title:"<img src='ch/img/letter_open.png'>", format:'n'
     help:"Vytvoření a tisk potvrzení o přijetí daru"
     proc onclick() {
       Tisk.dop.set(ask('dop_gener_new','potvrz',id_clen.get,iddar.get,pot_dne.get,pot_dne.changed));
       { Tisk.modal(0,0,this.help); _dopis_uloz('potvrz')
       | echo('ne')
   } } }
-  label pot_close [448,131,16,15] { tag:'d', title:"<img src='chap/img/letter_closed.png'>", format:'n'
+  label pot_close [448,131,16,15] { tag:'d', title:"<img src='ch/img/letter_closed.png'>", format:'n'
     help:"Oprava dříve vygenerovaného textu potvrzení a jeho opakovaný tisk"
     proc onclick() {
       Tisk.dop.set(ask('dop_gener_load','potvrz',iddar.get));
@@ -464,13 +464,13 @@ form _dar [,,565,240] {
   edit  popis    [47,79,320,72] { tag:'v', data:d.popis, format:'n' },
   // žádost
   field zad_dne [467,26,87,16]  { tag:'v', type:'date', data:d.zadost_kdy, format:'URr' }
-  label zad_open [448,26,16,15] { tag:'d', title:"<img src='chap/img/letter_open.png'>", format:'n'
+  label zad_open [448,26,16,15] { tag:'d', title:"<img src='ch/img/letter_open.png'>", format:'n'
     help:"Vytvoření a tisk žádosti o věcný dar"
     proc onclick() {
       Tisk.dop.set(ask('dop_gener_new','zadost',id_clen.get,iddar.get,zad_dne.get,zad_dne.changed));
       Tisk.modal(0,0,this.help); _dopis_uloz('zadost')
   } }
-  label zad_close [448,26,16,15] { tag:'d', title:"<img src='chap/img/letter_closed.png'>", format:'n'
+  label zad_close [448,26,16,15] { tag:'d', title:"<img src='ch/img/letter_closed.png'>", format:'n'
     help:"Oprava dříve vygenerované žádosti o věcný dar a její opakovaný tisk"
     proc onclick() {
       Tisk.dop.set(ask('dop_gener_load','zadost',iddar.get));
@@ -478,13 +478,13 @@ form _dar [,,565,240] {
   } }
   # ==> . smlouva
   field sml_dne [467,52,87,16] { tag:'v', type:'date', data:d.smlouva_kdy, format:'URr' }
-  label sml_open [448,52,16,15] { tag:'d', title:"<img src='chap/img/letter_open.png'>", format:'n'
+  label sml_open [448,52,16,15] { tag:'d', title:"<img src='ch/img/letter_open.png'>", format:'n'
     help:"Vytvoření a tisk darovací smlouvy"
     proc onclick() {
       Tisk.dop.set(ask('dop_gener_new','smlouva',id_clen.get,iddar.get,sml_dne.get,sml_dne.changed));
       Tisk.modal(0,0,this.help); _dopis_uloz('smlouva')
   } }
-  label sml_close [448,52,16,15] { tag:'d', title:"<img src='chap/img/letter_closed.png'>", format:'n'
+  label sml_close [448,52,16,15] { tag:'d', title:"<img src='ch/img/letter_closed.png'>", format:'n'
     help:"Oprava dříve vygenerované darovací smlouvy a její opakovaný tisk"
     proc onclick() {
       Tisk.dop.set(ask('dop_gener_load','smlouva',iddar.get));
@@ -751,7 +751,7 @@ form _ukoly [,,400,50] {
     proc onclick() { href(conc('klu.uko.ukol_show/',id_ukol.get,'/',u_kdo.get,'/',u_komu.key)) }
   }
   # --------------------------- tlačítka a jejich obsluha - nezobrazuje se v Dary
-  # jsou dostupné pouze, pokud je formulář vnořen do chap.cle (pak je dostupný C_clen)
+  # jsou dostupné pouze, pokud je formulář vnořen do ch.cle (pak je dostupný C_clen)
   label [0,t_butt-26,399,52] { tag:'b', css:'ae_work', format:'n' }
   proc _form_state(on,off) {
     form.enable(1,on); form.enable(0,off);
@@ -827,7 +827,7 @@ form _zpravy [,,400,50] {
   label [291,t_butt-0,50,] { tag:'y', title:'kdy', format:'n' }
   field z_kdy [311,t_butt-3,80,] { tag:'y', type:'date', data:z.kdy_z, format:'n' }
   # --------------------------- tlačítka a jejich obsluha - nezobrazuje se v Dary
-  # jsou dostupné pouze, pokud je formulář vnořen do chap.cle (pak je dostupný C_clen)
+  # jsou dostupné pouze, pokud je formulář vnořen do ch.cle (pak je dostupný C_clen)
   label [0,t_butt-26,399,52] { tag:'b', css:'ae_work', format:'n' }
   proc _form_state(on,off) {
     form.enable(1,on); form.enable(0,off);

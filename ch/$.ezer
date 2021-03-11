@@ -6,7 +6,7 @@
 #   .dirty   -- vynutí v onfocus refresh
 var modul_state:object
 
-menu chap { type:'main', active:*
+menu ch { type:'main', active:*
   const plus = 0,                       // rozšíření karet - jednotkou je výška řádku browse
         klu_cle_cleni = 13,
         klu_cle_dary = 334,
@@ -29,7 +29,7 @@ menu chap { type:'main', active:*
             proc onclick (i) {
               info.fill(replace_fa(conc(i.owner.title,' - ',i.title)),"<br>
                 Zjednodušené schema databáze<br><br>
-                <img src='chap/img/schema_db_2021.png' />
+                <img src='ch/img/schema_db_2021.png' />
               ");
             }
           }
@@ -141,7 +141,7 @@ menu chap { type:'main', active:*
     modul_state= {klu:0,dop:0,ban:0,pok:0,eko:0,syst:0,doc:0};
   }
   # pokud je modul aktivní, nastaví mu dirty=1 aby došlo k překreslení obsahu při onfocus
-  # jméno modulu je zřetězením id od chap (nevčetně)
+  # jméno modulu je zřetězením id od ch (nevčetně)
   proc dirty (mod) {
     modul_state.get(mod); modul_state.set(1,conc(mod,'.dirty'));
   }
@@ -167,7 +167,7 @@ form right [,,*,50] {
   proc append(n) {
     note.set(conc(note.get,n))
   }
-  label working [348,256,64,64] { title:"<img src='chap/img/spinner.gif'>",
+  label working [348,256,64,64] { title:"<img src='ch/img/spinner.gif'>",
     style:'z-index:999', format:'n' }
   proc work(on) { working.display(on) }
 }
