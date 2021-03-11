@@ -1,0 +1,1245 @@
+# ------------------------------------------------------------------------------------------------ #
+# Modul Korespondence                                                                              #
+# Karta pro dávkový tisk daňových potvrzení II - po 31.8.2013                                      #
+#                                                                                                  #
+# Ezer/CK                                                (c) 2013 Martin Šmídek <martin@smidek.eu> #
+# ------------------------------------------------------------------------------------------------ #
+
+
+# ----------------------------------------------------------------------------------==> inicializace
+
+var k_dirty: number       // příznak inicializace
+proc onstart() { [k_dirty.get|_init];  m.g.i.click }
+proc _init() { k_dirty.set(1);
+  the_davka.set(object('isset',0));  the_davkaF.set(object('isset',0));
+  the_davkaA.set(object('isset',0)); the_davkaQ.set(object('isset',0));
+}
+
+# -------------------------------------------------------------------------------------==> const+var
+
+# var jcd_cond: text
+# var J_davka: text
+var J_clen: number
+var mode_PQ: text       // P=potvrzení fyzickým osobám, Q=potvrzení firmám
+
+use ii:  form right [12,4,,]
+use nasP:form _nas  [10,40,,]        { tag:'nasP',  format:'n' } // období - potv osoby
+use cmp: form _cmd_potv [600,85,,]   { tag:'potv',  format:'n' } // cmd: potv poštou
+use cmB: form _cmd_bull [600,85,,]   { tag:'bull',  format:'n' } // cmd: bull poštou
+use cmM: form _cmd_mail [12,40,,]    { tag:'mail',  format:'n' } // cmd: bull mailem + kontakty,dary
+use nasQ:form _nasQ [10,40,,]        { tag:'nasQ',  format:'n' } // období - potv firmy
+use cmQ: form _cmd_potQ [600,85,,]   { tag:'potQ',  format:'n' } // cmd: potv firmy
+use nasA:form _nasA [10,40,,]        { tag:'nasA',  format:'n' } // období - potv opravy
+use cmA: form _cmd_again [600,85,,]  { tag:'again', format:'n' } // cmd: potv opravy
+use nasF:form _nasF [10,40,,]        { tag:'nasF',  format:'n' } // období - obesílání firem
+use cmF: form _cmd_firm [600,85,,]   { tag:'firm',  format:'n' } // cmd: obesílání firem
+# use vy:  form _vyber [12,40,,]       { tag:'sql1',  format:'n' } // SQL
+# use sql: form _sql [12,40,,]         { tag:'sql2',  format:'n' } // SQL
+use jcd: form _cleni_dary [10,70,,]  { tag:'cleni', format:'n' } // vybrané kontakty a jejich dary
+
+# ------------------------------------------------------------------------------------------==> MENU
+
+var the_davka: object
+var last_item: object
+var the_davkaQ: object
+var last_itemQ: object
+var the_davkaF: object
+var last_itemF: object
+var the_davkaA: object
+var last_itemA: object
+var last_x: text
+var last_y: text
+func roky(n) {
+  return js.je_1_2_5(n,'rok,roky,roků');
+//  return(function('n',"return je_1_2_5(n,'rok,roky,roků');",n));
+}
+proc refresh_zpet() {
+  nasP.rok_zpet.set(conc(roky(nasP.let_zpet.get),' zpět (od 1.1.',
+    sum(substr(nasP.od.get,-4),minus(nasP.let_zpet.get)),')'));
+}
+proc refresh_title(i) {
+  nasP.sel.key; ii.fill(conc(i.owner.title,' - ',nasP.nazev.get,' - ',i.title),' ');
+  refresh_zpet;
+  m.g.m.enable(nasP.mailem.get);
+| ii.fill(conc(i.owner.title,' - nastavte prosím napřed období zamýšleného rozesílání'),' ');
+}
+proc refresh_titleQ(i) {
+  nasQ.sel.key; ii.fill(conc(i.owner.title,' - ',nasQ.nazev.get,' - ',i.title),' ');
+| ii.fill(conc(i.owner.title,' - nastavte prosím napřed období zamýšleného rozesílání'),' ');
+}
+proc refresh_titleF(i) {
+  nasF.sel.key; ii.fill(conc(i.owner.title,' - ',nasF.nazev.get,' - ',i.title),' ');
+| ii.fill(conc(i.owner.title,' - nastavte prosím napřed období zamýšleného rozesílání'),' ');
+}
+proc refresh_titleA(i) {
+  nasA.sel.key; ii.fill(conc(i.owner.title,' - ',nasA.nazev.get,' - ',i.title),' ');
+| ii.fill(conc(i.owner.title,' - nastavte prosím napřed období zamýšleného rozesílání'),' ');
+}
+proc refresh_obdobiP() {
+  ii.fill('',' '); panel.display(2,'nasP');
+  nasP.resume.set('... načítá se přehled');
+  nasP.sel.key(get_cookie(conc(sys('root'),'_kor_pot_sel'),0)); nasP.sel.change;
+  the_davka.set(ask('dop_pot2_switch',the_davka.get,last_item.get('options.par')));
+  nasP.resume.set(the_davka.get('resume'));
+}
+
+menu m {type:'left', format:'f+'
+  // ------------------------------------------------------------- potvrzení a Bulletiny
+  menu g {title:'Potvrzení a Bulletin', _sys:'pot', type:'group'
+    // nastavení období = výběr potvrzujícího dopisu a zápis/oprava parametrů
+    item i {title:'Nastavené období'    ,par:°{alg:'infoP'}
+      proc onclick(i) {
+        last_item.set(i);
+        refresh_obdobiP;
+#         ii.fill('',' '); panel.display(2,'nasP');
+#         nasP.resume.set('... načítá se přehled');
+#         nasP.sel.key(get_cookie(conc(sys('root'),'_kor_pot_sel'),0)); nasP.sel.change;
+#         the_davka.set(ask('dop_pot2_switch',the_davka.get,i.par));
+#         nasP.resume.set(the_davka.get('resume'));
+    }}
+    // generování a tisk potvrzení pro dárce jedinému středisku ==> . potv PDF
+//    item {title:'Potvrzení - jen Hospic'   ,par:°{alg:'potv',potv:1,stred:"_stred='1'",
+//                                                 note:'jen Hospice', cmd:'H', x:'Pj', y:'ZPjH'} }
+//    item {title:'Potvrzení - jen Žireč'    ,par:°{alg:'potv',potv:2,stred:"_stred='2'",
+//                                                 note:'jen Žirče',   cmd:'Z', x:'Pj', y:'ZPjZ'} }
+    item {title:'Potvrzení - jen Charita'  ,par:°{alg:'potv',potv:3,stred:"_stred='3'",
+                                                 note:'jen Charity', cmd:'C', x:'Pj', y:'ZPjC'} }
+//    // generování a tisk potvrzení pro dárce více středisek
+//    item {title:'Potvrzení - směs'         ,par:°{alg:'potv',potv:'mix', x:'Ps', y:'ZPs',
+//                                                stred:"_stred IN ('1,2','1,3','2,3','1,2,3')",
+//                                                 note:'více středisek', cmd:'H|Z|C'} }
+//    item {title:'Potvrzení - NEURČENÉ'     ,par:°{alg:'potv',potv:'mix',stred:"LEFT(_stred,1)='0'",
+//                                                 note:'- POZOR! Není určen příjemce daru ... '} }
+//    // generování a tisk adres pro příjemce Bulletinu bez potvrzení ==> . bull PDF
+//    item {title:'Bulletin poštou - Hospic'  ,par:°{alg:'bull',bull:1, x:'BH', y:'ZBH',
+//                                                 stred:"=1",note:' Hospice'} }
+//    item {title:'Bulletin poštou - Žireč'   ,par:°{alg:'bull',bull:2, x:'BZ', y:'ZBZ',
+//                                                 stred:"=2",note:' Žirče'} }
+    item {title:'Bulletin poštou - Charita' ,par:°{alg:'bull',bull:3, x:'BC', y:'ZBC',
+                                                 stred:">=3",note:' Charity'} }
+//    item {title:'Bulletin poštou - NEURČENÉ',par:°{alg:'bull',bull:3, x:'B',
+//                                                 stred:"=0",
+//                                                  note:'- POZOR! Není určen příjemce daru ... '} }
+    // generování a zaslání Bulletinu mailem (bez potvrzení) ==> . bull MAIL
+    item m {title:"Bulletin mailem - pro 'jen mailem'",par:°{alg:'mail'},_sys:'mail'
+      proc onclick(i) {
+        panel.display(2,'mail'); cmM.dcleni.show_msg(0); cmM.dcleni.init_queries(0);
+        last_item.set(i); refresh_title(i);
+        nasP.sel.key;
+        reload_mail;
+      }
+    }
+    proc onclick(i) {
+      var state: object
+      jcd.dary.browse_init; jcd.dcleni.browse_init; jcd.again.set(0);
+      last_item.set(i); last_x.set(i.par.x); last_y.set(i.par.y); mode_PQ.set('P');
+      refresh_title(i); panel.display(2,conc('cleni|',i.par.alg));
+      // obecné povolení tlačítek generování potvrzení
+      [ eq(i.par.alg,'potv'); cmp.get.enable(0,'H|Z|C'); cmp.get.enable(1,i.par.cmd) ];
+      [ eq(i.par.alg,'bull'); cmp.get.enable(0,'B') ];
+      // povolení tlačítek zpětného zápisu, je-li vše vygenerováno
+      state.set(ask('dop_pot_hist_can',the_davka.get));
+      cmp.get.enable(state._all_gen,'hist'); cmB.get.enable(state._all_gen,'hist');
+      // zakázání tlačítek generování, začalo-li se se zpětným zápisem
+      [ state._any_back; cmp.get.enable(0,'H|Z|C'); cmB.get.enable(0,'B') ];
+      // zakázání již použitých tlačítek zpětného zápisu
+      [ eq(state.ZPjH,1); eq(last_y.get,'ZPjH'); cmp.get.enable(0,'hist') ];
+      [ eq(state.ZPjZ,1); eq(last_y.get,'ZPjZ'); cmp.get.enable(0,'hist') ];
+      [ eq(state.ZPjC,1); eq(last_y.get,'ZPjC'); cmp.get.enable(0,'hist') ];
+      [ eq(state.ZPs,1);  eq(last_y.get,'ZPs');  cmp.get.enable(0,'hist') ];
+      [ eq(state.ZBH,1);  eq(last_y.get,'ZBH');  cmB.get.enable(0,'hist') ];
+      [ eq(state.ZBZ,1);  eq(last_y.get,'ZBZ');  cmB.get.enable(0,'hist') ];
+      [ eq(state.ZBC,1);  eq(last_y.get,'ZBC');  cmB.get.enable(0,'hist') ];
+      nasP.sel.key;
+      panel.call(conc('reload_',i.par.alg),i.par.stred,i.par);
+    }
+    proc test_call() {
+      panel.call('test_call');
+    }
+  }
+  // -------------------------------------------------------------==> . potv firmám
+  menu f {title:'Potvrzení firmám', _sys:'pot', type:'group'
+    // nastavení období = výběr potvrzujícího dopisu a zápis/oprava parametrů
+    item i {title:'Nastavené období'    ,par:°{alg:'infoP',alg_par:'firmy'}
+      proc onclick(i) {
+        last_itemQ.set(i); ii.fill('',' '); panel.display(2,'nasQ');
+        nasQ.resume.set('... načítá se přehled');
+        nasQ.sel.key(get_cookie(conc(sys('root'),'_kor_pot_selQ'),0)); nasQ.sel.change;
+        the_davkaQ.set(object('id_davka',nasQ.sel.key,'resume',' '));
+        the_davkaQ.set(ask('dop_pot2_switch',the_davkaQ.get,i.par));
+        nasQ.resume.set(the_davkaQ.get('resume'));
+    }}
+    // generování a tisk potvrzení pro dárce jedinému středisku
+//    item {title:'Potvrzení - jen Hospic'   ,par:°{potv:1,stred:"_stred='1'",
+//                                                 note:'jen Hospice', cmd:'H', x:'Pj', y:'ZPjH'} }
+//    item {title:'Potvrzení - jen Žireč'    ,par:°{potv:2,stred:"_stred='2'",
+//                                                 note:'jen Žirče',   cmd:'Z', x:'Pj', y:'ZPjZ'} }
+    item {title:'Potvrzení - jen Charita'  ,par:°{potv:3,stred:"_stred='3'",
+                                                 note:'jen Charity', cmd:'C', x:'Pj', y:'ZPjC'} }
+    // generování a tisk potvrzení pro dárce více středisek
+//    item {title:'Potvrzení - směs'         ,par:°{potv:'mix', x:'Ps', y:'ZPs',
+//                                                stred:"_stred IN ('1,2','1,3','2,3','1,2,3')",
+//                                                 note:'více středisek', cmd:'H|Z|C'} }
+//    item {title:'Potvrzení - NEURČENÉ'     ,par:°{potv:'mix',stred:"LEFT(_stred,1)='0'",
+//                                                 note:'- POZOR! Není určen příjemce daru ... '} }
+    proc onclick(i) {
+      var state: object
+      jcd.dary.browse_init; jcd.dcleni.browse_init; jcd.again.set(0);
+      last_itemQ.set(i); last_x.set(i.par.x); last_y.set(i.par.y); mode_PQ.set('Q');
+      refresh_titleQ(i); panel.display(2,'cleni|potQ');
+      // obecné povolení tlačítek generování potvrzení
+      cmQ.get.enable(0,'H|Z|C'); cmQ.get.enable(1,i.par.cmd);
+      // povolení tlačítek zpětného zápisu, je-li vše vygenerováno
+      state.set(ask('dop_pot_hist_can',the_davkaQ.get));
+      cmQ.get.enable(state._all_gen,'hist');
+      // zakázání tlačítek generování, začalo-li se se zpětným zápisem
+      [ state._any_back; cmQ.get.enable(0,'H|Z|C'); ];
+      // zakázání již použitých tlačítek zpětného zápisu
+      [ eq(state.ZPjH,1); eq(last_y.get,'ZPjH'); cmQ.get.enable(0,'hist') ];
+      [ eq(state.ZPjZ,1); eq(last_y.get,'ZPjZ'); cmQ.get.enable(0,'hist') ];
+      [ eq(state.ZPjC,1); eq(last_y.get,'ZPjC'); cmQ.get.enable(0,'hist') ];
+      [ eq(state.ZPs,1);  eq(last_y.get,'ZPs');  cmQ.get.enable(0,'hist') ];
+      nasQ.sel.key;
+                                                echo("nasQ.od,do=",nasQ.od.get,",",nasQ.do.get);
+      reload_potv_fa(i.par.stred,i.par);
+    }
+  }
+  // ----------------------------------------------------- opravné tisky potvrzení ==> . potv opravy
+  menu {title:'opravné tisky potvrzení', _sys:'opr', type:'group'
+    // nastavení období = výběr potvrzujícího dopisu
+    item i {title:'Nastavené období'    ,par:°{alg:'read'}
+      proc onclick(i) {
+        last_itemA.set(i); ii.fill('',' '); panel.display(2,'nasA');
+        nasA.sel.key(get_cookie(conc(sys('root'),'_kor_pot_selE'),0)); nasA.sel.change;
+        the_davkaA.set(ask('dop_pot2_switch',the_davkaA.get,i.par));
+    }}
+    // generování a tisk potvrzení pro dárce více středisek
+    item {title:'Potvrzení vybraným dárcům'
+      proc onclick(i) {
+        var state: object
+        jcd.dary.browse_init; jcd.dcleni.browse_init; jcd.again.set(1);
+        last_itemA.set(i);
+        refresh_titleA(i); panel.display(2,'cleni|again');
+        nasA.sel.key;
+        reload_potv_again;
+      }
+    }
+  }
+  // -------------------------------------------------------------==> . pošta firmy
+  // Bj? = odkazy na soubory - firmy letos daly   (?=H|Z|C)
+  // B?  = odkazy na soubory - firmy letos nedaly (?=H|Z|C)
+  menu {title:'Obesílání firem', _sys:'fir', type:'group', skill:'a'
+    // nastavení období = výběr potvrzujícího dopisu a zápis/oprava parametrů
+    item i {title:'Nastavené období'    ,par:°{alg:'infoF'}
+      proc onclick(i) {
+        last_itemF.set(i); ii.fill('',' '); panel.display(2,'nasF');
+        nasF.resume.set('... načítá se přehled');
+        nasF.sel.key(get_cookie(conc(sys('root'),'_kor_pot_selF'),0)); nasF.sel.change;
+        the_davkaF.set(ask('dop_pot2_switch',the_davkaF.get,i.par));
+        nasF.resume.set(the_davkaF.get('resume'));
+    }}
+//    item {title:'dárci - Hospic (staré dary)'   ,par:°{alg:'firm',letos:0,bull:1,x:'BH',y:'ZBH',
+//                                                 stred:"_stred IN ('1','1,3')",note:' Hospice'} }
+//    item {title:'dárci - Hospic (čerstvé dary)' ,par:°{alg:'firm',letos:1,bull:1,x:'PjH',y:'ZPjH',
+//                                                 stred:"_stred IN ('1','1,3')",note:' Hospice'} }
+//    item {title:'dárci - Žireč (staré dary)'    ,par:°{alg:'firm',letos:0,bull:2,x:'BZ',y:'ZBZ',
+//                                                 stred:"_stred IN ('2','2,3')",note:' Žirče'} }
+//    item {title:'dárci - Žireč (čerstvé dary)'  ,par:°{alg:'firm',letos:1,bull:2,x:'PjZ',y:'ZPjZ',
+//                                                 stred:"_stred IN ('2','2,3')",note:' Žirče'} }
+    item {title:'dárci - Charita (staré dary)'  ,par:°{alg:'firm',letos:0,bull:3,x:'BC',y:'ZBC',
+                                                 stred:"_stred IN ('3','1,2','1,2,3')",note:' Charity'} }
+    item {title:'dárci - Charita (čerstvé dary)',par:°{alg:'firm',letos:1,bull:3,x:'PjC',y:'ZPjC',
+                                                 stred:"_stred IN ('3','1,2','1,2,3')",note:' Charity'} }
+//    item {title:'dárci - NEURČENÉ'              ,par:°{alg:'firm',letos:3,bull:0,neurcene:1,
+//                                                 stred:"LEFT(_stred,1)='0'",
+//                                                 note:'- POZOR! Není určen příjemce daru ... '} }
+    item {title:'neobeslané firmy'              ,par:°{alg:'firm',bull:0,stred:1,neobeslane:1} }
+    proc onclick(i) {
+      var state: object
+      jcd.dary.browse_init; jcd.dcleni.browse_init; jcd.again.set(0);
+      last_itemF.set(i); last_x.set(i.par.x); last_y.set(i.par.y);
+      refresh_titleF(i); panel.display(2,conc('cleni|',cconc(i.par.bull,i.par.alg,'-')));
+      // povolení tlačítek zpětného zápisu, je-li vše vygenerováno
+      state.set(ask('dop_pot_hist_canF',the_davkaF.get));
+      cmF.get.enable(state._all_gen,'hist');
+      // zakázání tlačítek generování, začalo-li se se zpětným zápisem
+      [ state._any_back; cmF.get.enable(0,'B') ];
+      // zakázání již použitých tlačítek zpětného zápisu
+      [ eq(state.ZPjH,1); eq(last_y.get,'ZPjH'); cmp.get.enable(0,'hist') ];
+      [ eq(state.ZPjZ,1); eq(last_y.get,'ZPjZ'); cmp.get.enable(0,'hist') ];
+      [ eq(state.ZPjC,1); eq(last_y.get,'ZPjC'); cmp.get.enable(0,'hist') ];
+      [ eq(state.ZBH,1);  eq(last_y.get,'ZBH');  cmF.get.enable(0,'hist') ];
+      [ eq(state.ZBZ,1);  eq(last_y.get,'ZBZ');  cmF.get.enable(0,'hist') ];
+      [ eq(state.ZBC,1);  eq(last_y.get,'ZBC');  cmF.get.enable(0,'hist') ];
+      nasF.sel.key;
+      panel.call(conc('reload_',i.par.alg),i.par.stred,i.par);
+    }
+  }
+#   // -------------------------------------------------------- specifické tisky ==> . SQL
+#   menu {title:'Specifické tisky', _sys:'spec', type:'group', skill:'a'
+#     item {title:'podle SQL podmínky' }
+#     proc onclick (i) {
+#       panel.display(2,'sql1');
+#       ii.fill(conc(i.owner.title,' - ',i.title),' ');
+#       vy.komu_Q.onchange
+#     }
+#     item {title:'úpravy podmínek SQL', skill:'a'
+#       proc onclick (i) {
+#         panel.display(2,'sql');
+#         ii.fill(conc(i.owner.title,' - ',i.title),' ');
+#         vy.komu_Q.onchange
+#       }
+#     }
+#   }
+}
+proc work(on) { ii.work(on) }
+# ---------------------------------------------------------------------------------------==> RELOADs
+
+proc reload_potv (cond_stred,parm) { // ------------------------------------------ ==> . reload_potv
+  var cond: text
+  var potvrz: text
+  var vanocni: number
+  jcd.ini(1,0);
+  jcd.dary.browse_init;
+  jcd.dcleni._max.set_attrib('expr',"'?'");
+  jcd.dcleni._min.set_attrib('expr',"'?'");
+  jcd.dcleni._uzp.set_attrib('expr',"'?'");
+  potvrz.set(cconc(eq(the_davka.get('druh'),'r'),"(0,1,2) ","(0,1) "));
+  vanocni.set(the_davka.get('vanocni'));
+  cond.set(conc(
+    "LEFT(c.deleted,1)!='D' AND c.umrti='0000-00-00' ",            // dárci: živí nesmazaní
+    cconc(vanocni,' ',"AND jenvanocni=0 "),                        // nejsou vánoce: vynechat jenvanocni
+    "AND c.neposilat=0 AND c.psc!='' ",                            // obeslatelní
+    "AND c.osoba IN (1,3) AND c.potvrzeni IN ",potvrz,             // fyz. a inst. s bull.; potvrz norm.
+    "AND LEFT(d.deleted,1)!='D' AND d.zpusob!=4 ",                 // dary: nesmazané finanční
+    "AND d.potvrz_kdy='0000-00-00' ",                              // nepotvrzené
+    "AND d.castka_kdy BETWEEN '",date2sql(nasP.od.get),"' AND '",date2sql(nasP.do.get),"' ",
+  ));
+  ii.fill('',conc("Budou vytištěna potvrzení zatím nepotvrzených darů zobrazených dárců ",parm.note));
+  jcd.dcleni.browse_load(cond,"c.stredisko,psc,prijmeni",cond_stred);
+  jcd.dcleni.browse_focus; jcd.dcleni.raise('onrowclick');
+}
+proc reload_bull (cond_stred,parm) { // ------------------------------------------ ==> . reload_bull
+  var cond: text
+  var vanocni: number
+  jcd.ini(1,1);
+  jcd.dary.browse_init;
+  // _max = datum nejnovějšího nepotvrzeného daru
+  jcd.dcleni._max.set_attrib('expr',conc("MAX(IF(c.potvrzeni IN (0,1),d.castka_kdy,''))"));
+  // _uzp = počet nepotvrzených darů v období
+  jcd.dcleni._uzp.set_attrib('expr',conc("SUM(IF(d.potvrz_kdy='0000-00-00' ",
+    "AND d.castka_kdy BETWEEN '",date2sql(nasP.od.get),"' AND '",date2sql(nasP.do.get),
+    "' ,1,0))"));
+  // _min = zde se nepoužije
+  jcd.dcleni._min.set_attrib('expr',"'?'");
+  vanocni.set(the_davka.get('vanocni'));
+  cond.set(conc(
+    "LEFT(c.deleted,1)!='D' AND c.umrti='0000-00-00' ",            // dárci: živí nesmazaní
+    cconc(vanocni,' ',"AND jenvanocni=0 "),                        // nejsou vánoce: vynechat jenvanocni
+    "AND c.stredisko",cond_stred," ",                              // dárci střediska
+    "AND c.neposilat=0 AND c.psc!='' ",                            // obeslatelní
+    "AND c.osoba=1  ",                                             // fyzické osoby
+    "AND c.jen_mail=0 ",                                           // poštou - ne mailem
+    "AND LEFT(d.deleted,1)!='D' ",                                 // dary: nesmazané jakékoliv
+    "AND d.castka_kdy BETWEEN '",                                  //   v období posledních 3 let
+      sum(substr(nasP.od.get,-4),minus(nasP.let_zpet.get)),"-01-01' AND '",date2sql(nasP.do.get),"' "
+  ));
+  ii.fill('',conc("Budou vytištěny adresy pro rozeslání Bulletinu ",parm.note));
+  jcd.dcleni.browse_load(cond,"c.stredisko,psc,prijmeni",
+    conc(" _max<'",date2sql(nasP.od.get),"' OR _uzp=0 "));
+  jcd.dcleni.browse_focus; jcd.dcleni.raise('onrowclick');
+}
+
+proc reload_mail () { // --------------------------------------------------------- ==> . reload_mail
+  var cond: text, idd:number
+  var vanocni: number
+  cmM.mail.ini;
+  work(1);
+  cmM.dary.browse_init;
+  // _max = datum nejnovějšího nepotvrzeného daru
+  cmM.dcleni._max.set_attrib('expr',conc("MAX(IF(c.potvrzeni IN (0,1),d.castka_kdy,''))"));
+  // _uzp = počet nepotvrzených darů v období
+  cmM.dcleni._uzp.set_attrib('expr',conc("SUM(IF(d.potvrz_kdy='0000-00-00' ",
+    "AND d.castka_kdy BETWEEN '",date2sql(nasP.od.get),"' AND '",date2sql(nasP.do.get),
+    "' ,1,0))"));
+  // _min = zde se nepoužije
+  cmM.dcleni._min.set_attrib('expr',"'?'");
+  idd.set(cmM.mail.id_dopis.get);
+  cmM.m.set_attrib('join',conc("ON m.id_clen=c.id_clen AND id_dopis='",idd,"'"));
+  vanocni.set(the_davka.get('vanocni'));
+  cond.set(conc(
+    "c.stredisko!=2 ",                                             // mimo Žireč
+    "AND LEFT(c.deleted,1)!='D' AND c.umrti='0000-00-00' ",        // dárci: živí nesmazaní
+    cconc(vanocni,' ',"AND jenvanocni=0 "),                        // nejsou vánoce: vynechat jenvanocni
+    "AND c.neposilat=0  ",                                         // obeslatelní
+    "AND c.osoba=1  ",                                             // fyzické osoby
+    "AND c.email!='' AND c.jen_mail=1 ",                           // mailem - jen označeným
+#     "AND IFNULL(id_dopis,",idd,")=",idd," ",                       // k danému dopisu
+    "AND LEFT(d.deleted,1)!='D' ",                                 // dary: nesmazané jakékoliv
+    "AND d.castka_kdy BETWEEN '",                                  //   v období posledních 3 let
+      sum(substr(nasP.od.get,-4),minus(nasP.let_zpet.get)),"-01-01' AND '",date2sql(nasP.do.get),"' "
+  ));
+#   ii.fill('',conc("Budou rozeslány Bulletiny mailem "));
+  cmM.dcleni.browse_load(cond,"c.stredisko,psc,prijmeni",
+    conc(" _max<'",date2sql(nasP.od.get),"' OR _uzp=0 "));
+  cmM.dcleni.browse_focus; cmM.dcleni.raise('onrowclick');
+  work(0);
+| work(0);
+}
+
+proc reload_potv_fa (cond_stred,parm) {  // ----------------------------------- ==> . reload_potv_fa
+  var cond: text
+  var potvrz: text
+  var vanocni: number
+  jcd.ini(1,0);
+  jcd.dary.browse_init;
+  jcd.dcleni._max.set_attrib('expr',"'?'");
+  jcd.dcleni._min.set_attrib('expr',"'?'");
+  jcd.dcleni._uzp.set_attrib('expr',"'?'");
+  potvrz.set(cconc(eq(the_davkaQ.get('druh'),'r'),"(0,1,2) ","(0,1) "));
+  vanocni.set(the_davka.get('vanocni'));
+  cond.set(conc(
+    "LEFT(c.deleted,1)!='D' AND c.umrti='0000-00-00' ",            // dárci: živí nesmazaní
+    cconc(vanocni,' ',"AND jenvanocni=0 "),                        // nejsou vánoce: vynechat jenvanocni
+    "AND c.neposilat=0 AND c.psc!='' ",                            // obeslatelní
+    "AND c.osoba=0 AND c.potvrzeni IN ",potvrz,                    // firma; potvrz norm.
+    "AND LEFT(d.deleted,1)!='D' AND d.zpusob!=4 ",                 // dary: nesmazané finanční
+    "AND d.potvrz_kdy='0000-00-00' ",                              // nepotvrzené
+    "AND d.castka_kdy BETWEEN '",date2sql(nasQ.od.get),"' AND '",date2sql(nasQ.do.get),"' ",
+  ));
+  ii.fill('',conc("Budou vytištěna potvrzení zatím nepotvrzených darů zobrazených firem ",parm.note));
+  jcd.dcleni.browse_load(cond,"c.stredisko,psc,prijmeni",cond_stred);
+  jcd.dcleni.browse_focus; jcd.dcleni.raise('onrowclick');
+}
+
+proc reload_potv_again () { // --------------------------------------------- ==> . reload_potv_again
+  var cond: text
+  var potvrz: text
+  var vanocni: number
+  jcd.ini(1,0);
+  jcd.dary.browse_init;
+  jcd.dcleni._max.set_attrib('expr',"'?'");
+  jcd.dcleni._min.set_attrib('expr',"'?'");
+  jcd.dcleni._uzp.set_attrib('expr',"'?'");
+  potvrz.set(cconc(eq(the_davka.get('druh'),'r'),"(0,1,2) ","(0,1) "));
+  vanocni.set(the_davka.get('vanocni'));
+  cond.set(conc(
+    "LEFT(c.deleted,1)!='D' AND c.umrti='0000-00-00' ",            // dárci: živí nesmazaní
+    cconc(vanocni,' ',"AND jenvanocni=0 "),                        // nejsou vánoce: vynechat jenvanocni
+    "AND c.neposilat=0 AND c.psc!='' ",                            // obeslatelní
+    "AND c.osoba IN (1,3) AND c.potvrzeni IN ",potvrz,             // fyz. a inst. s bull.; potvrz norm.
+    "AND LEFT(d.deleted,1)!='D' AND d.zpusob!=4 ",                 // dary: nesmazané finanční
+    "AND d.castka_kdy BETWEEN '",date2sql(nasA.od.get),"' AND '",date2sql(nasA.do.get),"' ",
+  ));
+  ii.fill('',"Budou vytištěna potvrzení všech darů vybraných dárců ve vybraném období");
+  jcd.dcleni.selected('clear');
+  jcd.dary.selected('clear');
+  jcd.dcleni.browse_load(cond,"c.stredisko,psc,prijmeni");
+  jcd.dcleni.browse_focus; jcd.dcleni.raise('onrowclick');
+}
+
+proc reload_firm (cond_stred,par) { // --------------------------------------------==> . reload_firm
+  var conds: object
+  jcd.ini(1,1);
+  jcd.dcleni.browse_init;
+  jcd.dary.browse_init;
+  jcd.dcleni._max.set_attrib('expr','MAX(d.castka_kdy)');
+  jcd.dcleni._min.set_attrib('expr','MIN(d.castka_kdy)');
+  jcd.dcleni._uzp.set_attrib('expr',"'?'");
+  conds.set(ask('dop_pot_fy_cond',the_davkaF.get,par));
+  [ par.bull;
+    ii.fill('',conc("Budou vytištěny firmy - dárci v ",the_davkaF.get('nazev'),
+      " střediska ",par.note));
+  | par.neobeslane;
+    ii.fill('',"Zobrazený seznam zahrnuje firmy, kterým tentokrát nebude nic zasíláno");
+    jcd.ini(0,1)
+  | ii.fill('',"Zobrazený seznam zahrnuje firmy s nezadaným příjemcem daru");
+    jcd.ini(0,1)
+  ];
+  jcd.dcleni.browse_load(conds.cond,"_stred,psc,prijmeni",conc(cond_stred,conds.letos));
+  jcd.dcleni.browse_focus; jcd.dcleni.raise('onrowclick');
+}
+# ========================================================================> OBDOBÍ - POTV+BULL OSOBY
+# výběr resp. vytvoření rozesílání a nastavení jeho parametrů = Nastavené období
+# zobrazení potřebného materiálu
+# zobrazení stavu
+form _nas [,,*,220] {
+  var key_dopis:number
+  view d: table davka
+  # data
+  label [10,0,,] { title:'<b>Zvolené období pro dárce s Bulletinem</b>' }
+  select sel [10,20,200,]  { type:'map', data:d.id_davka, options:map_davky.nazev, format:'t'
+    proc onchange() { davka_load }
+    proc davka_load() {
+      [ sel.key; form.load(sel.key);
+        nasP.resume.set('... načítá se přehled');
+        the_davka.set(sel.key,'id_davka'); set_cookie(conc(sys('root'),'_kor_pot_sel'),sel.key);
+        the_davka.set(ask('dop_pot2_switch',the_davka.get,last_item.get('options.par')));
+        nasP.resume.set(the_davka.get('resume'));
+        ulozit.enable(not(eq(the_davka.get('stav'),9)));
+      ];
+      refresh_title(last_item.get);
+  }}
+  label info [10,30,,] { title:'---' }
+  const Ld=280
+  label [Ld+8,0,,] { title:'<b>Parametry zvoleného období</b>' }
+  label [Ld,19,285,141] { css:'ae_work' }
+  label [Ld+8,23,230,] { title:'období ve kterém budou potvrzovány dary' }
+  field od [Ld+8,40,85,] { type:'date', data:d.datum_od }
+  field do [Ld+109,40,85,] { type:'date', data:d.datum_do }
+  field let_zpet [Ld+132,62,15,] { data:d.let_zpet, format:'r', value:'3'
+    title:"poslat Bulletin dárcům "
+    proc onchange() { refresh_zpet }}
+  label rok_zpet [Ld+153,65,130,]
+  check mailem [Ld+3,76,277,] { data:d.mailem, title:'použít i mailovou rozesílku bulletinu', value:'0' }
+  check vanocni [Ld+3,96,277,] { data:d.vanocni, title:'vánoční Bulletin', value:'0' }
+  label [Ld+8,121,,] { title:'název období (vznikne automaticky)' }
+  field nazev [Ld+8,137,200,] { data:d.nazev, format:'o' }
+  field druh { data:d.druh }
+  field pro  { data:d.pro }
+  field stav { data:d.stav }
+  field id_dopis { data:d.id_dopis }
+  label resume [10,168,600,200]
+  # ovládání
+  label [6,55,146,33] { css:'ae_parm' }
+  button [13,63,,] { title:'Nové období'
+    proc onclick() { form.init(1);
+      resume.set('');
+      ulozit.enable(1);
+      the_davka.set(°{stav:0});
+#       info.set('Definice parametrů nového rozesílání');
+  }}
+  button ulozit [103,63,,] { title:'Uložit'
+    proc onclick() {
+      form.same
+    | od.get; eq(fdate('Y',od.get),fdate('Y',do.get));    // je stejný rok?
+      [ or(od.changed,do.changed); make_nazev; nazev.change; druh.change ];
+      { // oprava
+        form.key; form.save; sel.selects(form.key); form.plain;
+        the_davka.set(ask('dop_pot2_switch',the_davka.get,°{alg:'read'}))
+      | // založení období vč. mailu
+        the_davka.set(ask('dop_pot2_newP',druh.get,nazev.get,
+          date2sql(od.get),date2sql(do.get),let_zpet.get,mailem.get,vanocni.get));
+        sel.selects(the_davka.get('id_davka')); sel.key(the_davka.get('id_davka'));
+        sel.davka_load; form.plain;
+      };
+      refresh_obdobiP
+    | warning('chybně zadané období')
+  }}
+  # funkce
+  proc make_nazev() {
+    and(eq(fdate('j.n',od.get),'1.1'),eq(fdate('j.n',do.get),'31.12')); // roční
+    nazev.set(conc('Rok ',fdate('Y',od.get)));
+    druh.set('r')
+  | and(eq(fdate('j.n',od.get),'1.1'),eq(fdate('j.n',do.get),'30.6'));  // 1.pololetí
+    nazev.set(conc('Pololetí ',fdate('Y',od.get),'/1'));
+    druh.set('p1')
+  | and(eq(fdate('j.n',od.get),'1.7'),eq(fdate('j.n',do.get),'31.12')); // 2.pololetí
+    nazev.set(conc('Pololetí ',fdate('Y',od.get),'/2'));
+    druh.set('p2')
+  | nazev.set(conc('Období od ',fdate('j.n',od.get),' - ',fdate('j.n.Y',do.get)));
+    druh.set('o')
+  }
+}
+# ------------------------------------------------------------------------------==> cmd: potv poštou
+form _cmd_potv [,,200,220] {
+  # ovládání
+  button [10,0,,] {tag:'H', title:'potvrzení Hospic',
+    help:'tisk potvrzení pro Hospic ze seznamu příjemců', skill:'r|a',
+    proc onclick () {
+      the_davka.set(jcd.dcleni.get_query,'_query');
+      the_davka.set(ask('dop_pot_potv',the_davka.get,1,jcd.dcleni.browse_status,conc(last_x.get,'H')));
+      ii.fill('',the_davka.get('_html'));
+  }}
+  button [10,30,,] {tag:'Z', title:'potvrzení Žireč',
+    help:'tisk potvrzení pro Žireč ze seznamu příjemců', skill:'r|a',
+    proc onclick () {
+      the_davka.set(jcd.dcleni.get_query,'_query');
+      the_davka.set(ask('dop_pot_potv',the_davka.get,2,jcd.dcleni.browse_status,conc(last_x.get,'Z')));
+      ii.fill('',the_davka.get('_html'));
+  }}
+  button [10,60,,] {tag:'C', title:'potvrzení Charita',
+    help:'tisk potvrzení pro Charitu ze seznamu příjemců', skill:'r|a',
+    proc onclick () {
+      the_davka.set(jcd.dcleni.get_query,'_query');
+      the_davka.set(ask('dop_pot_potv',the_davka.get,3,jcd.dcleni.browse_status,conc(last_x.get,'C')));
+      ii.fill('',the_davka.get('_html'));
+  }}
+  button zap [10,90,,] { tag:'hist', title:'zápis do historie',
+    help:'zápis o zaslání do historie', skill:'r|a'
+    proc onclick () {
+      var res: object
+      eq(jcd.dcleni.get_query,'');
+      [ confirm("Opravdu mám zapsat informaci o zaslání do historie příjemců?");
+        res.set(ask('dop_pot_hist_potv',the_davka.get,jcd.dcleni.browse_status,
+          last_item.get('options.par.note'),last_y.get));
+        ii.fill('',res._html);
+        form.enable(0,'H|Z|C|hist')
+      ]
+    | alert("zápis do historie nelze provést, pokud má seznam příjemců nastavenou filtrující podmínku")
+  }}
+}
+# ------------------------------------------------------------------------------==> cmd: bull poštou
+form _cmd_bull [,,200,220] {
+  # ovládání
+  const L=10
+  button [L+0,0,,] { tag:'B', title:'vytvoření štítků',
+    help:'tisk štítků seznamu příjemců', skill:'r|a'
+    proc onclick () {
+      sti_A.report_init; sti_A.report_check;
+      the_davka.set(jcd.dcleni.get_query,'_query');
+      the_davka.set(ask('dop_pot_stitky',the_davka.get,jcd.dcleni.browse_status,sti_A.get_json,last_x.get));
+      ii.fill('',the_davka.get('_html'));
+  }}
+  button zap [L+0,90,,] { tag:'hist', title:'zápis do historie',
+    help:'zápis o zaslání do historie', skill:'r|a'
+    proc onclick () {
+      var res: object
+      eq(jcd.dcleni.get_query,'');
+      [ confirm("Opravdu mám zapsat informaci o zaslání do historie příjemců?");
+        res.set(ask('dop_pot_hist_bull',the_davka.get,jcd.dcleni.browse_status,
+          conc('Bulletin',last_item.get('options.par.note')),last_y.get));
+        ii.fill('',res._html);
+        form.enable(0,'B|hist')
+      ]
+    | alert("zápis do historie nelze provést, pokud má seznam příjemců nastavenou filtrující podmínku")
+  }}
+}
+# --------------------------------------------------------------==> cmd: bull mailem + kontakty,dary
+form _cmd_mail [,,770,220] {
+#   proc onerror(msg) { work(0); error(msg) }
+  # ------------------------- obsluha záložek
+  const Tz = 250
+  var curr: object            // aktuální záložka (např. pro test z jiného formuláře)
+  proc cvak(i) {
+    // přepnutí záložek
+    form.set_css('ae_butt_off','ae_butt_on','_'); i.set_css('ae_butt_on','ae_butt_off');
+    // poznačení aktivní záložky - lze testovat např. kódem eq(page.curr._id,'alfa')
+    curr.set(i._id);
+    // přepnutí elementů
+    form.display(0,i.par.off); form.display(1,i.par.on)
+  }
+  # ------------------------- záložky - v par jsou tagy pro zapnutí vypnutí elementů
+  label dar [12,Tz+0,157,20] {tag:'_', title:'<b>Relevantní dary</b>', format:'c',
+    par:°{on:'D',off:'M'}, proc onclick() { cvak(this) } }
+  label mai [185,Tz+0,170,20] {tag:'_', title:'<b>Vygenerovaný mail</b>', format:'c',
+    par:°{on:'M',off:'D'}, proc onclick() { cvak(this) } }
+  # ------------------------- pozadí pro elementy
+  label frame [0,Tz+16,390,260] { css:'ae_work'}
+  # ---------------------==> . příjemci
+  view d: table dar
+  view c: table clen  { join:'USING(id_clen)' }
+  view m: table mail  { join_type:'LEFT' join:"ON m.id_clen=c.id_clen AND id_dopis=''" } // dynamické JOIN
+  view ic: table _cis { join_type:'LEFT' join:"ON c.stredisko=ic.data AND ic.druh='stredisko'" }
+  view id: table _cis { join_type:'LEFT' join:"ON d.stredisko=id.data AND id.druh='stredisko'" }
+  label title_lidi [4,0,,] { title:'<b>Seznam příjemců</b>' }
+  label popis [112,0,300,19] { title:"
+    <div style='font-size:8pt'>
+      <span class='zluty'> poslat </span>&nbsp;&nbsp;
+      <span class='zeleny'> posláno </span>&nbsp;&nbsp;
+      <span class='cerveny'> chyba resp. neposílat </span>&nbsp;&nbsp;
+      <span class='modry'> nevygenerováno </span>
+    </div> "}
+  browse dcleni [1,17,,] { rows:10, qry_rows:1, group_by:'id_clen', key_id:'id_clen',
+      optimize:°{qry:'noseek'}, css_rows:"stav,9:modry,3:zluty,4:zeleny,5:cerveny"
+    show id_clen [,,45,] { title:'člen', data:d.id_clen, format:'rq=s' },
+    show _max { expr:"'?'" }    // atribut měněný při reload
+    show _min { expr:"'?'" }    // atribut měněný při reload
+    show _uzp { expr:"'?'" }    // atribut měněný při reload
+    show osoba { data:c.osoba }
+    show darce { data:c.darce }
+    show id_mail { data:m.id_mail }
+    show body    { data:m.body }
+    show prilohy { data:m.prilohy }
+    show jmeno [,,50,] { title:'jméno', data:c.jmeno, format:'tq*s' }
+    show prijmeni [,,70,] { title:'příjmení', data:c.prijmeni, format:'tq*s' }
+    show email [,,110,] { title:'email', data:c.email, format:'tq*s' }
+    show msg [,,0,] { title:'chyba',data:m.msg, format:'tq*s' }
+    show _stred { expr:'GROUP_CONCAT(DISTINCT IF(d.stredisko<3,d.stredisko,3) ORDER BY d.stredisko)' }
+    show dry [,,40,] { title:'dary na', format:'tq*s', help:'seznam typů potvrzení',
+            expr:"GROUP_CONCAT(DISTINCT IF(d.stredisko<3,id.zkratka,'*') ORDER BY d.stredisko)" }
+    show str [,,30,] { title:'středisko', format:'q*s',
+      help:'příslušnost ke středisku', data:ic.zkratka }
+    show stav  [,,10,] { expr:"IFNULL(m.stav,9)", format:'qs' }
+    proc onrowclick () {
+      J_clen.set(id_clen.get); reload_dary(J_clen.get);
+      eq(stav.get,9); mbody.set("
+       <div align='center'><br><br>Maily dosud nejsou vygenerovány
+       <br><br>použijte <b>Vygenerovat maily příjemcům</b></div>
+      ")
+    | mbody.set(conc("<b>Příloha:</b> ",prilohy.get,"<br><b>Text:</b>",body.get));
+    }
+    menu { type:'context',
+      item { title:"poslat znovu", proc onclick () { var ret:object
+        confirm("poslat znovu mail <b>",email.get,"</b>?");
+        ret.set(ask('dop_mail_send',1,mail.id_dopis.get,id_mail.get,mail.odesilatel.get));
+        alert(ret.msg);
+        dcleni.browse_row;
+      }}
+      item { title:"poslat znovu (test)", proc onclick () { var ret:object
+        confirm("poslat mail pro <b>",email.get,"</b> na ",mail.zkus.get,"?");
+        { mail.zkus.get;
+          ret.set(ask('dop_mail_send',1,mail.id_dopis.get,id_mail.get,mail.odesilatel.get,mail.zkus.get));
+          alert(ret.msg);
+          dcleni.browse_row;
+        | alert("doplňte příjemce testovacího mailu")
+        }
+      }}
+    }
+    // DblClk přejde na dárce
+    proc onsubmit () { klu.call('cle.show_clen',id_clen.get) }
+    proc onchange() { dary.browse_init }
+    proc onclick() { show_msg(eq(msg.width,0)) }
+    proc show_msg(on) { on;
+      msg.width(71); dry.width(0); str.width(0)
+    | msg.width(0); dry.width(40); str.width(30) }
+  }
+  # ---------------------==> . dary
+  browse dary [5,Tz+24,200,208] { tag:'D', rows:12
+    show dne [,,70,] { title:'dne', data:d.castka_kdy, format:'rfs-' },
+    show zpusob [,,10,] { title:'z', data:d.zpusob, map_pipe:map_k_zpusob.zkratka },
+    show nucet [,,10,] { title:'ú', data:d.nas_ucet, map_pipe:map_k_ucet.zkratka },
+    show castka [,,70,] { title:'částka', data:d.castka, format:'rfs' },
+    show ucet [,,55,] { title:'účet', data:d.ucet, format:'tfs' },
+    show datum_p [,,70,] { title:'potvrzeno', data:d.potvrz_kdy, format:'rfs' },
+    show stredisko [,,60,] { title:'středisku', data:d.stredisko,
+      map_pipe:cis_stredisko.zkratka, format:'q*s' }
+    show iddar { data:d.id_dar },
+    proc onrowclick () { stop }
+  }
+  use mail: form _mail [0,0,,]
+  # ---------------------==> . maily
+  label mbody [4,Tz+20,382,252] { tag:'M', style:'overflow:auto', title:'<b>Vygenerovaný mail</b>' }
+  # ---------------------==> . procedury formuláře
+  proc reload_dary(id) {
+    var cond: text
+    // dary v úvaze o zaslání Bulletinu
+    cond.set(conc("d.id_clen=",id," AND LEFT(d.deleted,1)!='D' ",
+      "AND d.castka_kdy BETWEEN '",
+        sum(substr(nasP.od.get,-4),minus(nasP.let_zpet.get)),"-01-01' AND '",
+        date2sql(nasP.do.get),"' "));
+    dary.browse_load(cond);
+  }
+}
+# ------------------------------------------------------------------------------==> MAIL k bulletinu
+form _mail [,,360,220] {
+  const Lm = 400
+  const Tmc = 370
+  const folder= 'bulletiny/'
+  field id_dopis { data:dopis.id_dopis }
+  field id_davka { data:dopis.id_davka }
+  field obsah { data:dopis.obsah }
+  label [Lm+0,16,359,339] { css:'ae_work' }
+  field datum [Lm+10,34,80,17] { data:dopis.datum, help:'datum|datum emailu', title:'^datum odeslání' }
+  field odesilatel [Lm+110,34,240,17] { data:dopis.odesilatel, //help:'email z osobního nastavení',
+    title:'^jméno odesílatele', value:"Mgr. Ludmila Štěpánová"  }
+  field predmet [Lm+10,73,340,17] { data:dopis.nazev, help:'předmět|předmět emailu', title:'^předmět mailu'  }
+  # ==> . připojení příloh
+  field attach { data:dopis.prilohy }                           // 2 uložené přílohy jako seznam
+  label [Lm+13,101,200,] {title:'příloha - Bulletin Hospice' }
+  label drop_h [Lm+10,117,338,30] { type:'drop'
+    proc ondrop(f) { ondrop_x(f,this,0) }
+    proc onload(f) { onload_x(f,this,0) }
+    proc onmenu(op,name,ref) { onmenu_x(op,name,this,0) }
+  }
+//  label [Lm+13,140,200,] {title:'příloha - Bulletin Žirče' }
+//  label drop_z [Lm+10,157,338,20] { type:'drop'
+//    proc ondrop(f) { ondrop_x(f,this,1) }
+//    proc onload(f) { onload_x(f,this,1) }
+//    proc onmenu(op,name,ref) { onmenu_x(op,name,this,1) }
+//  }
+  label [Lm+13,155,200,] {title:'příloha - Bulletin Oblastní charity'}
+  label drop_o [Lm+10,172,338,30] { type:'drop'
+    proc ondrop(f) { ondrop_x(f,this,1) }
+    proc onload(f) { onload_x(f,this,1) }
+    proc onmenu(op,name,ref) { onmenu_x(op,name,this,1) }
+  }
+  proc ondrop_x(f,x,i) {                                      // před započetím přenosu
+    match(',',x.get); alert("odstraňte prosím napřed starou přílohu"); ini;
+    return(0)
+  | return(1)
+  }
+  proc onload_x(f,x,i) {                                      // po dokončení přenosu
+    ask('dop_mail_attach',id_dopis.get,f,i);                  // přidání souboru
+  }
+  proc onmenu_x(op,name,x,i) { var ret:object
+    eq(op,'remove','remove-all');
+    ret.set(ask('dop_mail_detach',id_dopis.get,i));           // odebrání přílohy
+    alert(ret.msg);
+    x.init(folder.get);
+  }
+  // naplnit pole drag&drop a definovat dir
+  proc drop_init() { 
+    drop_init_x(drop_o,2); 
+//    drop_init_x(drop_z,1); 
+    drop_init_x(drop_h,0) }
+  proc drop_init_x(x,i) {
+    x.init(folder.get);
+    x.set(function('x','i',"return x.split(',')[i]",attach.get,i));
+  }
+  # ==> . text mailu
+  label [Lm+15,224,150,] { title:'vzor průvodního textu' }
+  label txt [Lm+12,240,340,108] { style:'border:1px solid grey;overflow:auto' }
+  button [Lm+153,216,,] { title:'Opravit text', help:'upraví text pro toto rozesílání',
+    proc onclick() { D_dopis.Edit(id_dopis.get); txt.set(D_dopis.d.html.get); regenerate
+  } }
+  button [Lm+232,216,,] { title:'Obnovit podle vzoru', help:'nahradí text vzorem "bulletin"',
+    proc onclick () {
+      confirm("Opravdu nahradit současný text tohoto rozesílání vzorem 'bulletin'?");
+      ask('dop_pot2_updP',id_davka.get,id_dopis.get); regenerate; ini
+  } }
+  # ---------------------==> . 1) úprava vzoru mailu a vygenerování mailů (s kontrolou příloh)
+  label  [Lm+0,Tmc-5,357,46] { css:'ae_parm',
+    title:"<b>1) úprava vzoru mailu a vygenerování mailů</b>" }
+  button uloz [Lm+15,Tmc+15,,] { tag:'u', type:'submit', title:'Uložit opravy',
+    help:'uložit opravené hodnoty'
+    proc onclick () {
+      form.same
+    | // oprava
+      form.key; form.save; form.load; form_state('n|s','u|z');
+  }}
+  button [Lm+108,Tmc+15,,] { tag:'z', title:'Zpět', help:'neukládat hodnoty'
+    proc onclick () { ini; form_state('n','u|z|s') } }
+  button generuj [Lm+177,Tmc+15,,] { title:'Vygenerovat maily příjemcům'
+    proc onclick () { var ret:object
+      clear; work(1); cmM.dcleni.show_msg(0); cmM.dcleni.init_queries;
+      ret.set(ask('select','COUNT(*)','mail',conc('id_dopis=',id_dopis.get,' AND stav=4')));
+      { eq(ret,0)
+      | confirm('POZOR: tento dopis již byl odeslán na ',ret.get,' adres. Má se opravdu poslat znovu?');
+      };
+      // err=5 ... chyby v adresách, err=3 ... nejsou 3 přílohy
+      ret.set(ask('dop_mail_gen',id_davka.get,id_dopis.get,cmM.dcleni.browse_status));
+      { eq(ret.err,5); cmM.dcleni.show_msg(1);
+        cmM.dcleni.stav.set_query(1,5,1); work(0); alert(ret.msg)
+      | eq(ret.err,3); work(0); alert(ret.msg)
+      | cmM.dcleni.browse_refresh; work(0); cmM.cvak(cmM.mai); alert(ret.msg);
+      };
+      work(0)
+    | work(0)
+  }}
+  # ---------------------==> . 2) test
+#   label NYI [Lm+-5,Tmc+103,370,55] { style:'background:url(img/srafy.png);z-index:990' }
+  label  [Lm+0,Tmc+50,357,46] { css:'ae_parm', title:"<b>2) test pro nastaveného příjemce</b>" }
+  button test [Lm+15,Tmc+70,,] { title:'testovací mail',
+    help:'pro kontrolu - posílá se na testovací adresu'
+    proc onclick () { var ret:object
+      eq(cmM.dcleni.stav.get,9); alert("nejprve je nutné vygenerovat maily")
+    | clear;
+      zkus.get;
+      confirm('Poslat zkušební mail pro ',cmM.dcleni.jmeno.get,' ',cmM.dcleni.prijmeni.get,
+        ' na ',zkus.get,' z adresy ', sys('ezer','smtp','from'),' pod jménem ',odesilatel.get,'?');
+      ret.set(ask('dop_mail_send',1,id_dopis.get,cmM.dcleni.id_mail.get,odesilatel.get,zkus.get));
+      alert(ret.msg)
+    | alert("doplňte příjemce testovacího mailu")
+    }
+  }
+  label [Lm+113,Tmc+74,61,17] { title:'na adresu:' }
+  field zkus [Lm+174,Tmc+71,175,17] { help:'email z osobního nastavení', format:'t' }
+  # ---------------------==> . 3) odeslání mailů
+  label  [Lm+0,Tmc+107,357,46] { css:'ae_parm', title:"<b>3) odesílání mailů po dávkách</b>" }
+  button send [Lm+15,Tmc+125,,] { title:'poslat xx ještě neposlaných',
+    help:'pošle další dávku - počet lze měnit políčkem vpravo'
+    proc onclick () { var ret:object
+      clear;
+      confirm('Opravdu poslat dalších ',kolik.get,' mailů z adresy ',
+        sys('ezer','smtp','from'),' pod jménem ',odesilatel.get,'?');
+      ret.set(ask('dop_mail_send',kolik.get,id_dopis.get,0,odesilatel.get));
+      alert(ret.msg);
+      cmM.dcleni.browse_refresh;
+    }
+  }
+  label [Lm+208,Tmc+129,54,17] { title:"dávky po:" }
+  field kolik [Lm+263,Tmc+127,30,17] { format:'rt', value:'10'
+    proc onchange () { send.set(conc('až ',kolik.get,'  ještě neposlaných')); }
+  }
+  label [Lm+304,Tmc+129,54,17] { title:"mailech" }
+  # ---------------------==> . procedury formuláře
+  proc ini() {
+    work(1); form.init; cmM.cvak(cmM.mai); cmM.dcleni.show_msg(0);
+    zkus.set(sys('user','options','email'));
+    the_davka.get('id_dopis'); form.load(the_davka.get('id_dopis')); txt.set(obsah.get);
+    drop_init;
+    odesilatel.init(1);
+    kolik.init(1); kolik.change;
+    form_state('n','u|z|s');
+    work(0)
+  | work(0)
+  }
+  proc regenerate() { alert('vzor byl změněn, je třeba příjemcům (pře)generovat maily'); }
+  proc form_state(on,off) {
+    form.enable(1,on); form.enable(0,off); }
+  proc onchanged () {
+    form_state('u|z','n|s') }
+}
+# =============================================================================> OBDOBÍ - POTV FIRMY
+# výběr resp. vytvoření rozesílání a nastavení jeho parametrů -- pro firmy
+# zobrazení potřebného materiálu
+# zobrazení stavu
+form _nasQ [,,*,220] {
+  view d: table davka
+  # data
+  label [10,0,,] { title:'<b>Zvolené období pro firmy</b>' }
+  select sel [10,20,200,]  { type:'map', data:d.id_davka, options:map_davkyQ.nazev, format:'t'
+    proc onchange() {
+      [ sel.key; form.load(sel.key);
+        nasQ.resume.set('... načítá se přehled');
+        the_davkaQ.set(sel.key,'id_davka'); set_cookie(conc(sys('root'),'_kor_pot_selQ'),sel.key);
+        the_davkaQ.set(ask('dop_pot2_switch',the_davkaQ.get,last_itemQ.get('options.par')));
+        nasQ.resume.set(the_davkaQ.get('resume'));
+        ulozit.enable(not(eq(the_davkaQ.get('stav'),9)));
+      ];
+      refresh_titleQ(last_itemQ.get);
+  }}
+  label info [10,30,,] { title:'---' }
+  const Ld=280
+  label [Ld+7,0,,] { title:'<b>Parametry zvoleného období</b>' }
+  label [Ld+0,19,252,100] { css:'ae_work' }
+  label [Ld+8,23,230,] { title:'období ve kterém budou potvrzovány dary' }
+  field od [Ld+8,40,85,] { type:'date', data:d.datum_od }
+  field do [Ld+108,40,85,] { type:'date', data:d.datum_do }
+  label [Ld+8,65,,] { title:'název období (vznikne automaticky)' }
+  field nazev [Ld+8,81,200,] { data:d.nazev, format:'o' }
+  check vanocni [Ld+3,96,277,] { data:d.vanocni, title:'vánoční Bulletin', value:'0' }
+  field druh { data:d.druh }
+  field pro  { data:d.pro }
+  field stav { data:d.stav }
+  label resume [10,131,600,200]
+  # ovládání
+  label [6,55,146,33] { css:'ae_parm' }
+  button [13,63,,] { title:'Nové období'
+    proc onclick() { form.init;
+      resume.set('');
+      ulozit.enable(1);
+      the_davkaQ.set(°{stav:0});
+#       info.set('Definice parametrů nového rozesílání');
+  }}
+  button ulozit [103,63,,] { title:'Uložit'
+    proc onclick() {
+      form.same
+    | od.get; eq(fdate('Y',od.get),fdate('Y',do.get));    // je stejný rok?
+      [ or(od.changed,do.changed); make_nazev; nazev.change; druh.change ];
+      { // oprava
+        form.key; form.save; sel.selects(form.key); form.plain
+      | // založení
+        stav.set(1); stav.change; pro.set('Q'); pro.change;
+        sel.selects(form.insert); form.plain
+      };
+      the_davkaQ.set(ask('dop_pot2_switch',the_davkaQ.get,°{alg:'read'}))
+    | warning('chybně zadané období')
+  }}
+  # funkce
+  proc make_nazev() {
+    and(eq(fdate('j.n',od.get),'1.1'),eq(fdate('j.n',do.get),'31.12')); // roční
+    nazev.set(conc('Rok ',fdate('Y',od.get)));
+    druh.set('r')
+  | and(eq(fdate('j.n',od.get),'1.1'),eq(fdate('j.n',do.get),'30.6'));  // 1.pololetí
+    nazev.set(conc('Pololetí ',fdate('Y',od.get),'/1'));
+    druh.set('p1')
+  | and(eq(fdate('j.n',od.get),'1.7'),eq(fdate('j.n',do.get),'31.12')); // 2.pololetí
+    nazev.set(conc('Pololetí ',fdate('Y',od.get),'/2'));
+    druh.set('p2')
+  | nazev.set(conc('Období od ',fdate('j.n',od.get),' - ',fdate('j.n.Y',do.get)));
+    druh.set('o')
+  }
+}
+# -------------------------------------------------------------------------------==> cmd: potv firmy
+form _cmd_potQ [,,200,220] {
+  # ovládání
+  button [10,0,,] {tag:'H', title:'potvrzení Hospic',
+    help:'tisk potvrzení pro Hospic ze seznamu příjemců', skill:'r|a',
+    proc onclick () {
+      the_davkaQ.set(jcd.dcleni.get_query,'_query');
+      the_davkaQ.set(ask('dop_pot_potv',the_davkaQ.get,1,jcd.dcleni.browse_status,
+        conc(last_x.get,'H')));
+      ii.fill('',the_davkaQ.get('_html'));
+  }}
+  button [10,30,,] {tag:'Z', title:'potvrzení Žireč',
+    help:'tisk potvrzení pro Žireč ze seznamu příjemců', skill:'r|a',
+    proc onclick () {
+      the_davkaQ.set(jcd.dcleni.get_query,'_query');
+      the_davkaQ.set(ask('dop_pot_potv',the_davkaQ.get,2,jcd.dcleni.browse_status,
+        conc(last_x.get,'Z')));
+      ii.fill('',the_davkaQ.get('_html'));
+  }}
+  button [10,60,,] {tag:'C', title:'potvrzení Charita',
+    help:'tisk potvrzení pro Charitu ze seznamu příjemců', skill:'r|a',
+    proc onclick () {
+      the_davkaQ.set(jcd.dcleni.get_query,'_query');
+      the_davkaQ.set(ask('dop_pot_potv',the_davkaQ.get,3,jcd.dcleni.browse_status,conc(last_x.get,'C')));
+      ii.fill('',the_davkaQ.get('_html'));
+  }}
+  button zap [10,90,,] { tag:'hist', title:'zápis do historie',
+    help:'zápis o zaslání do historie', skill:'r|a'
+    proc onclick () {
+      var res: object
+      eq(jcd.dcleni.get_query,'');
+      [ confirm("Opravdu mám zapsat informaci o zaslání do historie příjemců?");
+        res.set(ask('dop_pot_hist_potv',the_davkaQ.get,jcd.dcleni.browse_status,
+          last_itemQ.get('options.par.note'),last_y.get));
+        ii.fill('',res._html);
+        form.enable(0,'H|Z|C|hist')
+      ]
+    | alert("zápis do historie nelze provést, pokud má seznam příjemců nastavenou filtrující podmínku")
+  }}
+}
+# ============================================================================> OBDOBÍ - POTV OPRAVY
+# výběr rozesílání
+form _nasA [,,*,220] {
+  view d: table davka
+  # data
+  label [10,0,,] { title:'<b>Zvolené období</b>' }
+  select sel [10,20,200,]  { type:'map', data:d.id_davka, options:map_davky.nazev, format:'t'
+    proc onchange() {
+      [ sel.key; form.load(sel.key); the_davkaA.set(sel.key,'id_davka');
+        set_cookie(conc(sys('root'),'_kor_pot_selE'),sel.key);
+        the_davkaA.set(ask('dop_pot2_switch',the_davkaA.get,last_itemA.get('options.par'))); ];
+      refresh_titleA(last_itemA.get);
+  }}
+  field nazev { data:d.nazev }
+  const LdE=300
+  label [LdE+7,0,,] { title:'<b>Parametry zvoleného období</b>' }
+  label [LdE+0,19,250,85] { css:'ae_work' }
+  label [LdE+8,23,230,] { title:'období ve kterém budou potvrzovány dary' }
+  field od [LdE+  8,40,85,] { type:'date', data:d.datum_od, format:'d'  }
+  field do [LdE+108,40,85,] { type:'date', data:d.datum_do, format:'d'  }
+  field druh { data:d.druh }
+  field pro  { data:d.pro }
+}
+# ------------------------------------------------------------------------------==> cmd: potv opravy
+form _cmd_again [,,200,220] {
+  # ovládání
+  button [10,0,,] {tag:'H', title:'potvrzení Hospic',
+    help:'tisk potvrzení pro Hospic ze seznamu příjemců', skill:'r|a',
+    proc onclick () { opakuj_tisk(1) }
+  }
+  button [10,30,,] {tag:'Z', title:'potvrzení Žireč',
+    help:'tisk potvrzení pro Žireč ze seznamu příjemců', skill:'r|a',
+    proc onclick () { opakuj_tisk(2) }
+  }
+  button [10,60,,] {tag:'C', title:'potvrzení Charita',
+    help:'tisk potvrzení pro Charitu ze seznamu příjemců', skill:'r|a',
+    proc onclick () { opakuj_tisk(3) }
+  }
+  label note [10,120,120,330] {
+    title:'Příjemce opakovaného tisku je třeba označit červeně (klávesou Insert)' }
+  proc opakuj_tisk(stred) {
+#     echo("VYBER:",jcd.dcleni.selected('get'));
+    the_davkaA.set(jcd.dcleni.get_query,'_query');
+    the_davkaA.set(ask('dop_pot_potv',the_davkaA.get,stred,jcd.dcleni.browse_status,
+      'A',jcd.dcleni.selected('get')));
+    ii.fill('',the_davkaA.get('_html'));
+  }
+}
+# ========================================================================> OBDOBÍ - OBESÍLÁNÍ FIREM
+# výběr resp. vytvoření rozesílání a nastavení jeho parametrů
+# zobrazení potřebného materiálu
+# zobrazení stavu
+form _nasF [,,*,220] {
+  view d: table davka
+  # data
+  label [10,0,,] { title:'<b>Zvolené období</b>' }
+  select sel [10,20,200,]  { type:'map', data:d.id_davka, options:map_davkyF.nazev, format:'t'
+    proc onchange() {
+      [ sel.key; form.load(sel.key);
+        nasF.resume.set('... načítá se přehled');
+        the_davkaF.set(sel.key,'id_davka'); set_cookie(conc(sys('root'),'_kor_pot_selF'),sel.key);
+        the_davkaF.set(ask('dop_pot2_switch',the_davkaF.get,last_itemF.get('options.par')));
+        nasF.resume.set(the_davkaF.get('resume'));
+        ulozit.enable(not(eq(the_davkaF.get('stav'),9)));
+      ];
+      refresh_titleF(last_itemF.get);
+  }}
+  label info [10,30,,] { title:'---' }
+  const LdF=300
+  label [LdF+7,0,,] { title:'<b>Parametry zvoleného období</b>' }
+  label [LdF+0,19,300,101] { css:'ae_work' }
+  label [LdF+8,23,,] { title:'období: nové dary od - do (staré dary od)' }
+  field nw [LdF+8,40,85,] { type:'date', data:d.datum_nw }
+  field do [LdF+108,40,85,] { type:'date', data:d.datum_do }
+  field od [LdF+208,40,85,] { type:'date', data:d.datum_od }
+  label [LdF+8,65,,] { title:'název období (vznikne automaticky)' }
+  field nazev [LdF+8,81,200,] { data:d.nazev, format:'o' }
+  check vanocni [LdF+3,96,277,] { data:d.vanocni, title:'vánoční Bulletin', value:'0' }
+  field druh { data:d.druh }
+  field pro  { data:d.pro }
+  field stav { data:d.stav }
+  label resume [10,127,600,200]
+  # ovládání
+  label [6,55,146,33] { css:'ae_parm' }
+  button [13,63,,] { title:'Nové období'
+    proc onclick() { form.init;
+      resume.set('');
+      ulozit.enable(1);
+      the_davkaF.set(°{stav:0});
+#       info.set('Definice parametrů nového rozesílání');
+  }}
+  button ulozit [103,63,,] { title:'Uložit'
+    proc onclick() {
+      form.same
+    | od.get; nw.get; eq(fdate('Y',nw.get),fdate('Y',do.get));    // je stejný rok?
+      [ or(od.changed,nw.changed,do.changed); make_nazev; nazev.change; druh.change ];
+      { // oprava
+        form.key; form.save; sel.selects(form.key); form.plain
+      | // založení
+        stav.set(1); stav.change; pro.set('F'); pro.change;
+        sel.selects(form.insert); form.plain
+      };
+      the_davkaF.set(ask('dop_pot2_switch',the_davkaF.get,°{alg:'read'}))
+    | warning('chybně zadané období')
+  }}
+  # funkce
+  proc make_nazev() {
+    and(eq(fdate('j.n',nw.get),'1.1'),eq(fdate('j.n',do.get),'31.12')); // roční
+    nazev.set(conc('Rok ',fdate('Y',nw.get),' (',fdate('j.n.Y',od.get),')'));
+    druh.set('r')
+  | and(eq(fdate('j.n',nw.get),'1.1'),eq(fdate('j.n',do.get),'30.6'));  // 1.pololetí
+    nazev.set(conc('Pololetí ',fdate('Y',nw.get),'/1 (',fdate('j.n.Y',od.get),')'));
+    druh.set('p1')
+  | and(eq(fdate('j.n',nw.get),'1.7'),eq(fdate('j.n',do.get),'31.12')); // 2.pololetí
+    nazev.set(conc('Pololetí ',fdate('Y',nw.get),'/2 (',fdate('j.n.Y',od.get),')'));
+    druh.set('p2')
+  | nazev.set(conc('Období od ',fdate('j.n',nw.get),' - ',fdate('j.n.Y',do.get),
+      ' (',fdate('j.n.Y',od.get),')'));
+    druh.set('o')
+  }
+}
+# --------------------------------------------------------------------------==> cmd: obesílání firem
+form _cmd_firm [,,200,220] {
+  # ovládání
+  const LF=10
+  button [LF+0,0,,] { tag:'B', title:'vytvoření štítků',
+    help:'tisk štítků seznamu příjemců', skill:'r|a'
+    proc onclick () {
+      sti_A.report_init; sti_A.report_check;
+      the_davkaF.set(jcd.dcleni.get_query,'_query');
+      the_davkaF.set(ask('dop_pot_stitky',the_davkaF.get,jcd.dcleni.browse_status,
+        sti_A.get_json,last_x.get));
+      ii.fill('',the_davkaF.get('_html'));
+  }}
+  button zap [LF+0,90,,] { tag:'hist', title:'zápis do historie',
+    help:'zápis o zaslání do historie', skill:'r|a'
+    proc onclick () {
+      var res: object
+      eq(jcd.dcleni.get_query,'');
+      [ confirm("Opravdu mám zapsat informaci o zaslání do historie příjemců?");
+        res.set(ask('dop_pot_hist_bull',the_davkaF.get,jcd.dcleni.browse_status,
+          conc('Bulletin',last_itemF.get('options.par.note')),last_y.get));
+        ii.fill('',res._html);
+        form.enable(0,'B|hist')
+      ]
+    | alert("zápis do historie nelze provést, pokud má seznam příjemců nastavenou filtrující podmínku")
+  }}
+}
+# -------------------------==> . stitek_A
+report sti_A [0,0,200,287] { format:'A4:5,6,70,41',
+  box  [2.6, 11.0, 60.0, 27.3] { style:'12,L', title:'{jmeno_postovni}<br>{adresa_postovni}' }
+}
+# ----------------------------------------------------------==> jcd = vybrané kontakty a jejich dary
+form _cleni_dary [,,*,220] {
+  var vyber_daru: number        // 1 pro zobrazení jen darů pro rozesílání, 0 pro všechny dary
+  var bulletin: number          // 1 pro zobrazení darů zdůvodňujích Bulletin, 0 pro potvrzení
+  var again: number             // 1 pro opakované potvrzení, 0 pro běžné
+  view c: table clen { join:'USING(id_clen)' }
+  view d: table dar
+  view ic: table _cis { join_type:'LEFT' join:"ON c.stredisko=ic.data AND ic.druh='stredisko'" }
+  view id: table _cis { join_type:'LEFT' join:"ON d.stredisko=id.data AND id.druh='stredisko'" }
+  label title_lidi [4,0,,]
+  browse dcleni [4,15,200,240] { rows:11, qry_rows:1, group_by:'id_clen', key_id:'id_clen',
+      optimize:°{qry:'noseek'}
+    show id_clen [,,45,] { title:'člen', data:d.id_clen, format:'rq=s' },
+    show _max { expr:"'?'" }    // atribut měněný při reload
+    show _min { expr:"'?'" }    // atribut měněný při reload
+    show _uzp { expr:"'?'" }    // atribut měněný při reload
+    show osoba { data:c.osoba },
+    show firma { data:c.firma },
+    show darce { data:c.darce },
+    show titul [,,30,] { title:'titul', data:c.titul, format:'tq*s' },
+    show jmeno [,,70,] { title:'jméno', data:c.jmeno, format:'tq*s' },
+    show prijmeni [,,90,] { title:'příjmení', data:c.prijmeni, format:'tq*s' },
+    show ulice [,,90,] { title:'ulice', expr:"IF(c.psc2,c.ulice2,c.ulice)", format:'q*s' },
+    show psc [,,42,] { title:'psč', expr:"IF(c.psc2,c.psc2,c.psc)", format:'q*s', sql_pipe:'psc' },
+    show obec [,,100,] { title:'obec', expr:"IF(c.psc2,c.obec2,c.obec)", format:'q*s' },
+    show _stred { expr:'GROUP_CONCAT(DISTINCT IF(d.stredisko<3,d.stredisko,3) ORDER BY d.stredisko)' }
+    show dry [,,50,] { title:'dary na', format:'q*s', help:'seznam typů potvrzení',
+            expr:"GROUP_CONCAT(DISTINCT IF(d.stredisko<3,id.zkratka,'*') ORDER BY d.stredisko)" }
+    show str [,,30,] { title:'středisko', format:'q*s', help:'příslušnost ke středisku',
+      data:ic.zkratka }
+    show oslo [,,0,] { title:'oslovení', data:c.osloveni, map_pipe:cis_k_osloveni.zkratka,
+      format:'q*s' },
+    show prijm5p [,,0,] { title:'5.pád', data:c.prijmeni5p, format:'q*s' },
+    proc onrowclick () { J_clen.set(id_clen.get); reload_dary(J_clen.get) }
+    // DblClk přejde na dárce
+    proc onsubmit () { klu.call('cle.show_clen',id_clen.get) }
+    proc onclick() {
+      psc.width;   psc.width(0); obec.width(0); str.width(0); dry.width(0);
+                   oslo.width(105); prijm5p.width(120);
+    | psc.width(43); obec.width(101); dry.width(51); str.width(31); oslo.width(0); prijm5p.width(0);
+    }
+    proc onchange() { dary.browse_init }
+    menu context {type:'context'
+      item { title:'zrušit výběr'
+        proc onclick () { dcleni.selected('clear'); dcleni.browse_load }
+      }
+    }
+  }
+  label title_dary [4,265,,]
+  browse dary [4,280,200,208] { rows:10
+    show dne [,,70,] { title:'dne', data:d.castka_kdy, format:'rfs-' },
+    show zpusob [,,10,] { title:'z', data:d.zpusob, map_pipe:map_k_zpusob.zkratka },
+    show nucet [,,10,] { title:'ú', data:d.nas_ucet, map_pipe:map_k_ucet.zkratka },
+    show castka [,,70,] { title:'částka', data:d.castka, format:'rfs' },
+    show ucet [,,160,] { title:'účet', data:d.ucet, format:'fs' },
+    show datum_p [,,70,] { title:'potvrzeno', data:d.potvrz_kdy, format:'rfs' },
+    show darce [,,86,] { title:'dárce', data:d.darce, format:'rfs' },
+    show stredisko [,,70,] { title:'středisku', data:d.stredisko,
+      map_pipe:cis_stredisko.zkratka, format:'q*s' }
+    show iddar { data:d.id_dar },
+    proc onrowclick () { stop }
+  }
+  # procedury
+  proc ini(vyb,bul) {
+    vyber_daru.set(vyb); bulletin.set(bul);
+    title_dary.set(cconc(vyb,'<b>Seznam darů zdůvodňujích zaslání</b>','<b>Seznam všech darů</b>'));
+    title_lidi.set(cconc(vyb,'<b>Seznam příjemců zvolených zásilek</b>','<b>Seznam vynechaných</b>'));
+  }
+  proc reload_dary(id) {
+    var cond: text
+    vyber_daru.get;
+    [ again.get;
+      // opakované zaslání potvrzení za období
+      cond.set(conc("d.id_clen=",id," AND LEFT(d.deleted,1)!='D' ",
+        "AND d.castka_kdy BETWEEN '",date2sql(nasA.od.get),"' AND '",date2sql(nasA.do.get),"' "));
+      dary.browse_load(cond);
+      dary.selected('clear');
+    | bulletin.get;
+      // dary v úvaze o zaslání Bulletinu
+      cond.set(conc("d.id_clen=",id," AND LEFT(d.deleted,1)!='D' ","AND d.castka_kdy BETWEEN '",
+        sum(substr(nasP.od.get,-4),minus(nasP.let_zpet.get)),"-01-01' AND '",
+        date2sql(nasP.do.get),"' "));
+      dary.browse_load(cond);
+      dary.selected('clear');
+    | eq(mode_PQ.get,'P');
+      // zobrazit jen potvrzení fyzickým osobám
+      cond.set(conc("d.id_clen=",id," AND LEFT(d.deleted,1)!='D' AND d.zpusob!=4 ",
+        "AND d.castka_kdy BETWEEN '",date2sql(nasP.od.get),"' AND '",date2sql(nasP.do.get),"' "));
+      dary.browse_load(cond);
+      dary.browse_select(conc(cond,"AND d.potvrz_kdy='0000-00-00' "));
+    | eq(mode_PQ.get,'Q');
+      // zobrazit jen potvrzení firmám
+      cond.set(conc("d.id_clen=",id," AND LEFT(d.deleted,1)!='D' AND d.zpusob!=4 ",
+        "AND d.castka_kdy BETWEEN '",date2sql(nasQ.od.get),"' AND '",date2sql(nasQ.do.get),"' "));
+      dary.browse_load(cond);
+      dary.browse_select(conc(cond,"AND d.potvrz_kdy='0000-00-00' "));
+    ]
+  | // ukázat všechny dary - kontrola neobeslaných
+    dary.browse_load(conc("d.id_clen=",id," AND LEFT(d.deleted,1)!='D' "))
+  }
+}
+
+# ------------------------------------------------------------------------------------------==> MAPs
+
+map map_dop_pot_sql: table _cis {where:"druh='dop_pot_sql'", order:'zkratka', key_id:'data'}
+map map_davky:  table davka {where:"pro='P'", order:'datum_do DESC', key_id:'id_davka'}
+map map_davkyQ: table davka {where:"pro='Q'", order:'datum_do DESC', key_id:'id_davka'} // potvrzení firmám
+map map_davkyF: table davka {where:"pro='F'", order:'datum_do DESC', key_id:'id_davka'}
+

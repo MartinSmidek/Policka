@@ -29,6 +29,7 @@ panel cle {type:'plain', title:"Kontakty", _sys:'*',  include:'onload'
   proc select_cleny(ids) { return(warning1); }
   proc show_clen(id) { return(warning1); }
   proc curr_clen(m) { return(warning1); }
+  func zpet_clen() {}
 }
 # ============================================================================================> DARY
 panel dry {type:'plain', title:"Dary", _sys:'*',  skill:'hdd', include:'onload'
@@ -36,24 +37,24 @@ panel dry {type:'plain', title:"Dary", _sys:'*',  skill:'hdd', include:'onload'
   proc show_dar(id) { return(warning1); }
   proc show_balicek(x,kolik) { return(warning1); }
 }
-//# =========================================================================================> PŘEVODY
-//panel pre {type:'plain', title:"Převody", _sys:'*',  skill:'hdp', include:'onclick' }
+# =========================================================================================> PŘEVODY
+panel pre {type:'plain', title:"Převody", _sys:'*',  skill:'hdp', include:'onclick' }
 //# ========================================================================================> SLOŽENKY
 //panel slo {type:'plain', title:"Složenky", _sys:'*',  skill:'hds', include:'onclick' }
-//# ========================================================================================> KONTROLY
-//panel kon  {type:'right', title:"Informace", _sys:'*',
-//  menu leve {type:'left', active:*
-//    menu cisla {title:'Statistika',type:'group', _sys:'*'
-//      item pocet {title:'počet kontaktů'        ,par:°{a:'klu_inf_stat'} }
-//      item       {title:'vývoj obdarování'      ,par:°{a:'klu_inf_vyvoj', p:'1998'} }
-//    }
-//    menu mapy {title:'Mapky',type:'group', _sys:'*'
-//      item {title:'Rozložení letošních dárců'   ,par:°{s:'klu_mapky',c:'darci',p:'0'} }
-//      item {title:'Rozložení loňských dárců'    ,par:°{s:'klu_mapky',c:'darci',p:'1'} }
+# ========================================================================================> KONTROLY
+panel kon  {type:'right', title:"Informace", _sys:'*',
+  menu leve {type:'left', active:*
+    menu cisla {title:'Statistika',type:'group', _sys:'*'
+      item pocet {title:'počet kontaktů'        ,par:°{a:'klu_inf_stat'} }
+      item       {title:'vývoj obdarování'      ,par:°{a:'klu_inf_vyvoj', p:'2020'} }
+    }
+    menu mapy {title:'Mapky',type:'group', _sys:'*'
+      item {title:'Rozložení letošních dárců'   ,par:°{s:'klu_mapky',c:'darci',p:'0'} }
+      item {title:'Rozložení loňských dárců'    ,par:°{s:'klu_mapky',c:'darci',p:'1'} }
 //      item {title:'Rozložení dárců 2010-2019'   ,par:°{s:'klu_mapky',c:'dekada',p:'2010'} }
 //      item {title:'Rozložení dárců 2000-2009'   ,par:°{s:'klu_mapky',c:'dekada',p:'2000'} }
 //      item {title:'Rozložení dárců 1990-1999'   ,par:°{s:'klu_mapky',c:'dekada',p:'1990'} }
-//    }
+    }
 //    menu {title:'Kontrola darů',type:'group', _sys:'*'
 //      item {title:'středisko a VS se liší / letos',par:°{s:'klu_spor_vs',r:'0'} }
 //      item {title:'středisko a VS se liší / loni', par:°{s:'klu_spor_vs',r:'1'} }
@@ -74,20 +75,20 @@ panel dry {type:'plain', title:"Dary", _sys:'*',  skill:'hdd', include:'onload'
 //#       item {title:'dary ze záhrobí 2011'        ,par:°{s:'klu_mrtvi_darci',r:'2011'} }
 //#       item {title:'dary ze záhrobí 2010'        ,par:°{s:'klu_mrtvi_darci',r:'2010'} }
 //#     }
-//    proc onclick(i){
-//      rp.fill(conc(i.owner.title,' - ',i.title),' ');
-//      panel.property(°{height:'*',min_height:8000});
-//      rp.fill('',ask('klu_inf',i.par));
-//    }
-//  }
-//  use rp: form right [12,4,,]
-//}
+    proc onclick(i){
+      rp.fill(conc(i.owner.title,' - ',i.title),' ');
+      panel.property(°{height:'*',min_height:8000});
+      rp.fill('',ask('klu_inf',i.par));
+    }
+  }
+  use rp: form right [12,4,,]
+}
 //# ========================================================================================> OSLOVENÍ
 //panel osl  {type:'plain', title:"Oslovení", _sys:'*', include:'onclick', skill:'m|m' }
 //# ===========================================================================================> ÚKOLY
-//panel uko  {type:'right', title:"Úkoly", _sys:'*', include:'onload', skill:'hdu|hdu',
-//  proc ukol_show() { return(warning1); }
-//}
+panel uko  {type:'right', title:"Úkoly", _sys:'*', include:'onload', skill:'hdu|hdu',
+  proc ukol_show() { return(warning1); }
+}
 # ===========================================================================================> (MAP)
 # systémové číselníky
 map cis_vyber:          table _cis  { where:"druh='vyber' and left(zkratka,1)!='-'", order:'poradi'}
@@ -105,8 +106,18 @@ map user2:              table _user { where:"skills!=''", order:'surname'}
 form _clen [,,399,251] {
   proc onstart () { gt(plus.get,1); form.display(1,'n') }
   proc onload () { eq(substr(del.get,0,1),'D'); msg_del.display(1) | msg_del.display(0) }
-  proc onchanged () { _onchanged }
-  proc _onchanged() {}
+  # ---------------------------==> . ochrana editace více uživateli
+  func onchanged () { clen_lock('on'); _onchanged() }
+  func _onchanged() {}
+  func clen_lock(on) { var lock:object 
+    if (form.key()) {
+      lock= php.table_lock(on,'clen',form.key()); 
+      if ((on=='on') && (!lock.ok)) {
+        alert(`${lock.info} ${lock.note}`);
+        cle.zpet_clen();
+      }
+    }
+  }
   # ------------------------==> . záložky
   proc tags(a,on,off,butt,ukoly,zpravy) {
     form.set_css('ae_butt_off','ae_butt_on','p');
@@ -173,8 +184,8 @@ form _clen [,,399,251] {
 #   field raynet  [268,spec+111,54,17] {tag:'z', title:'RAYNET:', data:clen.ID_RAYNET, format:':e',       skill:'a|a'  }
   check [9,spec+19,100,17] { tag:'z', title:'jen mailem', data:clen.jen_mail }
   check [9,spec+36,100,17] { tag:'z', title:'nic neposílat', data:clen.neposilat }
-  check jenvanocni [9,spec+53,100,17] { tag:'z', title:'jen vánoční', data:clen.jenvanocni
-    proc onchange() { vanocni }
+  check jenvanocni [9,spec+53,100,17] { tag:'z', title:'jen vánoční', data:clen.jenvanocni, format:'d'
+//    proc onchange() { vanocni }
   }
   check [9,spec+70,100,17] { tag:'z', title:'ne složenku', data:clen.neslozenku }
   check [9,spec+87,100,17] { tag:'z', title:'jen potvrzení', data:clen.jenpotvrzeni }
@@ -184,11 +195,11 @@ form _clen [,,399,251] {
     options:cis_k_vyjimka.zkratka, value:'0', skill:'h|a' }
   select potvrzeni [212,spec+42,99,] { tag:'z', type:'map', data:clen.potvrzeni,
     options:cis_k_potvrzeni.hodnota, value:'0'
-    proc onchange() { vanocni }
+//    proc onchange() { vanocni }
   }
   select pvyjimka [317,spec+42,51,] {tag:'z', type:'map', data:clen.pvyjimka,
     options:cis_k_vyjimka.zkratka, value:'0', skill:'h|a'
-    proc onchange() { vanocni }
+//    proc onchange() { vanocni }
   }
   field ucet    [212,spec+65,172,17] { tag:'z', data:clen.ucet }
   label [10,spec,170,15]  { tag:'z', title:'<h1>Zasílání a dárcovství</h1>' }
@@ -235,50 +246,50 @@ form _clen [,,399,251] {
   field kdy { data:clen.zmena_kdy }
   field del { data:clen.deleted }
   # ------------------------==> . procedury
-  # ==> .. vánoční
-  # vyvolá dialog při kolizi hodnot položek jenvanocni & potvrzeni & auto
-  var vanocni_off=0 // vypne spouštění dialogu během vanocni_set
-  proc vanocni() { var y:number
-    vanocni_off.get
-  | echo("VANOCNI:",jenvanocni.get,'-',potvrzeni.get,'-',pvyjimka.get);
-    // povolené kombinace
-    or(and(eq(jenvanocni.get,0),eq(pvyjimka.key,0)),
-       and(eq(jenvanocni.get,1),eq(potvrzeni.key,0,1),eq(pvyjimka.key,1)),
-       and(eq(jenvanocni.get,1),eq(potvrzeni.key,2,3),eq(pvyjimka.key,0)))
-  | // korekce hodnot dialogem
-    y.set(Vanocni.modal);
-    { eq(y,1); vanocni_set(0,'*',0)
-    | eq(y,2); vanocni_set(1,2,0)
-    | eq(y,3); vanocni_set(1,3,0)
-    | eq(y,4); vanocni_set(1,0,1)
-    | eq(y,5); vanocni_set(1,1,1)
-    }
-  }
-  proc vanocni_set(jen,pot,cor) {
-    vanocni_off.set(1);
-    jenvanocni.set(jen); jenvanocni.change;
-    potvrzeni.key(pot); potvrzeni.change;
-    pvyjimka.key(cor); pvyjimka.change;
-    vanocni_off.set(0);
-  }
-  panel Vanocni [0,0,250,150] { type:'popup', css:'dialog', title:"úprava kolizních hodnot"
-     use f:form _f
-     proc onfocus() { f.varianta.set(0) }
-     form _f {
-       label [0,0,250,] { title:"zvolte prosím jednu z povolených kombinací" }
-       label [0,20,250,] { title:"jen vánoční / potvrzení / korekce" }
-       radio varianta [0,40,250,110] { format:'t'
-         case [0, 0,200,] { value:'1', title:" ne / ponechaná hodnota / auto" }
-         case [0,20,200,] { value:'2', title:"ano / roční / auto" }
-         case [0,40,200,] { value:'3', title:"ano / nikdy / auto" }
-         case [0,60,200,] { value:'4', title:"ano / obvykle / corr" }
-         case [0,80,200,] { value:'5', title:"ano / vždy / corr" }
-         proc onchange() { echo("radio=",this.get);
-           panel.close(this.get)
-         }
-       }
-     }
-  }
+//  # ==> .. vánoční
+//  # vyvolá dialog při kolizi hodnot položek jenvanocni & potvrzeni & auto
+//  var vanocni_off=0 // vypne spouštění dialogu během vanocni_set
+//  proc vanocni() { var y:number
+//    vanocni_off.get
+//  | echo("VANOCNI:",jenvanocni.get,'-',potvrzeni.get,'-',pvyjimka.get);
+//    // povolené kombinace
+//    or(and(eq(jenvanocni.get,0),eq(pvyjimka.key,0)),
+//       and(eq(jenvanocni.get,1),eq(potvrzeni.key,0,1),eq(pvyjimka.key,1)),
+//       and(eq(jenvanocni.get,1),eq(potvrzeni.key,2,3),eq(pvyjimka.key,0)))
+//  | // korekce hodnot dialogem
+//    y.set(Vanocni.modal);
+//    { eq(y,1); vanocni_set(0,'*',0)
+//    | eq(y,2); vanocni_set(1,2,0)
+//    | eq(y,3); vanocni_set(1,3,0)
+//    | eq(y,4); vanocni_set(1,0,1)
+//    | eq(y,5); vanocni_set(1,1,1)
+//    }
+//  }
+//  proc vanocni_set(jen,pot,cor) {
+//    vanocni_off.set(1);
+//    jenvanocni.set(jen); jenvanocni.change;
+//    potvrzeni.key(pot); potvrzeni.change;
+//    pvyjimka.key(cor); pvyjimka.change;
+//    vanocni_off.set(0);
+//  }
+//  panel Vanocni [0,0,250,150] { type:'popup', css:'dialog', title:"úprava kolizních hodnot"
+//     use f:form _f
+//     proc onfocus() { f.varianta.set(0) }
+//     form _f {
+//       label [0,0,250,] { title:"zvolte prosím jednu z povolených kombinací" }
+//       label [0,20,250,] { title:"jen vánoční / potvrzení / korekce" }
+//       radio varianta [0,40,250,110] { format:'t'
+//         case [0, 0,200,] { value:'1', title:" ne / ponechaná hodnota / auto" }
+//         case [0,20,200,] { value:'2', title:"ano / roční / auto" }
+//         case [0,40,200,] { value:'3', title:"ano / nikdy / auto" }
+//         case [0,60,200,] { value:'4', title:"ano / obvykle / corr" }
+//         case [0,80,200,] { value:'5', title:"ano / vždy / corr" }
+//         proc onchange() { echo("radio=",this.get);
+//           panel.close(this.get)
+//         }
+//       }
+//     }
+//  }
 }
 # -------------------------------------------------------------------------------------------==> dar
 form _dar [,,565,240] {
@@ -303,8 +314,19 @@ form _dar [,,565,240] {
     [ ok | _form_state('bc','be|br') ];
     return(ok);
   }
-  proc onsubmit () { _dar_uloz }
-  proc onchanged () { id_clen.get; _form_state('bc','be|br') }
+//  proc onsubmit () { _dar_uloz }
+  # ---------------------------==> . ochrana editace více uživateli
+  proc onchanged () { dar_lock('on'); id_clen.get; _form_state('bc','be|br') }
+  func _onchanged() {}
+  func dar_lock(on) { var lock:object 
+    if (form.key()) {
+      lock= php.table_lock(on,'dar',form.key()); 
+      if ((on=='on') && (!lock.ok)) {
+        alert(`${lock.info} ${lock.note}`);
+        dar_zpet(form.key());
+      }
+    }
+  }
   # ------------------------==> . fixované údaje
   var _dar_fixovan: number
   var _zpusob_fixovan: object
@@ -322,21 +344,21 @@ form _dar [,,565,240] {
       | warning('žádné údaje nebyly zatím zafixovány (modře orámovány)')
     } }
   }
-  # ------------------------==> . uzávěrka
-  proc uzavreny_dar () {
-    var uzavreno:text, orig:text
-    has_skill('hddeu'); 
-    return(0)
-  | uzavreno.set(ask('eko_uzaverka_den'));
-    orig.set(function('d',"return d.original.value;",dar_dne));
-    [ orig | orig.set(dar_dne.get) ];
-    or(gt(uzavreno,date2sql(dar_dne.get)),
-       gt(uzavreno,date2sql(orig)));
-    form.enable(0,'br|be|bc'); form.enable(1,'bcc'); 
-    warning("POZOR: tento dar je v uzavřeném období - změnu může vložit pouze paní Štěpánková");
-    return(1)
-  | return(0)    
-  }
+//  # ------------------------==> . uzávěrka
+//  proc uzavreny_dar () {
+//    var uzavreno:text, orig:text
+//    has_skill('hddeu'); 
+//    return(0)
+//  | uzavreno.set(ask('eko_uzaverka_den'));
+//    orig.set(function('d',"return d.original.value;",dar_dne));
+//    [ orig | orig.set(dar_dne.get) ];
+//    or(gt(uzavreno,date2sql(dar_dne.get)),
+//       gt(uzavreno,date2sql(orig)));
+//    form.enable(0,'br|be|bc'); form.enable(1,'bcc'); 
+//    warning("POZOR: tento dar je v uzavřeném období - změnu může vložit pouze paní Štěpánková");
+//    return(1)
+//  | return(0)    
+//  }
   # ------------------------==> . záložky
   proc open_close(typ,typ_open,typ_close) {
     switch(typ,
@@ -481,34 +503,62 @@ form _dar [,,565,240] {
       { eq(substr(del.get,0,1),'D'); zrus_dar.display(0); obnov_dar.display(1)
       | zrus_dar.display(1); obnov_dar.display(0) }
     | zrus_dar.display(0); obnov_dar.display(0) }  }
-  # Uložit
+  # ==> Uložit dar
   button uloz_dar [8,225,,] {tag:'bc', type:'submit', title:'Uložit', skill:'hdde|hdde',
     help:'provede uložení změněných (červeně orámovaných) položek'
-    proc onclick () { form._dar_uloz; } }
-  proc _dar_uloz () {
-    var state: number // 0 - beze změny, 1 - uložení změny, 2 - vytvoření nového
-    form.enable(1,'br'); form.enable(0,'be|bc');
-    form.same; warning('nebyla provedena žádná změna'); state.set(0)
-  | uzavreny_dar
-  | [ castka.changed; castka.set(replace(castka.get,',','.')); castka.change ];
-    kdo.set(sys('user','id_user')); kdo.change; kdy.set(now_sql(1)); kdy.change;
-    { form.key; form.save; form.load; state.set(1)
-    | form.insert; form.load; state.set(2);
-    };
-    return(state.get)
+//    func onclick () { _dar_uloz(); } 
   }
-  # Zpět
+//  proc _dar_uloz () {} // abstrakt přepsaný v klu.cle a klu.dry
+  func dar_uloz() {  var state: number // 0 - beze změny, 1 - uložení změny, 2 - vytvoření nového
+    form.enable(1,'br'); form.enable(0,'be|bc');
+    if (form.same()) {
+      warning('nebyla provedena žádná změna'); 
+      state= 0;
+    }
+    else {
+//  | uzavreny_dar
+      if (castka.changed()) {
+        castka= replace(castka,',','.'); 
+        castka.change();
+      }
+      kdo= sys('user','id_user'); kdo.change(); 
+      kdy= now_sql(1); kdy.change();
+      if (form.key()) {
+        if ( form.save() ) {
+          state= 1;
+          form.load(); 
+        }
+      }
+      else {
+        if (form.insert())  { 
+          state= 2;
+          form.load(); 
+        }
+      }
+    }
+    return state 
+  }
+  # ==> Zpět dar
   button zpet_dar [66,225,,] {tag:'bcc', title:'Zpět', skill:'hdde|hdde',
     help:'zruší červené orámování a vrátí původní obsah'
-    proc onclick () { _dar_zpet(iddar.get) } }
-  proc _dar_zpet (iddar) {
-    iddar; _dar_load (iddar);
-  | form.init; form.set_css('','changed','z'); _form_state('be','bc|br');
+    func onclick () {} // abstraktní funkce 
+  } // fce z cle nebo dry
+//  func _dar_zpet (iddar) {} // abstraktní funkce
+  func dar_zpet (iddar) {
+    if (iddar) {
+      dar_lock('off');
+      _dar_load(iddar);
+    }
+    else {
+      form.init(); 
+      form.set_css('','changed','z'); 
+      _form_state('be','bc|br');
+    }
   }
   # Nový
   button vytvor_dar [118,225,,] {tag:'be', title:'Nový', skill:'hdde|hdde',
     help:'naplní položky základními hodnotami pro nový dar, vlastní vytvoření se provede uložením změn' }
-  proc _dar_novy (clen) {
+  proc dar_novy (clen) {
     form.init(2); id_clen.set(clen); id_clen.change; autoswitch(0);
     [ moje_stredisko.get; stred.key(moje_stredisko.get); stred.change ];
     { _dar_fixovan.get | dar_dne.set(now); dar_dne.change };
@@ -544,14 +594,16 @@ form _dar [,,565,240] {
     help:'smaže dar po předchozím dotazu'
     proc onclick () {
       confirm('opravdu smazat dar ',castka.get,' Kč?');
-      del.set(conc('D ',sys('user','abbr'),' ',now)); del.change; _dar_uloz
+      del.set(conc('D ',sys('user','abbr'),' ',now)); del.change; 
+      dar_uloz
     | echo('dar zůstává jak byl') } }
   # Obnovit
   button obnov_dar [382,225,,] {tag:'br', title:'Obnovit', skill:'hddd|hddd',
     help:'obnoví dar po předchozím dotazu'
     proc onclick () {
       confirm('opravdu obnovit dar ',castka.get,' Kč smazaný ',substr(del.get,1),'?');
-      del.set(' '); del.change; _dar_uloz
+      del.set(' '); del.change; 
+      dar_uloz
     | echo('dar zůstává jak byl') } }
   # ------------------------==> . procedury
   # start

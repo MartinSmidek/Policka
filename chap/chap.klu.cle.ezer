@@ -44,6 +44,16 @@ proc curr_clen(mode) { // 1:id, 2:jméno
     eq(mode,1),C_clen.key,
     eq(mode,2),conc(C_clen.jmeno.get,' ',C_clen.prijmeni.get,"'")));
 }
+func zpet_clen() {
+  C_clen.clen_lock('off');
+  if (C_cleni.cleni.browse_count()) {
+    C_cleni.cleni.browse_focus(); 
+    C_clen_butt._clen_load(C_cleni.cleni.id_clen)
+  }
+  else {
+    C_clen.init(); C_clen_butt._form_state('be','bc|br') 
+  }
+}
 
 proc onfocus () {
   chap.modul_state.get;           /* !!!!!!!!!!!!!!!!!!!!!!!!!! když onfocus proběhne před onstart */
@@ -235,7 +245,9 @@ form _clen_butt [,,400,50] {
       // bylo-li opraveno středisko, nastav výjimku
       [ and(C_clen.stredisko.changed,not(C_clen.svyjimka.changed));
         C_clen.svyjimka.key(1); C_clen.svyjimka.change ];
-      C_clen.save; C_clen.load; C_cleni.cleni.browse_seek; C_cleni.cleni.znacka
+      C_clen.save; 
+      C_clen.clen_lock('off');
+      C_clen.load; C_cleni.cleni.browse_seek; C_cleni.cleni.znacka
     | // pokud není nastavena výjimka v oslovení, vytvoř je
       [ not(eq(C_clen.vyjimka.key,1));
         osl.set(ask('osl_insert',C_clen.osoba.key,
@@ -259,9 +271,9 @@ form _clen_butt [,,400,50] {
   # Zpět
   button zpet_clena [65,14,,] { tag:'bc', title:'Zpět', skill:'hdce|hdce'
     help:'zruší červené orámování a vrátí původní obsah'
-    proc onclick () {
-      C_cleni.cleni.browse_count; C_cleni.cleni.browse_focus; _clen_load(C_cleni.cleni.id_clen.get)
-    | C_clen.init; _form_state('be','bc|br') }
+    func onclick () { zpet_clen() }
+//      C_cleni.cleni.browse_count; C_cleni.cleni.browse_focus; _clen_load(C_cleni.cleni.id_clen.get)
+//    | C_clen.init; _form_state('be','bc|br') }
   }
   # Nový
   button vytvor_clena [121,14,,] { tag:'be', title:'Nový kontakt', skill:'hdce|hdce'
@@ -381,13 +393,13 @@ form _dary [,,400,256] {
 }
 # --------------------------------------------------------------------------------------------- _dar
 use C_dar: form klu._dar [417,klu_cle_dary,,] {  skill:'hdd' // doplnění funkcionality metod klu._dar
-  # Nový
+  # ==> Nový dar
   proc vytvor_dar.onclick() {
-    form.desc._dar_novy(C_cleni.cleni.browse_key); }
-  # Uložit
-  func _dar_uloz_2 () { var stav: number
-//    stav= _dar_uloz();
-    echo('stav=',stav);
+    form.dar_novy(C_cleni.cleni.browse_key); }
+  # ==> Uložit dar
+  func uloz_dar.onclick() { var stav: number
+    stav= form.dar_uloz();
+    echo('C_dar stav=',stav);
     //_dar_uloz: 0 - beze změny, 1 - uložení změny, 2 - vytvoření nového
     // s případnou úpravou příslušnosti ke středisku
     switch (stav) {
@@ -396,7 +408,7 @@ use C_dar: form klu._dar [417,klu_cle_dary,,] {  skill:'hdd' // doplnění funkc
       php.klub_clen_stredisko(C_dar.id_clen); C_clen.load(); C_cleni.cleni.browse_seek();
       break;
     case 2:
-      if (C_dary.dary.browse_seek(conc('id_dar=',C_dar.key))) {
+      if (C_dary.dary.browse_seek(`id_dar=${C_dar.key()}`)) {
         C_dary._dary_suma();
         php.klub_clen_stredisko(C_dar.id_clen); C_clen.load(); C_cleni.cleni.browse_seek();
       }
@@ -405,29 +417,7 @@ use C_dar: form klu._dar [417,klu_cle_dary,,] {  skill:'hdd' // doplnění funkc
       }
     }
   }
-//  proc _dar_uloz () {
-//    var stav: number
-//    stav.set(form.desc._dar_uloz);
-//    echo('stav=',stav);
-//    //_dar_uloz: 0 - beze změny, 1 - uložení změny, 2 - vytvoření nového
-//    // s případnou úpravou příslušnosti ke středisku
-//    { eq(stav,1);
-//      C_dary.dary.browse_row; C_dary._dary_suma;
-//      [ ask('klub_clen_stredisko',C_dar.id_clen.get); C_clen.load; C_cleni.cleni.browse_seek ]
-//    | eq(stav,2);
-//      { C_dary.dary.browse_seek(conc('id_dar=',C_dar.key)); C_dary._dary_suma;
-//        [ ask('klub_clen_stredisko',C_dar.id_clen.get); C_clen.load; C_cleni.cleni.browse_seek ]
-//      | warning("dar byl vytvořen ale není zobrazený v levém seznamu (nevyhovuje nastaveným podmínkám)")
-//      }
-//    }
-//  }
-  # Zpět
-  proc _dar_zpet (iddar) { echo(3);
-    form.desc._dar_zpet(C_dary.dary.browse_key); }
-//   proc _dopis_uloz (typ) {  echo('a');
-//     form.desc._dopis_uloz(typ);
-//     echo('b');
-//     C_dary.dary.browse_row;
-//     echo('c');
-//     C_dary.set_zmena }
+  # ==> Zpět
+  func zpet_dar.onclick() { echo(3);
+    form.dar_zpet(C_dary.dary.browse_key()); }
 }

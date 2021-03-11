@@ -44,15 +44,17 @@ function dop_pot_hist_canF($obj) { trace();
   $res= pdo_qry($qry);
   if ( $res ) {
     $d= pdo_fetch_object($res);
-    $all= $d->BH  && $d->BZ  && $d->BC &&  $d->PjH   && $d->PjZ  && $d->PjC;
-    $d->_all_gen= $all ? 1 : 0;
-    $all= $d->ZBH && $d->ZBZ && $d->ZBC && $d->ZPjH  && $d->ZPjZ && $d->ZPjC;
-    $d->_all_back= $all ? 1 : 0;
-    $any= $d->ZBH || $d->ZBZ || $d->ZBC || $d->ZPjH  || $d->ZPjZ || $d->ZPjC;
-    $d->_any_back= $any ? 1 : 0;
+    if ($d) {
+      $all= $d->BH  && $d->BZ  && $d->BC &&  $d->PjH   && $d->PjZ  && $d->PjC;
+      $d->_all_gen= $all ? 1 : 0;
+      $all= $d->ZBH && $d->ZBZ && $d->ZBC && $d->ZPjH  && $d->ZPjZ && $d->ZPjC;
+      $d->_all_back= $all ? 1 : 0;
+      $any= $d->ZBH || $d->ZBZ || $d->ZBC || $d->ZPjH  || $d->ZPjZ || $d->ZPjC;
+      $d->_any_back= $any ? 1 : 0;
+    }
   }
                                                         debug($d,"dop_pot_hist_canF");
-  return $d;
+  return $d ?: (object)array('error'=>"nedefinované období");
 }
 # -------------------------------------------------------------------------------- dop pot_hist_bull
 # zápis do historie o odeslání Bulletinu
@@ -1821,7 +1823,7 @@ function dop_mail_detach($id_dopis,$i) { trace();
   $names= explode(',',select('prilohy','dopis',"id_dopis=$id_dopis"));
                                                         debug($names,"names");
   list($name,$length)= explode(':',$names[$i]);
-  $file= "$ezer_path_root/docs/ck/bulletiny/$name";
+  $file= "$ezer_path_root/docs/chap/bulletiny/$name";
                                                         display("?= unlink($file)");
   $ok= @unlink($file);
                                                         display("$ok= unlink($file)");
@@ -1898,7 +1900,7 @@ function dop_mail_send($kolik,$id_dopis,$id_mail,$name,$zkus='') { trace();
       $dbg_prilohy= array();
       $bulletin= '';
       if ( count($prilohy) ) foreach ( $prilohy as $fname ) {
-        $fpath= "$ezer_path_root/docs/ck/bulletiny/$fname";
+        $fpath= "$ezer_path_root/docs/chap/bulletiny/$fname";
         $dbg_prilohy[]= $fpath;
         $bulletin.= " $fname";
         $mail->AddAttachment($fpath);

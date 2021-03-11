@@ -7,16 +7,16 @@
 var modul_state:object
 
 menu chap { type:'main', active:*
-  const plus = 0;                       // rozšíření karet - jednotkou je výška řádku browse
-        klu_cle_cleni = 13;
-        klu_cle_dary = 334;
-        klu_kom_rows = 4;
-        klu_kom_zprava_t = 161;
+  const plus = 0,                       // rozšíření karet - jednotkou je výška řádku browse
+        klu_cle_cleni = 13,
+        klu_cle_dary = 334,
+        klu_kom_rows = 4,
+        klu_kom_zprava_t = 161,
         klu_kom_zprava_h = 35
-  var global: text,
-  tabs klu {title:"[fa-users] Dárci", skill:'hd', _sys:'klu',  include:'onload', active:* }
-//  tabs eko {title:"[fa-line-chart] Ekonomika", skill:'he', _sys:'eko',  include:'onclick', active:*  }
-//  tabs dop {title:"[fa-envelope] Korespondence", skill:'hk', _sys:'dop',  include:'onclick', active:* }
+  var global: text
+  tabs klu { title:"[fa-users] Dárci", skill:'hd', _sys:'klu',  include:'onload', active:* }
+  tabs eko {title:"[fa-line-chart] Ekonomika", skill:'he', _sys:'eko',  include:'onclick', active:*  }
+  tabs dop {title:"[fa-envelope] Korespondence", skill:'hk', _sys:'dop',  include:'onclick', active:* }
   tabs sys {title:"[fa-cogs] Nastavení", skill:'hn', _sys:'sys',  include:'onclick,ezer2.syst', active:*
     //panel oso {type:'right', title:'Osobní nastavení', _sys:'*', include:'onclick' }
     panel oso {type:'right', title:'Osobní nastavení', _sys:'*', include:'onclick,ezer2.pers' }
@@ -62,34 +62,28 @@ menu chap { type:'main', active:*
     panel IMPO {type:'right', title:'[fa-download] (Import/Backup)', skill:'a'
       use info: form right [12,4,,]
       menu {type:'left', active:*
-        menu {title:'Záloha databáze', type:'group', skill:'m'
-//          item { title:"test denní zálohy"            par:°{direct:'1'}
-//            proc onclick(i) {
-//              info.fill(conc(i.owner.title,' - ',i.title),' ');
-//              [ {i.par.direct|confirm('Pokračovat?')}; info.append(ask('syst_db_save')) ]
-//            }
-//          }
-          item { title:"přehled záloh"                par:°{typ:'listing',direct:'1'} }
-          item { title:"zálohuj teď"                  par:°{typ:'special',direct:'0'} }
-          item { title:"obnova ze zálohy (jen local)" par:°{typ:'restore',direct:'1'}
-            proc onclick(i) { var heslo:text
-              info.fill(conc(i.owner.title,' - ',i.title),' ');
-              eq(sys('ezer','server'),0,3); // test na lokální server na NTB nebo Synology DOMA
-              confirm('Opravdu mám lokální databázi přepsat?'); 
-              info.append(ask('sys_backup_make',i.par))
-            | eq(sys('ezer','server'),1); // test na server v laboratoři
-              heslo.set(prompt2("Pro obnovu databáze na ostrém serveru je třeba znát heslo:"));
-              [ eq(heslo,'KoneLab');
-                [ confirm('Opravdu mám přepsat ostrou databázi?'); 
-                  info.append(ask('sys_backup_make',i.par))
-                ]
-              | alert('toto není správné heslo')
-            | alert('obnovu ze zálohy lze provádět pouze na lokální kopii systému');
-            }
-          }
-          proc onclick(i) {
+        menu { title:'Import a záloha databáze',type:'group',skill:'m'
+          item { title:"[fa-question] přehled záloh"                par:°{typ:'download'}}
+          item { title:"[fa-upload] zálohuj teď"                    par:°{typ:'special'}}
+          item { title:"[fa-download] obnova ze zálohy (jen local)" par:°{typ:'restore'}}
+          proc onclick(i) { 
             info.fill(conc(i.owner.title,' - ',i.title),' ');
-            [ {i.par.direct|confirm('Pokračovat?')}; info.append(ask('sys_backup_make',i.par)) ]
+            { eq(i.par.typ,'download'); 
+              info.append("<i>zobrazené zálohy lze stáhnout kliknutím (nelze 'Stahnout jako ...')</i><br>");
+              info.append(ask('sys_backup_make',i.par)) 
+            | eq(i.par.typ,'special'); 
+              [ confirm('Pokračovat?'); info.append(ask('sys_backup_make',i.par)) ]
+            | eq(i.par.typ,'restore'); 
+              // test na lokální běh na NTB či Synology
+              { eq(sys('ezer','server'),0,1); 
+                [ confirm('Opravdu mám lokální databázi přepsat tou, kterou teď vybereš? 
+                        Máš ji uschovanou? Po výběru se již rozběhne proces obnovy ...'); 
+                  // načti obnovu
+                  info.append(ask('sys_backup_make',i.par));
+                ]
+              | alert('obnovu ze zálohy nelze provádět na ostrém serveru');
+              }
+            }
           }
         }
       }
@@ -137,13 +131,14 @@ menu chap { type:'main', active:*
 //      }
 //      use info: form right [12,4,,]
 //    }
-//    panel str {type:'plain', title:"Střediska a účty", _sys:'*', skill:'hns|hns', include:'onclick' }
+    panel str {type:'plain', title:"Střediska a účty", _sys:'*', skill:'hns|hns', include:'onclick' }
 //    panel dat {type:'right', title:"Zálohování", _sys:'*', skill:'m', include:'onclick' }
   }
   tabs doc  {title:"Nápověda", _sys:'nap',  include:'onload,ezer2.help', active:* }
   tabs off  {type:'logoff', title:"[fa-power-off] Odhlásit"}
-  proc onstart () {
-    modul_state.set(°{klu:0,dop:0,ban:0,pok:0,eko:0,syst:0,doc:0});
+  func onstart () {
+    php.table_lock('none'); // uvolni všechny zámky řádků tabulek přihlášeného 
+    modul_state= {klu:0,dop:0,ban:0,pok:0,eko:0,syst:0,doc:0};
   }
   # pokud je modul aktivní, nastaví mu dirty=1 aby došlo k překreslení obsahu při onfocus
   # jméno modulu je zřetězením id od chap (nevčetně)

@@ -28,12 +28,12 @@
   
   // specifické cesty pro Ark
     $path_backup= array(
-      "C:/Ezer/beans/chap/sql"
+      "C:/Ezer/beans/policka/sql"
     )[$ezer_server];
   
   // cesta k utilitám MySQL/MariaDB
   $ezer_mysql_path= array(
-      "C:/Apache/bin/mysql/mysql5.7.21/bin"
+      "C:/Apache/bin/mysql/mysql5.7.31/bin"
     )[$ezer_server];
 
   // parametry aplikace Ark
@@ -42,7 +42,7 @@
     array( // lokální
       'ezer_chap'   => array(0,'localhost','gandi','radost','utf8','ezer_chap'),
       'ezer_system' => array(0,'localhost','gandi','radost','utf8','ezer_chap','no dump'),
-      'ezer_kernel' => array(0,'localhost','gandi','radost','utf8')
+      'ezer_kernel' => array(0,'localhost','gandi','radost','utf8','','no dump')
     )
   );
   $tracked= ',clen,dar,pdenik,_user,_cis,';

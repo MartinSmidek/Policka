@@ -1,14 +1,14 @@
 <?php
 
-$ezer_root= 'db2';
+$ezer_root= 'chap';
 
 if ( !isset($_SESSION) ) session_start();
 
 # -------------------------------------------------------------------- identifikace ladícího serveru
 // definice podporovaných serverů
 global $ezer_server, $paths_log;
-$deep_root= "../files/answer";
-require_once("$deep_root/db2.dbs.php");
+//$deep_root= "../files/answer";
+//require_once("$deep_root/db2.dbs.php");
 $ezer_local= $ezer_server==0;
 # ----------------------------------------------------------------------------------------------- js
 $js= <<<__EOD

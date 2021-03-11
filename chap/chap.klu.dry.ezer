@@ -14,8 +14,8 @@ proc onstart () {
   C_dary._dary2_vyber;
   C_dary._dary2_focus("<h1>Všechny dary</h1>",1);
   D_calc.display(0);
-  C_dar.kas.stisk(1); C_dar.kas.set_css('','changed');
-  C_dar._dar_start;
+  D_dar.kas.stisk(1); D_dar.kas.set_css('','changed');
+  D_dar._dar_start;
 }
 
 # aktivace_zvenčí
@@ -29,7 +29,7 @@ proc show_dar (x) {
 }
 proc show_balicek (x,kolik) {
   C_dary.dary.browse_init;
-  C_dar._dar_init;
+  D_dar._dar_init;
   C_clen.init;
   C_dary._dary2_focus(conc("balíček <b>",x,"</b>"),0);
   [ C_dary.dary.ucet.set_query(1,x) ];
@@ -110,16 +110,16 @@ form _dary [,,560,klu_dry_dar] {
     show kdy { data:dd.zmena_kdy },
     proc onchange () {
       this.browse_count; onrowclick
-    | C_clen.init; C_dar._dar_init }
+    | C_clen.init; D_dar._dar_init }
     proc onrowclick () {
       { id_clen.get; C_clen.load(id_clen.get); C_ukoly._ukoly_load(id_clen.get)
       | C_clen.init;
         warning('POZOR: dar č.',id_dar.get,
           ' nemá dárce - lze jej přeřadit správnému dárci tlačítkem [Přepsat] nebo jej lze [Smazat]');
       };
-      C_dar._dar_load(id_dar.get);
+      D_dar._dar_load(id_dar.get);
       zmena.set(conc('<small>poslední změna: ',kdo.get,' ',kdy.get,'</small>'));
-      { id_clen.get | C_dar.kopiruj_dar.enable(0); C_dar.vytvor_dar.enable(0) };
+      { id_clen.get | D_dar.kopiruj_dar.enable(0); D_dar.vytvor_dar.enable(0) };
       dary.focus; dary.browse_focus
     }
     // DblClk přejde na dárce
@@ -131,7 +131,7 @@ form _dary [,,560,klu_dry_dar] {
   proc _dary2_focus (titl,reload) {
     dary.browse_focus; dary.init_queries(reload); zobrazeno.set(titl) }
   proc _dary2_load () {
-    C_dar._dar_init;
+    D_dar._dar_init;
     dary.browse_load(conc(_dary2_cond.get,
       cconc(
         not(C_dary.show_del.get)," AND left(dd.deleted,1)!='D'",
@@ -142,30 +142,35 @@ form _dary [,,560,klu_dry_dar] {
   }
 }
 # -------------------------------------------------------------------------------------------------- _dar
-use C_dar: form klu._dar [10,klu_dry_dar,,] {   // doplnění funkcionality metod klu._dar
+use D_dar: form klu._dar [10,klu_dry_dar,,] {   // doplnění funkcionality metod klu._dar
   # Nový
-  proc vytvor_dar.onclick() {
-    form.desc._dar_novy(C_dary.dary.id_clen.get); }
+  func vytvor_dar.onclick() {
+    form.dar_novy(C_dary.dary.id_clen); }
   # Uložit
-  proc _dar_uloz () {
-    var stav: number
-    stav.set(form.desc._dar_uloz);
-    echo('stav=',stav);
+  func uloz_dar.onclick() { var stav: number
+    stav= form.dar_uloz();
+    echo('D_dar stav=',stav);
     //_dar_uloz: 0 - beze změny, 1 - uložení změny, 2 - vytvoření nového
     // s případnou úpravou příslušnosti ke středisku
-    switch(stav,
-     0,{ stop },
-     1,{ C_dary.dary.browse_row;
-         [ ask('klub_clen_stredisko',C_dar.id_clen.get); C_clen.load ]
-       },
-     2,{ C_dary.dary.browse_seek(conc('id_dar=',C_dar.key));
-         [ ask('klub_clen_stredisko',C_dar.id_clen.get); C_clen.load ]
-       | warning("dar byl vytvořen ale není zobrazený v levém seznamu (nevyhovuje nastaveným podmínkám)")
-       }
-    )
+    switch (stav) {
+      case 0: 
+        break;
+      case 1: C_dary.dary.browse_row();
+        php.klub_clen_stredisko(D_dar.id_clen); 
+        C_clen.load();
+        break;
+      case 2: 
+        if (C_dary.dary.browse_seek(`id_dar=${D_dar.key()}`)) {
+          php.klub_clen_stredisko(D_dar.id_clen); 
+          C_clen.load();
+        }
+        else 
+          warning("dar byl vytvořen ale není zobrazený v levém seznamu (nevyhovuje nastaveným podmínkám)")
+        break;
+    }
   }
-  proc _dar_zpet (iddar) { echo(3);
-    form.desc._dar_zpet(C_dary.dary.browse_key); }
+  func zpet_dar.onclick() { echo('D3');
+    form.dar_zpet(C_dary.dary.browse_key()); }
 }
 # -------------------------------------------------------------------------------------------------- _calc
 form _calc [,,400,40] {

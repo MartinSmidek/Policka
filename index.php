@@ -12,7 +12,7 @@
   // parametry aplikace FiS
   $app_name=  "Polička";
   $app_root=  'chap';
-  $app_js=    array();
+  $app_js=    array('/chap/chap_user.js');
   $app_css=   array('/chap/chap.css.php=skin',"/$kernel/client/wiki.css");
   $skin=      'ck';
   $title_style= $ezer_server==0 ? " style='color:#ef7f13'" : '' ;

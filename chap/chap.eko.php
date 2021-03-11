@@ -33,7 +33,7 @@ function eko_rok_dary($export,$parms,$opts) { trace(); debug($parms); debug($opt
   // střediska a jejich vs
   $rd= pdo_qry("
     SELECT data,ikona,hodnota,barva,zkratka
-    FROM ezer_ck._cis  WHERE druh='varsym'
+    FROM _cis  WHERE druh='varsym'
      --  AND data IN (1000,1100,1111,8002,8300)
     ORDER BY ikona,data");
   while ( $rd && list($vs,$stredisko,$nazev,$deleni,$dary)= pdo_fetch_row($rd) ) {
@@ -73,8 +73,8 @@ function eko_rok_dary($export,$parms,$opts) { trace(); debug($parms); debug($opt
     }
   }
 //                                                         debug($map_deleni);
-//                                                         debug($strediska);
-//                                                         debug($dary);
+                                                         debug($strediska);
+                                                         debug($dary);
   // ------------------------------------------------- tabulka v HTML
   // hlavička
   $th= "th";
@@ -503,6 +503,7 @@ function eko_mesic_vynosy($export,$od,$do,$vecne,$jen_sloz=0) { trace();
 # ------------------------------------------------------------------------------------------ tab_xls
 # exportuje tabulku ve formátu XLS
 function tab_xls($tab,$left,$clmn,$align,$titl='sestava',$fname='tmp') { trace();
+  require_once 'ezer3.1/server/vendor/autoload.php';
   $html= '';
   $h= "bcolor=aac0e2c2";
   list($a2,$w)= explode(':',$left);
