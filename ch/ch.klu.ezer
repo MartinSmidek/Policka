@@ -23,7 +23,7 @@ proc onstart () {
 }
 proc warning1() { warning('Před touto operací je zapotřebí inicializovat kartu Klub|Kontakty'); return(0); }
 # ========================================================================================> KONTAKTY
-panel cle {type:'plain', title:"Kontakty", _sys:'*',  include:'onload'
+panel cle {type:'plain', title:"[fa-home] Kontakty", _sys:'*',  include:'onload'
   use C_clen: form klu._clen //[583,4,,] { tabindex:30 }
 #   use C_ukoly: form klu._ukoly //[583,24,,] { tabindex:30, tag:'u' }
   proc select_cleny(ids) { return(warning1); }
@@ -32,17 +32,17 @@ panel cle {type:'plain', title:"Kontakty", _sys:'*',  include:'onload'
   func zpet_clen() {}
 }
 # ============================================================================================> DARY
-panel dry {type:'plain', title:"Dary", _sys:'*',  skill:'hdd', include:'onload'
+panel dry {type:'plain', title:"[fa-gift] Dary", _sys:'*',  skill:'hdd', include:'onload'
 #   use C_ukoly: form klu._ukoly// [580,329,,]
   proc show_dar(id) { return(warning1); }
   proc show_balicek(x,kolik) { return(warning1); }
 }
 # =========================================================================================> PŘEVODY
-panel pre {type:'plain', title:"Převody", _sys:'*',  skill:'hdp', include:'onclick' }
+panel pre {type:'plain', title:"[fa-bank] Převody", _sys:'*',  skill:'hdp', include:'onclick' }
 //# ========================================================================================> SLOŽENKY
 //panel slo {type:'plain', title:"Složenky", _sys:'*',  skill:'hds', include:'onclick' }
 # ========================================================================================> KONTROLY
-panel kon  {type:'right', title:"Informace", _sys:'*',
+panel kon  {type:'right', title:"[fa-info-circle] Informace", _sys:'*',
   menu leve {type:'left', active:*
     menu cisla {title:'Statistika',type:'group', _sys:'*'
       item pocet {title:'počet kontaktů'        ,par:°{a:'klu_inf_stat'} }

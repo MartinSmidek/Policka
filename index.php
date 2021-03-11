@@ -7,7 +7,8 @@
 
   // hostující servery
   $ezer_server= 
-    $_SERVER["SERVER_NAME"]=='policka.bean'         ? 0 : -1;       // 0:lokální NTB
+    $_SERVER["SERVER_NAME"]=='policka.bean'         ? 0 : (         // 0:lokální NTB
+    $_SERVER["SERVER_NAME"]=='demo.smidek.eu'       ? 1 : -1);      // 1:demo
 
   // parametry aplikace FiS
   $app_name=  "Polička";
@@ -18,11 +19,16 @@
   $title_style= $ezer_server==0 ? " style='color:#ef7f13'" : '' ;
   $title_flag=  $ezer_server==0 ? 'lokální' : '';
 
+  $continue= array(1,1);
+  if (!$continue[$ezer_server] && !isset($_GET['go'])) die('Web under construction');
+
   $abs_roots= array(
       "C:/Ezer/beans/policka",
+      "/home/users/gandi/smidek.eu/web/demo"
     );
   $rel_roots= array(
-      "http://policka.bean:8080"
+      "http://policka.bean:8080",
+      "http://demo.smidek.eu"
     );
 
   // (re)definice Ezer.options
@@ -32,13 +38,15 @@
       . "<br/>Za spolupráci děkuje <br/>Martin";
 
   $favicon= array(
-      "ch_local.png"
+      "ch_local.png",
+      "ch.png",
     )[$ezer_server];
 
   $add_pars= array(
     'favicon' => $favicon,
     'title_right' => "<span$title_style>$title_flag $app_name</span>",
-    'watch_ip' => false,
+    'watch_key' => 1,   // true = povolit přístup jen po vložení klíče
+    'watch_ip' => 1,    // true = povolit přístup jen ze známých IP adres
     'contact' => $kontakt,
     'CKEditor' => "{
       version:'4.6',

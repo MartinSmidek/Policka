@@ -5,7 +5,7 @@ var dopis_id: text
 proc onstart () { dopis_id.set(0) }
 # ================================================================================> DOPISY A ŠABLONY
 # editace vzorů zasílaných dopisů a jejich hlaviček
-panel dop {type:'right', title:"Vzory/šablony", _sys:'*'
+panel dop {type:'right', title:"[fa-paperclip] Vzory/šablony", _sys:'*'
   use ii: form right [12,4,,]
   var cast_sablony: text
   var cast_dopis: text

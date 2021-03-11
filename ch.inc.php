@@ -36,16 +36,21 @@
       "C:/Apache/bin/mysql/mysql5.7.31/bin"
     )[$ezer_server];
 
-  // parametry aplikace Ark
+  // parametry aplikace 
   $db= array('ezer_ch'); // pro ostrý server jméno db vynecháno
   $dbs= array(
     array( // lokální
       'ezer_ch'   => array(0,'localhost','gandi','radost','utf8','ezer_ch'),
       'ezer_system' => array(0,'localhost','gandi','radost','utf8','ezer_ch','no dump'),
       'ezer_kernel' => array(0,'localhost','gandi','radost','utf8','','no dump')
+    ),
+    array( // demo
+      'ezer_ch'   => array(0,'localhost','gandi','radost','utf8','policka'),
+      'ezer_system' => array(0,'localhost','gandi','radost','utf8','policka','no dump'),
+      'ezer_kernel' => array(0,'localhost','gandi','radost','utf8','policka','no dump')
     )
   );
-  $tracked= ',clen,dar,pdenik,_user,_cis,';
+  $tracked= ',clen,dar,ukol,dopis,zprava,_user,_cis,';
   
   // PHP moduly aplikace Ark
   $app_php= array(

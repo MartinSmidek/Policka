@@ -1,5 +1,5 @@
 = Dárci/1 =
-Modul pro správu dárců a darů pro ''Hospic Anežky České'' a související organizace.
+Modul pro správu dárců a darů pro ''Oblastní charitu Polička'' a související organizace.
 
 == Obecně k práci se seznamy ==
 V obrázku popsané prvky jsou platné pro všechna zobrazení seznamů v systému Ezer.

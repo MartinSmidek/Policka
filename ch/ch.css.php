@@ -21,6 +21,23 @@ echo <<<__EOD
 span.cke_toolgroup { padding-right:0; }
 span.cke_top { padding: 4px 8px 0px; }
 
+
+/* hlavní menu - odlišení pro skill=a|m */
+ul.MainMenu li.Active a { text-shadow: 1px 1px 2px black; }
+ul.MainMenu li.a a { color:yellow !important; text-shadow: 1px 1px 2px black; }
+ul.MainMenu li.m a { color:orange !important; text-shadow: 1px 1px 2px black; }
+
+/* podmenu - odlišení pro skill=a|m */
+div.MainTabs li a   { text-shadow: 1px 1px 2px black; }
+div.MainTabs li.a a { color:yellow !important; }
+div.MainTabs li.m a { color:orange !important; }
+  
+/* leftmenu - odlišení pro skill=a|m */
+div.MenuGroup3.a a { color:yellow !important; text-shadow: 1px 1px 2px black; }
+div.MenuGroup3.m a { color:orange !important; text-shadow: 1px 1px 2px black; }
+div.MenuGroup3 li.a { color:yellow !important; text-shadow: 1px 1px 2px black; }
+div.MenuGroup3 li.m { color:orange !important; text-shadow: 1px 1px 2px black; }
+  
 /* úpravy standardu */
 #paticka {
   bottom:16px; }
@@ -118,6 +135,8 @@ table.struc     { border-collapse:collapse; /*font-size:8pt;*/ max-width:calc(10
 .struc td       { border:1px solid #777; background-color:#fff; padding:0 3px;}
 .struc th       { border:1px solid #777; background-color:#dce7f4; }
 .struc dt       { margin:10px 0 0 0; }
+/* = = = = = = = = = = = = = = = = = = = = = = HELP */
+div.ContextHelp { width:740px !important}
 
 __EOD;
 ?>

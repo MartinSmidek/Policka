@@ -19,7 +19,7 @@ menu ch { type:'main', active:*
   tabs dop {title:"[fa-envelope] Korespondence", skill:'hk', _sys:'dop',  include:'onclick', active:* }
   tabs sys {title:"[fa-cogs] Nastavení", skill:'hn', _sys:'sys',  include:'onclick,ezer2.syst', active:*
     //panel oso {type:'right', title:'Osobní nastavení', _sys:'*', include:'onclick' }
-    panel oso {type:'right', title:'Osobní nastavení', _sys:'*', include:'onclick,ezer2.pers' }
+    panel oso {type:'right', title:'[fa-user] Osobní nastavení', _sys:'*', include:'onclick,ezer2.pers' }
     # ===================================================================================== DATABÁZE
     panel DATA {type:'right', title:'[fa-database] Struktura dat'
       use info: form right [12,4,,]
@@ -131,10 +131,10 @@ menu ch { type:'main', active:*
 //      }
 //      use info: form right [12,4,,]
 //    }
-    panel str {type:'plain', title:"Střediska a účty", _sys:'*', skill:'hns|hns', include:'onclick' }
+    panel str {type:'plain', title:"[fa-cubes] Střediska a účty", _sys:'*', skill:'hns|hns', include:'onclick' }
 //    panel dat {type:'right', title:"Zálohování", _sys:'*', skill:'m', include:'onclick' }
   }
-  tabs doc  {title:"Nápověda", _sys:'nap',  include:'onload,ezer2.help', active:* }
+  tabs doc  {title:"[fa-question] Nápověda", _sys:'nap',  include:'onload,ezer2.help', active:* }
   tabs off  {type:'logoff', title:"[fa-power-off] Odhlásit"}
   func onstart () {
     php.table_lock('none'); // uvolni všechny zámky řádků tabulek přihlášeného 
