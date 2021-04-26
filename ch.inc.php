@@ -26,6 +26,14 @@
       ),
       'activity'=>(object)array());
   
+  // banky
+  $bank= array(
+      "C:/Ezer/beans/policka",
+      "/home/users/gandi/smidek.eu/web/demo"
+    );
+  $bank= $bank[$ezer_server];
+  $path_banka['0800']= "$bank/banky/0800/";
+
   // specifické cesty pro Ark
     $path_backup= array(
       "C:/Ezer/beans/policka/sql"

@@ -31,6 +31,9 @@ if ( isset($_GET['op']) ) {
   case 'destroy':
     session_destroy();
     break;
+  case 'clear_cg':
+    unset($_SESSION['tut']['CG']);
+    break;
   case 'phpinfo':
     phpinfo();
     break;
@@ -110,6 +113,7 @@ echo <<<__EOD
     <div id='cmd'>
       <button onclick="op('reload.');">reload</button>
       <button onclick="op('destroy.');">destroy SESSION</button>
+      <button onclick="op('clear_cg.');">clear CG</button>
       <button onclick="op('phpinfo.');">phpinfo</button>
       <span style='font-size:12px'>COOKIE error_reporting: </span>
       <button onclick="op('cookie.0');">0</button>

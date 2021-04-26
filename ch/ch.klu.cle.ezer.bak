@@ -285,7 +285,7 @@ form _clen_butt [,,400,50] {
     C_clen.ulice.change; C_clen.psc.change; C_clen.obec.change; C_clen.historie.change;
     [ moje_stredisko.get; C_clen.stredisko.key(moje_stredisko.get); C_clen.stredisko.change; ];
     _form_state('bc','be|br'); C_clen.focus }
-  button vytvor_ico [210,14,,] { tag:'be', title:'Nový kontakt/IČ', skill:'hdce|hdce'
+  button vytvor_ico [210,14,,] { tag:'be', title:'Nový kontakt/IČO', skill:'hdce|hdce'
     help:'naplní položky základními hodnotami, vlastní vytvoření se provede uložením změn'
     proc onclick () { clear; _clen_ico } }
   proc _clen_ico () { var ico:number, ret:object
