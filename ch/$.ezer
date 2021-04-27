@@ -58,10 +58,9 @@ menu ch { type:'main', active:*
         }
       }
     }
-    # ============================================================================== (import/backup)
-    panel IMPO {type:'right', title:'[fa-download] (Import/Backup)', skill:'a'
-      use info: form right [12,4,,]
-      menu {type:'left', active:*
+    # ===================================================================================== APLIKACE
+    panel APPL {type:'right', title:'[fa-download] Git/DB', _sys:'str', skill:'m'
+      menu m {type:'left', format:'f+'
         menu { title:'Import a záloha databáze',type:'group',skill:'m'
           item { title:"[fa-question] přehled záloh"                par:°{typ:'download'}}
           item { title:"[fa-upload] zálohuj teď"                    par:°{typ:'special'}}
@@ -86,53 +85,27 @@ menu ch { type:'main', active:*
             }
           }
         }
+        menu { title:'GitHub',type:'group',skill:'m'
+          item { title:'[fa-question] Aplikace: git status'  par:{folder:'.',op:'cmd',cmd:'status'}}
+          item { title:'[fa-gear] Aplikace: git log'         par:{folder:'.',op:'cmd',cmd:'log'}}
+          item { title:'[fa-gear] Aplikace: git pull'        par:{folder:'.',op:'cmd',cmd:'pull'}}
+          item { title:'[fa-gear] Aplikace: git fetch ...'   help:"po fetch>git reset --hard origin/master"
+                                                             par:{folder:'.',op:'cmd',cmd:'fetch'}}
+          item { title:'[fa-question] Ezer: git status' par:{folder:'ezer',op:'cmd',cmd:'status'}}
+          item { title:'[fa-gears] Ezer: git log'       par:{folder:'ezer',op:'cmd',cmd:'log'}}
+          item { title:'[fa-gears] Ezer: git pull'      par:{folder:'ezer',op:'cmd',cmd:'pull'}}
+          item { title:'[fa-gears] Ezer: git fetch ...' help:"po fetch>git reset --hard origin/master"
+                                                        par:{folder:'ezer',op:'cmd',cmd:'fetch'}}
+          proc onclick (i) {  
+            panel.display(2,'i'); 
+            info.fill(replace_fa(conc(i.owner.title,' - ',i.title)),ask('git_make',i.par));
+          }
+        }
       }
+      use info: form right [12,4,,]     { tag:'i' }
     }
-//    panel opr {type:'right', title:'Hromadné opravy', _sys:'*', skill:'a'
-//      menu {type:'left', active:*
-//        menu {title:'Oslovení',type:'group', _sys:'*', skill:'a'
-//          item {title:'---', proc onclick (i) {
-//            info.fill(conc(i.owner.title,' - ',i.title),' ');
-//          }}
-//          item {title:'Ukázat automatické tituly', proc onclick (i) {
-//            info.fill(conc(i.owner.title,' - ',i.title),' ');
-//            info.fill('',ask('sys_regenerate_titul',"1",0));
-//          }}
-//          item {title:'Přegenerovat automatické tituly (fm,fž)', proc onclick (i) {
-//            info.fill(conc(i.owner.title,' - ',i.title),' ');
-//            confirm("Opravdu přegenerovat automatické tituly ('',Vážený pán,Vážená paní) novými hodnotami?");
-//            info.fill('',ask('sys_regenerate_titul',"osoba=1 AND rod IN (1,2)",1));
-//          }}
-//          item {title:'vložení nových oslovení (bez anomálií)', proc onclick (i) {
-//            info.fill(conc(i.owner.title,' - ',i.title),' ');
-//            confirm('Opravdu vkopírovat všechna nová oslovení všem členům? Oslovení s anomáliemi budou vynechána.');
-//            info.fill('',ask('sys_copy_osloveni'));
-//          }}
-//          item {title:'zrušení nechráněných oslovení', proc onclick (i) {
-//            info.fill(conc(i.owner.title,' - ',i.title),' ');
-//            confirm('Opravdu zrušit všechna automatická oslovení všem členům?');
-//            info.fill('',ask('sys_trunc_osloveni'));
-//          }}
-//        }
-//        menu {title:'Příslušnost ke středisku',type:'group', _sys:'str'
-//          item {title:'---', proc onclick (i) {
-//            info.fill(conc(i.owner.title,' - ',i.title),' ');
-//          }}
-//          item {title:"přehled stavu 'auto'", proc onclick (i) {
-//            info.fill(conc(i.owner.title,' - ',i.title),' ');
-//            info.fill('',ask('klub_all_stredisko',0));
-//          }}
-//          item {title:"doplnění stavu 'auto'", proc onclick (i) {
-//            info.fill(conc(i.owner.title,' - ',i.title),' ');
-//            confirm('Opravdu vkopírovat automatickou příslušnost ke středisku podle darů (mimo corr)');
-//            info.fill('',ask('klub_all_stredisko',1));
-//          }}
-//        }
-//      }
-//      use info: form right [12,4,,]
-//    }
+    # ===================================================================================> STŘEDISKA
     panel str {type:'plain', title:"[fa-cubes] Střediska a účty", _sys:'*', skill:'hns|hns', include:'onclick' }
-//    panel dat {type:'right', title:"Zálohování", _sys:'*', skill:'m', include:'onclick' }
   }
   tabs doc  {title:"[fa-question] Nápověda", _sys:'nap',  include:'onload,ezer2.help', active:* }
   tabs off  {type:'logoff', title:"[fa-power-off] Odhlásit"}
