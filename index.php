@@ -18,7 +18,7 @@
   $title_style= $ezer_server==0 ? " style='color:#ef7f13'" : '' ;
   $title_flag=  $ezer_server==0 ? 'lokální' : '';
 
-  $continue= array(1,1);
+  $continue= array(1,1,1);
   if (!$continue[$ezer_server] && !isset($_GET['go'])) die('Web under construction');
 
   // (re)definice Ezer.options
