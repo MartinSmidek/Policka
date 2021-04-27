@@ -5,10 +5,9 @@
   $_GET['pdo']= 2; 
   $_GET['touch']= 0; // nezavede jquery.touchSwipe.min.js => filtry v browse jdou upravit myší
 
-  // hostující servery
-  $ezer_server= 
-    $_SERVER["SERVER_NAME"]=='policka.bean'         ? 0 : (         // 0:lokální NTB
-    $_SERVER["SERVER_NAME"]=='demo.smidek.eu'       ? 1 : -1);      // 1:demo
+  // servery a jejich cesty
+  $deep_root= "../files/policka";
+  require_once("$deep_root/ch.dbs.php");
 
   // parametry aplikace FiS
   $app_name=  "Polička";
@@ -21,15 +20,6 @@
 
   $continue= array(1,1);
   if (!$continue[$ezer_server] && !isset($_GET['go'])) die('Web under construction');
-
-  $abs_roots= array(
-      "C:/Ezer/beans/policka",
-      "/home/users/gandi/smidek.eu/web/demo"
-    );
-  $rel_roots= array(
-      "http://policka.bean:8080",
-      "http://demo.smidek.eu"
-    );
 
   // (re)definice Ezer.options
   $kontakt= " V případě zjištění problému nebo <br/>potřeby konzultace mi prosím napište<br/>na "
