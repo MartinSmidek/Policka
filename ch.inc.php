@@ -39,25 +39,19 @@
       "C:/Ezer/beans/policka/sql"
     )[$ezer_server];
   
+  // databáze
+  $deep_root= "../files/policka";
+  require_once("$deep_root/ch.dbs.php");
+  
+  $path_backup= "$deep_root/sql";
+  
   // cesta k utilitám MySQL/MariaDB
   $ezer_mysql_path= array(
-      "C:/Apache/bin/mysql/mysql5.7.31/bin"
+      "C:/Apache/bin/mysql/mysql5.7.21/bin",  // *.bean
+      "/volume1/@appstore/MariaDB/usr/bin",   // Synology DOMA
+      "/volume1/@appstore/MariaDB/usr/bin"    // Synology Polička
     )[$ezer_server];
 
-  // parametry aplikace 
-  $db= array('ezer_ch'); // pro ostrý server jméno db vynecháno
-  $dbs= array(
-    array( // lokální
-      'ezer_ch'   => array(0,'localhost','gandi','radost','utf8','ezer_ch'),
-      'ezer_system' => array(0,'localhost','gandi','radost','utf8','ezer_ch','no dump'),
-      'ezer_kernel' => array(0,'localhost','gandi','radost','utf8','','no dump')
-    ),
-    array( // demo
-      'ezer_ch'   => array(0,'localhost','gandi','radost','utf8','policka'),
-      'ezer_system' => array(0,'localhost','gandi','radost','utf8','policka','no dump'),
-      'ezer_kernel' => array(0,'localhost','gandi','radost','utf8','policka','no dump')
-    )
-  );
   $tracked= ',clen,dar,ukol,dopis,zprava,_user,_cis,';
   
   // PHP moduly aplikace Ark

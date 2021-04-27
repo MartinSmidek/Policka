@@ -1,5 +1,8 @@
 <?php
 
+error_reporting(E_ALL & ~E_NOTICE);
+ini_set('display_errors', 'On');
+
 $ezer_root= 'ch';
 
 if ( !isset($_SESSION) ) session_start();

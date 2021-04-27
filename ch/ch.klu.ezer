@@ -127,16 +127,18 @@ form _clen [,,399,251] {
     [ panel.part('C_ukoly'); panel.part('C_ukoly').display(ukoly); panel.call('C_ukoly.u_show') ];
     [ panel.part('C_zpravy'); panel.part('C_zpravy').display(zpravy); panel.call('C_zpravy.c_show') ]
   }
-  label kon [10,0,67,20] {tag:'p', title:'<b>Kontakt</b>', format:'c', css:'ae_butt_on'
+  label kon [10,0,52,20] {tag:'p', title:'<b>Kontakt</b>', format:'c', css:'ae_butt_on'
     proc onclick() { tags(this,cconc(gt(plus.get,1),'z|k|n','z|k'),'h|o|x|y|u',1,0,0); }}
-  label his [86,0,67,20] {tag:'p', title:'<b>Historie</b>', format:'c',
-    proc onclick() { tags(this,'h|k','z|o|n|u|x|y',1,0,0); }}
-  label poz [161,0,80,20] {tag:'p', title:'<b>Komunikace</b>', format:'c',
-    proc onclick() { tags(this,'x|y','z|o|h|k|u|n',0,0,1); }}
-  label osl [249,0,67,20] {tag:'p', title:'<b>Oslovení</b>', format:'c',
-    proc onclick() { tags(this,'o|k','z|h|n|u|x|y',1,0,0); }}
-  label ukl [325,0,67,20] {tag:'p', title:'<b>Úkoly</b>', format:'c', skill:'hdu|hdu', _sys:'uko'
-    proc onclick() { tags(this,'u','z|o|h|n|k|x|y',0,1,0); }}
+  label his [69,0,49,20] {tag:'p', title:'<b>Historie</b>', format:'c',
+    proc onclick() { tags(this,'h|k','z|o|n|u|x|y|d',1,0,0); }}
+  label poz [126,0,76,20] {tag:'p', title:'<b>Komunikace</b>', format:'c',
+    proc onclick() { tags(this,'x|y','z|o|h|k|u|n|d',0,0,1); }}
+  label osl [210,0,55,20] {tag:'p', title:'<b>Oslovení</b>', format:'c',
+    proc onclick() { tags(this,'o|k','z|h|n|u|x|y|d',1,0,0); }}
+  label doc [274,0,70,20] {tag:'p', title:'<b>Dokumenty</b>', format:'c', _sys:'doc'
+    proc onclick() { tags(this,'d|k','z|o|h|n|k|x|y',0,1,0); }}
+  label ukl [354,0,42,20] {tag:'p', title:'<b>Úkoly</b>', format:'c', skill:'hdu|hdu', _sys:'uko'
+    proc onclick() { tags(this,'u','z|o|h|n|k|x|y|d',0,1,0); }}
   label [0,16,399,klu_cle_dary+-70] {css:'ae_work'}
   # ------------------------==> . kontextové_menu
   menu { type:'context'
