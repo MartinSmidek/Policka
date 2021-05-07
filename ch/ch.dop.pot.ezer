@@ -469,7 +469,7 @@ form _nas [,,*,220] {
   # data
   label [10,0,,] { title:'<b>Zvolené období pro dárce s Bulletinem</b>' }
   select sel [10,20,200,]  { type:'map', data:d.id_davka, options:map_davky.nazev, format:'t'
-    proc onchange() { davka_load }
+    proc onchanged() { davka_load }
     proc davka_load() {
       [ sel.key; form.load(sel.key);
         nasP.resume.set('... načítá se přehled');
@@ -880,7 +880,7 @@ form _nasQ [,,*,220] {
   # data
   label [10,0,,] { title:'<b>Zvolené období pro firmy</b>' }
   select sel [10,20,200,]  { type:'map', data:d.id_davka, options:map_davkyQ.nazev, format:'t'
-    proc onchange() {
+    proc onchanged() {
       [ sel.key; form.load(sel.key);
         nasQ.resume.set('... načítá se přehled');
         the_davkaQ.set(sel.key,'id_davka'); set_cookie(conc(sys('root'),'_kor_pot_selQ'),sel.key);
@@ -989,7 +989,7 @@ form _nasA [,,*,220] {
   # data
   label [10,0,,] { title:'<b>Zvolené období</b>' }
   select sel [10,20,200,]  { type:'map', data:d.id_davka, options:map_davky.nazev, format:'t'
-    proc onchange() {
+    proc onchanged() {
       [ sel.key; form.load(sel.key); the_davkaA.set(sel.key,'id_davka');
         set_cookie(conc(sys('root'),'_kor_pot_selE'),sel.key);
         the_davkaA.set(ask('dop_pot2_switch',the_davkaA.get,last_itemA.get('options.par'))); ];
@@ -1039,7 +1039,7 @@ form _nasF [,,*,220] {
   # data
   label [10,0,,] { title:'<b>Zvolené období</b>' }
   select sel [10,20,200,]  { type:'map', data:d.id_davka, options:map_davkyF.nazev, format:'t'
-    proc onchange() {
+    proc onchanged() {
       [ sel.key; form.load(sel.key);
         nasF.resume.set('... načítá se přehled');
         the_davkaF.set(sel.key,'id_davka'); set_cookie(conc(sys('root'),'_kor_pot_selF'),sel.key);

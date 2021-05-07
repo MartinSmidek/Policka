@@ -46,7 +46,7 @@ panel kon  {type:'right', title:"[fa-info-circle] Informace", _sys:'*',
   menu leve {type:'left', active:*
     menu cisla {title:'Statistika',type:'group', _sys:'*'
       item pocet {title:'počet kontaktů'        ,par:°{a:'klu_inf_stat'} }
-      item       {title:'vývoj obdarování'      ,par:°{a:'klu_inf_vyvoj', p:'2014'} }
+      item       {title:'vývoj obdarování'      ,par:°{a:'klu_inf_vyvoj', p:'2020'} }
     }
     menu mapy {title:'Mapky',type:'group', _sys:'*'
       item {title:'Rozložení letošních dárců'   ,par:°{s:'klu_mapky',c:'darci',p:'0'} }

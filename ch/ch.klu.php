@@ -1,41 +1,41 @@
 <?php # (c) 2011-2015 Martin Smidek <martin@smidek.eu>
 /** **************************************************************************************==> REYNET */
-# --------------------------------------------------------------------------------------- reynet get
-# zobrazí odkaz na člena
-function reynet_get($typ,$id) { trace();
-  $url= "https://app.raynet.cz/api/v2/$typ/$id";
-  // ezer
-  $inst= "ezer";
-  $user= "martin.smidek@outlook.com";
-  $pass= "ezer2017";
-  // procharitu
-  $inst= "procharitu";
-  $user= "martin@smidek.eu";
-  $pass= "wlxt1lsw";
-  $ch= curl_init($url);
-                                                        display("curl=$ch.");
-  $headers = array(
-    'accept: */*',
-//     'accept-encoding:gzip, deflate, sdch, br',
-//     'accept-language:cs,fr;q=0.8',
-    "Content-Type:application/json",
-    "X-Instance-Name: $inst",
-//     'authorization: Basic bWFydGluLnNtaWRla0BvdXRsb29rLmNvbTplemVyMjAxNw=='
-    "Authorization: Basic ".base64_encode("$user:$pass")
-  );
-  curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-  $resp= @curl_exec($ch);
-  $err= curl_error($ch);
-  $stat= curl_getinfo($ch);   //get status code
-                                                        display("curl=$resp");
-                                                        debug($stat,$err);
-  curl_close($ch);
-  $ret= json_decode($resp);
-  $ret= $ret->data;
-                                                        debug($ret);
-  return $ret;
-}
+//# --------------------------------------------------------------------------------------- reynet get
+//# zobrazí odkaz na člena
+//function reynet_get($typ,$id) { trace();
+//  $url= "https://app.raynet.cz/api/v2/$typ/$id";
+//  // ezer
+//  $inst= "ezer";
+//  $user= "martin.smidek@outlook.com";
+//  $pass= "ezer2017";
+//  // procharitu
+//  $inst= "procharitu";
+//  $user= "martin@smidek.eu";
+//  $pass= "wlxt1lsw";
+//  $ch= curl_init($url);
+//                                                        display("curl=$ch.");
+//  $headers = array(
+//    'accept: */*',
+////     'accept-encoding:gzip, deflate, sdch, br',
+////     'accept-language:cs,fr;q=0.8',
+//    "Content-Type:application/json",
+//    "X-Instance-Name: $inst",
+////     'authorization: Basic bWFydGluLnNtaWRla0BvdXRsb29rLmNvbTplemVyMjAxNw=='
+//    "Authorization: Basic ".base64_encode("$user:$pass")
+//  );
+//  curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+//  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+//  $resp= @curl_exec($ch);
+//  $err= curl_error($ch);
+//  $stat= curl_getinfo($ch);   //get status code
+//                                                        display("curl=$resp");
+//                                                        debug($stat,$err);
+//  curl_close($ch);
+//  $ret= json_decode($resp);
+//  $ret= $ret->data;
+//                                                        debug($ret);
+//  return $ret;
+//}
 /** *************************************************************************************==> CLENOVE */
 # ----------------------------------------------------------------------------------- klub firma_ico
 # najde údaje o firmě podle zadaného IČO

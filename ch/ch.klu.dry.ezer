@@ -63,11 +63,11 @@ form _dary [,,560,klu_dry_dar] {
   label zobrazeno [9,7,117,15] { title:'<h1>Všechny dary</h1>' },
   select cond [124,9,105,17] { type:'map', map_pipe:cis_podminky2.hodnota,
     options:cis_podminky2.zkratka, format:'t'
-    proc onchange () { _dary2_vyber } }
+    proc onchanged () { _dary2_vyber } }
   field cond_dne [237,9,85,18] { format:'xt', type:'date', sql_pipe:'sql_date1'
     proc onchange () { _dary2_vyber } }
   select cond_kdo [329,9,81,17] { type:'map', options:user2.surname, format:'xt'
-    proc onchange () { _dary2_vyber } }
+    proc onchanged () { _dary2_vyber } }
   proc _dary2_vyber () {
     _dary2_cond.set(replace(cond.get,'$user',cond_kdo.key,'$datum',date2sql(cond_dne.get)));
     _dary2_load

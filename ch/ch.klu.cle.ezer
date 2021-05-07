@@ -69,13 +69,13 @@ form _cleni [,,565,klu_cle_dary] {
   label [9,6,50,15] { title:'<h1>Dárci</h1>'},
   select cond [64,9,170,] { type:'map', map_pipe:cis_vyber.hodnota,
     options:cis_vyber.zkratka, format:'t', help:'výběr|základní výběr definovaný v číselníku'
-    proc onchange () { _cleni_vyber(0) } }
+    proc onchanged() { _cleni_vyber(0) } }
   field cond_dne [240,9,87,18] { format:'xt', type:'date', sql_pipe:'sql_date1',
     help:'kdy|uplatní se jen ve výběrech s kdy:...'
     proc onchange () { _cleni_vyber(0) } }
   select cond_kdo [333,9,83,] { type:'map', options:user2.surname, format:'xt',
     help:'kdo|uplatní se jen ve výběrech s kdo:...'
-    proc onchange () { _cleni_vyber(0) } }
+    proc onchanged() { _cleni_vyber(0) } }
   check cond_sel [500,0,70,17] { title:'vybraní', style:'color:#d30', format:"t",
     help:'výběr pomocí Insert', value:'0'
     proc onchange () {
@@ -131,31 +131,32 @@ form _cleni [,,565,klu_cle_dary] {
     show psc      [,, 42,] { title:'psč', data:c.psc, format:'q$s', sql_pipe:'psc' }
     show obec     [,, 81,] { title:'obec', data:c.obec, format:'tq$s' }
     // výběrové položky
-    show ucet     [,,80,] { title:'účet',      data:c.ucet,       format:'q$rs' }
+    show ucet     [,, 0,] { title:'účet',      data:c.ucet,       format:'q$rs' }
     show rodcis   [,, 0,] { title:'rč/IČ',     data:c.rodcis,     format:'q$s' }
-    show titul    [,, 0,] { title:'titul',     data:c.titul,      format:'q$s' }
+    show titul    [,,80,] { title:'titul',     data:c.titul,      format:'q$s' }
     show telefony [,, 0,] { title:'telefony',  data:c.telefony,   format:'q$s' }
     show email    [,, 0,] { title:'email',     data:c.email,      format:'q$s' }
     show potvrz   [,, 0,] { title:'potvrzení', data:c.potvrzeni,  format:'q#s',
       map_pipe:cis_k_potvrzeni.zkratka }
-    show jenvan   [,, 0,] { title:'jen vánoční',data:c.jenvanocni,format:'q=s:e' }
-#     show raynet   [,, 0,] { title:'RAYNET',     data:c.ID_RAYNET, format:'q*rs:e' }
-#     show old_kod  [,, 0,] { title:'(kód)',     data:c.kod,       format:'q=rs' }
+//    show jenvan   [,, 0,] { title:'jen vánoční',data:c.jenvanocni,format:'q=s:e' }
+//#     show raynet   [,, 0,] { title:'RAYNET',     data:c.ID_RAYNET, format:'q*rs:e' }
+//#     show old_kod  [,, 0,] { title:'(kód)',     data:c.kod,       format:'q=rs' }
     show stredisko[,, 0,] { title:'středisko', data:c.stredisko,
       map_pipe:cis_darce.hodnota, format:'q#s' },
     show kategorie[,, 0,] { title:'kategorie', data:c.kategorie, format:'q#s'
       map_pipe:cis_kategorie.zkratka}
     proc onclick() {
-      jenvan.width;    jenvan.width(0);    stredisko.width(80); // raynet.width(80);
+//      jenvan.width;    jenvan.width(0);    stredisko.width(80); // raynet.width(80);
 #     | raynet.width;    raynet.width(0);    stredisko.width(80);
-    | stredisko.width; stredisko.width(0); ucet.width(80);
+//    |
+      stredisko.width; stredisko.width(0); ucet.width(80);
     | ucet.width;      ucet.width(0);      kategorie.width(80);
     | kategorie.width; kategorie.width(0); rodcis.width(80);
     | rodcis.width;    rodcis.width(0);    titul.width(80);
     | titul.width;     titul.width(0);     telefony.width(80);
     | telefony.width;  telefony.width(0);  email.width(80);
     | email.width;     email.width(0);     potvrz.width(80);
-    | potvrz.width;    potvrz.width(0);    jenvan.width(80);
+    | potvrz.width;    potvrz.width(0);    stredisko.width(80);
     }
     # výběr_posledního_sloupce
     show kdo { data:c.zmena_kdo },
@@ -345,22 +346,22 @@ form _dary [,,400,256] {
   //   proc onchange () { _dary_load } },
   # seznam darů
   view dd: table dar
-  view dv: table _cis {join_type:"LEFT", join:"ON dd.varsym=dv.data AND dv.druh='varsym'" }
-  browse dary [4,34,0,54] { rows:10, wheel:5, css_rows:'color,0:dar_2'
+//  view dv: table _cis {join_type:"LEFT", join:"ON dd.varsym=dv.data AND dv.druh='varsym'" }
+  browse dary [4,34,0,54] { rows:10, wheel:5 //, css_rows:'color,0:dar_2'
     show del    [,,0,]  { title:'D', data:dd.deleted, format:'q' },
     show nucet  [,,0,]  { title:'ú', data:dd.nas_ucet, map_pipe:cis_k_ucet.zkratka },
     show dne    [,,70,] { title:'ze dne', data:dd.castka_kdy, format:'rfs-' },
     show castka [,,60,] { title:'hodnota', data:dd.castka, format:'rfs' },
     show zpusob [,,12,] { title:'z', data:dd.zpusob, map_pipe:cis_k_zpusob.zkratka },
     show        [,,20,] { title:'s', data:dd.stredisko, map_pipe:cis_stredisko.zkratka },
-    show        [,,32,] { title:'VS', data:dd.varsym },
+//    show        [,,32,] { title:'VS', data:dd.varsym },
     show ucet   [,,173,] { title:'-/účet/balíček/věc', expr:"if(zpusob=4,dd.popis,dd.ucet)",
                            format:'tfs' },
     show iddar  { data:dd.id_dar },
     show kdo    { data:dd.zmena_kdo, map_pipe:user.abbr },
     show kdn    { data:dd.zmena_kdo },
     show kdy    { data:dd.zmena_kdy }
-    show color  { data:dv.zkratka },
+//    show color  { data:dv.zkratka },
     proc onrowclick() { dary_znacka; }
     proc onchange()   { dary_znacka; }
     proc dary_znacka () { dary.browse_active; C_dar._dar_load(iddar.get); set_zmena }

@@ -21,16 +21,42 @@ menu ch { type:'main', active:*
     //panel oso {type:'right', title:'Osobní nastavení', _sys:'*', include:'onclick' }
     panel oso {type:'right', title:'[fa-user] Osobní nastavení', _sys:'*', include:'onclick,ezer2.pers' }
     # ===================================================================================== DATABÁZE
-    panel DATA {type:'right', title:'[fa-database] Struktura dat'
-      use info: form right [12,4,,]
+    panel dat {type:'right', title:'[fa-database] Struktura dat'
+      func tab_append(tab,idt,using) {
+        clear();
+        if (using) info.append(php.tab_append_using(tab,idt));
+        else info.append(php.tab_append(tab,idt));
+      }
+      use info: form right [12,4,,] {
+        select tab [-253,5,150,] {tag:'t', title:'tabulka', format:'t'}
+        field idt [-152,5,70,] {tag:'t', title:'klíč', format:'t'}
+        button [-82,5,,] {tag:'t', title:'zobraz'
+          func onclick() {
+            clear(); form.note= conc(form.note,php.tab_append(tab,`*='${idt}'`)); // * bude primary_key
+        }}
+        button [-22,5,,] {tag:'t', title:'vymaž'
+          func onclick() { form.note= '';
+        }}
+      }
       menu {type:'left', active:*
         menu  {title:'Struktura dat aplikace', type:'group'
           item {title:'[fa-object-group] Přehled struktury dat'
             proc onclick (i) {
+              info.display(0,'t');
               info.fill(replace_fa(conc(i.owner.title,' - ',i.title)),"<br>
                 Zjednodušené schema databáze<br><br>
                 <img src='ch/img/schema_db_2021.png' />
               ");
+            }
+          }
+          item {title:'[fa-question] zobrazení záznamů'
+            func onclick (i:ezer) {
+              clear(); info.display(1,'t');
+              info.fill(replace_fa(i.title),'');
+              if (!info.tab) {
+                info.tab.selects(php.tab_selects());
+                info.tab.key(1);
+              }
             }
           }
           item {title:'[fa-database] tabulka CLEN'        par:°{tab:'clen'} }
@@ -43,7 +69,7 @@ menu ch { type:'main', active:*
           item {title:'[fa-database] tabulka DAVKA'       par:°{tab:'davka'} }
           item {title:'[fa-database] tabulka MAIL'        par:°{tab:'mail'} }
           proc onclick (i) {
-            clear;
+            clear; info.display(0,'t');
             info.fill(replace_fa(conc(i.owner.title,' - ',i.title)),
                 ask('i_doc_table_struct',i.par.tab,0,'struc'));
           }
@@ -51,7 +77,7 @@ menu ch { type:'main', active:*
         menu  {title:'Struktura dat Ezer', type:'group'
           item {title:'[fa-database] tabulka _cis'        par:°{tab:'_cis'} }
           proc onclick (i) {
-            clear;
+            clear; info.display(0,'t');
             info.fill(replace_fa(conc(i.owner.title,' - ',i.title)),
                 ask('i_doc_table_struct',i.par.tab,1,'struc'));
           }
@@ -61,7 +87,28 @@ menu ch { type:'main', active:*
     # ===================================================================================== APLIKACE
     panel APPL {type:'right', title:'[fa-download] Git/DB', _sys:'str', skill:'m'
       menu m {type:'left', format:'f+'
-        menu { title:'Import a záloha databáze',type:'group',skill:'m'
+        menu  {title:'Primární import dat', type:'group', skill:'m'
+          item {title:'[fa-upload] TRUNCATE clen, dar'
+            func onclick (i:ezer) {
+              clear(); info.display(0,'t');
+              info.fill(replace_fa(i.title),php.ch_truncate());
+            }
+          }
+          item {title:'[fa-upload] celý soubor darci.csv'    par:°{file:'darci',max:0} }
+          item {title:'[fa-upload] ... jen 144 záznamů'      par:°{file:'darci',max:144} }
+          item {title:'[fa-upload] ... jen 60 záznamů'       par:°{file:'darci',max:60} }
+          item {title:'[fa-upload] ... jen 12 záznamů'       par:°{file:'darci',max:12} }
+          item {title:'[fa-upload] ... jen 1 záznam'         par:°{file:'darci',max:1} }
+          item {title:'[fa-upload] celý soubor firmy.csv'    par:°{file:'firmy',max:0} }
+          item {title:'[fa-upload] ... jen 12 záznamů'       par:°{file:'firmy',max:12} }
+          item {title:'[fa-upload] ... jen 1 záznam'         par:°{file:'firmy',max:1} }
+          func onclick (i:ezer) {
+            clear(); info.display(0,'t');
+            info.fill(replace_fa(i.title),' čekej ...');
+            info.fill('',php.ch_import(i.par));
+          }
+        }
+        menu { title:'Backup databáze',type:'group',skill:'m'
           item { title:"[fa-question] přehled záloh"                par:°{typ:'download'}}
           item { title:"[fa-upload] zálohuj teď"                    par:°{typ:'special'}}
           item { title:"[fa-download] obnova ze zálohy (jen local)" par:°{typ:'restore'}}
@@ -255,9 +302,9 @@ table osloveni { key_id:'id_clen'
 
 table clen { key_id:'id_clen'
   number id_clen        { key:'primary', help:'kontakt|jedinečné číslo kontaktu' },
-  number ID             { help:'ID|původní číslo kontaktu' },
-  number ID_RAYNET
-  number kod            { help:'kód|původní kód dárce' },
+//  number ID             { help:'ID|původní číslo kontaktu' },
+//  number ID_RAYNET
+//  number kod            { help:'kód|původní kód dárce' },
   text   deleted        { help:'ok|prázdné nebo D=značka smazání kontaktu' },
   date   umrti          { help:'úmrtí|datum úmrtí', sql_pipe:'sql_date1' },
   text   historie       { help:'poznámky|poznámky ke kontaktu' },
@@ -292,7 +339,7 @@ table clen { key_id:'id_clen'
   number neslozenku     { help:'ne složenku|neposílat složenky' },
   number neposilat      { help:'nic neposílat|na adresu nic neposílat' },
   number jenpotvrzeni   { help:'jen potvrzení|posílat pouze daňová potvrzení' },
-  number jenvanocni     { help:'jen vánoční|chybná či neúplná poštovní adresa' },
+//  number jenvanocni     { help:'jen vánoční|chybná či neúplná poštovní adresa' },
   number rod            { help:'rod|mluvnický rod: neurčeno/mužský/ženský' },
   number osloveni       { help:'oslovení|oslovení před jménem (5.pád)' },
   text   prijmeni5p     { help:'příjmení 5.p|příjmení (5.pád)' },
@@ -317,19 +364,23 @@ table dar { key_id:'id_dar'
   text   pozn        { help:'účel platby|účel platby nebo jiná poznámka' },
   text   body        { help:'poznámka|poznámka k daru nebo dopisu' },
   text   darce       { help:'jméno dárce|jméno použité v daňovém povrzení' },
-  // žádost
-  date   zadost_kdy  { help:'žádost poslána dne', sql_pipe:'sql_date1' }
-  text   zadost_kdo  { help:'žádost vyřídil' }
-  text   zadost_txt  { help:'text žádosti' }
-  // smlouva
-  date   smlouva_kdy { help:'smlouva poslána dne', sql_pipe:'sql_date1' }
-  text   smlouva_kdo  { help:'smlouvu vyřídil' }
-  text   smlouva_txt  { help:'text smlouvy' }
-  // podpis
-  date   podpis_kdy  { help:'podpis smlouvy poslán dne', sql_pipe:'sql_date1' }
+//  // žádost
+//  date   zadost_kdy  { help:'žádost poslána dne', sql_pipe:'sql_date1' }
+//  text   zadost_kdo  { help:'žádost vyřídil' }
+//  text   zadost_txt  { help:'text žádosti' }
+//  // smlouva
+//  date   smlouva_kdy { help:'smlouva poslána dne', sql_pipe:'sql_date1' }
+//  text   smlouva_kdo  { help:'smlouvu vyřídil' }
+//  text   smlouva_txt  { help:'text smlouvy' }
+//  // podpis
+//  date   podpis_kdy  { help:'podpis smlouvy poslán dne', sql_pipe:'sql_date1' }
   // částka
   number castka      { help:'částka|celková částka v celých korunách' },
   date   castka_kdy  { help:'přijato|datum přijetí daru', sql_pipe:'sql_date1' }
+  // poděkování
+  date   diky_kdy  { help:'poděkování za dar posláno dne', sql_pipe:'sql_date1' }
+  text   diky_kdo  { help:'poděkování vyřídil' }
+  text   diky_txt  { help:'obsah poděkování' }
   // potvrzení
   date   potvrz_kdy  { help:'potvrzení přijetí daru posláno dne', sql_pipe:'sql_date1' }
   text   potvrz_kdo  { help:'potvrzení vyřídil' }
@@ -366,7 +417,7 @@ table zprava { key_id:'id_zprava'
 
 # uživatelské číselníky
 map cis_k_osloveni:     table _cis { where:"druh='k_osloveni'", order:'poradi', key_id:'data'}
-map cis_varsym:         table _cis { where:"druh='varsym'", order:'data', key_id:'data'}
+//map cis_varsym:         table _cis { where:"druh='varsym'", order:'data', key_id:'data'}
 map cis_deleni:         table _cis { where:"druh='deleni'", order:'poradi', key_id:'data'}
 map cis_stredisko:      table _cis { where:"druh='stredisko'", order:'poradi', key_id:'data'}
 map cis_darce:          table _cis { where:"druh='darce'", order:'poradi', key_id:'data'}

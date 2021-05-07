@@ -165,7 +165,7 @@ table davka { key_id:'id_davka'
   date   datum_do { sql_pipe:'sql_date1' }
   number let_zpet                 // poslat bulletin starým dárcům
   number mailem                   // použít i mailovou rozesílku bulletinu
-  number vanocni                  // varianta pro rozesílku vánočního bulletinu
+//  number vanocni                  // varianta pro rozesílku vánočního bulletinu
   text   resume
 }
 

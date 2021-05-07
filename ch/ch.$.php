@@ -2,6 +2,156 @@
 # projekt CK
 # 2010 Martin Smidek <martin@smidek.eu>
 #
+/** =======================================================================================> TABLES */
+# zobrazované tabulky >* je označuje klíč, >tab ozančuje klíč jiné tabulky
+$app_tables= (object)array(
+  'clen'   => "id_clen>*,jmeno,prijmeni",
+  'dar'    => "id_dar>*,id_clen>clen,zpusob,ucet,stredisko,castka_kdy",
+  '_' => 'sys.dat,struc' // cesta k funkci tab_append
+);
+# -------------------------------------------------------------------------------------- ch truncate
+# inicializace db
+function ch_truncate() { trace();
+  query("TRUNCATE TABLE dar");
+  query("TRUNCATE TABLE clen");
+  return "clen a dar vymazány";
+}
+# ---------------------------------------------------------------------------------------- ch import
+# primární import dat
+function ch_import($par) { trace();
+  global $ezer_path_root;
+  $csv= "$ezer_path_root/doc/{$par->file}.csv";
+  $data= array();
+  $msg= ch_csv2array($csv,$data,$par->max?:999999);
+//  display($msg);                                              
+//  debug($data,'darci.csv');
+  // zrušíme staré záznamy
+  // definice polí
+  $flds= array(
+      // nastavení
+      'list' => "X",
+      // clen
+      'titul'   => "C",
+      'ulice'   => "C",
+      'psc'     => "C",
+      'obec'    => "C",
+      'ico'     => "C",
+      'rodcis'  => "C,rc",
+      'email/pozn'  => "C,ep",
+      // dar
+      'castka'     => "D,dn",
+      'zpusob'     => "D,z",
+      'potvrz_kdy' => "D,d",
+      'castka_kdy' => "D,d",
+      'diky_kdy'   => "D,d",
+      'pozn'       => "D",
+  );
+  // rozdělíme na clen a dar
+  $n_clen= 0;
+  foreach ($data as $row) {
+    // najdi nebo vlož člena
+    $prijmeni= $row['prijmeni'];
+    if (!$prijmeni) continue;
+    $jmeno= $row['jmeno'];
+    $idc= select('id_clen','clen',"prijmeni='$prijmeni' AND jmeno='$jmeno'");
+    if (!$idc) {
+      query("INSERT INTO clen (jmeno,prijmeni) VALUE ('$jmeno','$prijmeni')");
+      $idc= pdo_insert_id();
+      $n_clen++;
+    }
+    // atributy
+    $c= $d= array();
+    $c['email']= $c['poznamka']= '';
+    $d['zpusob']= 0;
+    foreach ($flds as $fld=>$desc) {
+      list($tab,$cnv)= explode(',',$desc);
+      $val= $row[$fld];
+      if ($tab=='X') {
+        if ($val==1) $c['osoba']= 1;
+        elseif ($val==2) $c['osoba']= 0;
+      }
+      else {
+        switch($cnv) {
+          case 'rc': 
+            $m= null;
+            $val= str_replace('*','',$val);
+            if (preg_match("~^\d\d\d\d$~",$val)) {
+              $c['narozeni_rok']= $val;
+              display("$prijmeni: narozeni_rok:$val");
+            }
+            elseif (preg_match("~^\d+\.\d+\.\d+$~",$val)) {
+              $c['narozeni']= sql_date($val,1);
+              display("$prijmeni: narozeni:$val");
+            }
+            elseif (preg_match("~^t:\s*(\d+)$~",$val,$m)) {
+              $c['telefony']= $m[1];
+              display("$prijmeni: telefon:$val");
+            }
+            break;
+          case 'dn': 
+            $d[$fld]= str_replace(' ','',$val);
+            break;
+          case 'd': 
+            if (preg_match("~^\d+\.\d+\.\d+$~",$val)) {
+              if ($tab=='C') $c[$fld]= sql_date($val,1); 
+              elseif ($tab=='D') $d[$fld]= sql_date($val,1); 
+            }
+            break;
+          case 'z': 
+            $d['zpusob']= $val=='na účet' ? 2 : ($val=='v hotovosti' ? 1 : 0); 
+            break;
+          case 'ep': 
+            if (strchr($val,'@')) $c['email']= $val; elseif ($tab=='D') $c['poznamka']= $val; 
+            break;
+          default: 
+            if ($tab=='C') $c[$fld]= $val; else $d[$fld]= $val; 
+            break;
+        }
+      }
+    }
+    // přidání atributů do clen
+    $attr= array();
+    foreach ($c as $fld=>$val) {
+      if ($fld=='rodcis') {
+        $attr[]= "$fld=IF($fld='0000-00-00',$val'";
+      }
+      elseif ($val)
+        $attr[]= "$fld='$val'";
+    }
+    if (count($attr))
+      query("UPDATE clen SET ".implode(',',$attr)." WHERE id_clen=$idc");
+    // vygenerování oslovení pro fyzické osoby
+    if ($c['osoba']==1)
+      osl_update($idc);
+    // vytvoření dar
+    $attr= array();
+    $d['id_clen']= $idc;
+    foreach ($d as $fld=>$val) {
+      $attr[]= "$fld='$val'";
+    }
+    query("INSERT INTO dar SET ".implode(',',$attr));
+  }
+  return "Bylo vloženo $n_clen lidí a ".count($data)." darů";
+}
+# ------------------------------------------------------------------------------------- ch csv2array
+# primární import dat
+function ch_csv2array($fpath,&$data,$max) { trace();
+  $f= fopen($fpath, "r");
+  if ( !$f ) { $msg.= "soubor $fpath nelze otevřít"; goto end; }
+  // načteme hlavičku
+  $head= fgetcsv($f, 1000, ';');
+  $n= 0;
+  while (($d= fgetcsv($f, 1000, ';')) !== false) {
+    foreach ($d as $i=>$val) {
+      $val= win2utf($val,1);
+      $data[$n][$head[$i]]= $val;
+    }
+    $n++;
+    if ($n>=$max) break;
+  }
+end:
+  return $msg;
+}
 /** ===========================================================================================> GIT */
 # ----------------------------------------------------------------------------------------- git make
 # provede git par.cmd>.git.log a zobrazí jej
@@ -611,7 +761,7 @@ function osl_osloveni ($rod,$typ) {
 }
 # -------------------------------------------------------------------------------------------------- osl_prijmeni5p
 // generování 5. pádu z $prijmeni,$rod
-function osl_prijmeni5p ($titul,$prijmeni,$rod,&$ano) {  trace();
+function osl_prijmeni5p ($titul,$prijmeni,$rod,&$ano) {  
   $y= '';
   // odříznutí přílepků za jménem (po mezeře nebo čárce)
   $p= trim($prijmeni);
@@ -819,4 +969,3 @@ function okresy_show ($okresy,$scale=1,$img_atr='',$bgcolor='0,255,255',$method=
   }
   return $text;
 }
-?>

@@ -133,7 +133,7 @@ table.roze      { border-collapse:collapse; }
 table.struc     { border-collapse:collapse; /*font-size:8pt;*/ max-width:calc(100% - 15px); 
                   width:unset !important}
 .struc td       { border:1px solid #777; background-color:#fff; padding:0 3px;}
-.struc th       { border:1px solid #777; background-color:#dce7f4; }
+.struc th       { border:1px solid #777; background-color:$b_work; }
 .struc dt       { margin:10px 0 0 0; }
 /* = = = = = = = = = = = = = = = = = = = = = = HELP */
 div.ContextHelp { width:740px !important}
