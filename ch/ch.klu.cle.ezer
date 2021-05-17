@@ -1,7 +1,7 @@
 # Systém CK - panel Klub.Kontakty
 # (c) 2010 Martin Šmídek <martin@smidek.eu>
 
-# ================================================================================================== KONTAKTY
+# ========================================================================================> KONTAKTY
 # const klu_cle_cleni = 13
 # const klu_cle_dary = 334
 
@@ -11,7 +11,7 @@ use C_dary: form _dary [5,klu_cle_dary,,] { tabindex:50, skill:'hdd' }
 
 proc onstart () {
   ch.modul_state.set(°{active:1,dirty:0},'klu.cle');   # poznačení, že modul je aktivní
-  C_cleni.cond.key(1015);       // s kontaktem = 1015
+  C_cleni.cond.key(1005);       // s kontaktem = 1015
   C_cleni._cleni_vyber(0);
   C_clen.kon.onclick;
   Ctrack.clen_form.set(C_clen);

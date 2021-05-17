@@ -22,10 +22,14 @@ menu ch { type:'main', active:*
     panel oso {type:'right', title:'[fa-user] Osobní nastavení', _sys:'*', include:'onclick,ezer2.pers' }
     # ===================================================================================== DATABÁZE
     panel dat {type:'right', title:'[fa-database] Struktura dat'
-      func tab_append(tab,idt,using) {
+      func tab_append(tab,cond,mode) {
         clear();
-        if (using) info.append(php.tab_append_using(tab,idt));
-        else info.append(php.tab_append(tab,idt));
+        if (mode==1)
+          info.append(php.tab_append_using(tab,cond));
+        elseif (mode==2)
+          info.append(php.tab_append(tab,`TRUE`));
+        else // mode==0
+          info.append(php.tab_append(tab,cond));
       }
       use info: form right [12,4,,] {
         select tab [-253,5,150,] {tag:'t', title:'tabulka', format:'t'}
@@ -95,13 +99,18 @@ menu ch { type:'main', active:*
             }
           }
           item {title:'[fa-upload] celý soubor darci.csv'    par:°{file:'darci',max:0} }
-          item {title:'[fa-upload] ... jen 144 záznamů'      par:°{file:'darci',max:144} }
-          item {title:'[fa-upload] ... jen 60 záznamů'       par:°{file:'darci',max:60} }
-          item {title:'[fa-upload] ... jen 12 záznamů'       par:°{file:'darci',max:12} }
+//          item {title:'[fa-upload] ... jen 144 záznamů'      par:°{file:'darci',max:144} }
+//          item {title:'[fa-upload] ... jen 60 záznamů'       par:°{file:'darci',max:60} }
+//          item {title:'[fa-upload] ... jen 12 záznamů'       par:°{file:'darci',max:12} }
           item {title:'[fa-upload] ... jen 1 záznam'         par:°{file:'darci',max:1} }
           item {title:'[fa-upload] celý soubor firmy.csv'    par:°{file:'firmy',max:0} }
-          item {title:'[fa-upload] ... jen 12 záznamů'       par:°{file:'firmy',max:12} }
+//          item {title:'[fa-upload] ... jen 12 záznamů'       par:°{file:'firmy',max:12} }
           item {title:'[fa-upload] ... jen 1 záznam'         par:°{file:'firmy',max:1} }
+          item {title:'[fa-upload] celý soubor firmy2.csv'   par:°{file:'firmy2',max:0} }
+          item {title:'[fa-upload] ... jen 144 záznamů'      par:°{file:'firmy2',max:144} }
+          item {title:'[fa-upload] ... jen 60 záznamů'       par:°{file:'firmy2',max:60} }
+          item {title:'[fa-upload] ... jen 12 záznamů'       par:°{file:'firmy2',max:12} }
+          item {title:'[fa-upload] ... jen 1 záznam'         par:°{file:'firmy2',max:1} }
           func onclick (i:ezer) {
             clear(); info.display(0,'t');
             info.fill(replace_fa(i.title),' čekej ...');
@@ -302,6 +311,7 @@ table osloveni { key_id:'id_clen'
 
 table clen { key_id:'id_clen'
   number id_clen        { key:'primary', help:'kontakt|jedinečné číslo kontaktu' },
+  text zdroj
 //  number ID             { help:'ID|původní číslo kontaktu' },
 //  number ID_RAYNET
 //  number kod            { help:'kód|původní kód dárce' },
@@ -313,6 +323,7 @@ table clen { key_id:'id_clen'
   text   osoba          { help:'druh|fyzická nebo právnické osoba' },
   number rodina         { help:'rodina|počet osob v rodině' },
   text   titul          { help:'titul|akademický titul nebo zvláštní oslovení' },
+  text   titul_za       { help:'titul|akademický titul za jménem' },
   text   jmeno          { help:'první jméno|křestní jméno fyzické osoby nebo plné jméno kontaktu' },
   text   prijmeni       { help:'druhé jméno|příjmení fyzické osoby nebo jméno organizace' },
   //text kategorie      { help:'kategorie|kód kategorie ve tvaru (D O H) x číslice' },

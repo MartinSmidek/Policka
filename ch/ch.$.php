@@ -27,21 +27,27 @@ function ch_import($par) { trace();
 //  debug($data,'darci.csv');
   // zrušíme staré záznamy
   // definice polí
-  $flds= array(
-      // nastavení
-      'list' => "X",
+  $flds= array( // osoba, firma, jmeno, prijmeni se zpracovávají jinak
+//      // nastavení
+//      'osoba'   => "X",
       // clen
+      'zdroj'   => "C",
       'titul'   => "C",
+      'titul_za'=> "C",
       'ulice'   => "C",
       'psc'     => "C",
       'obec'    => "C",
       'ico'     => "C",
       'rodcis'  => "C,rc",
+      'telefony'=> "C",
+      'email'   => "C",
+      'poznamka'=> "C",
       'email/pozn'  => "C,ep",
+      'adresa2' => "C,adr2",
       // dar
       'castka'     => "D,dn",
       'zpusob'     => "D,z",
-      'potvrz_kdy' => "D,d",
+      'potvrz_kdy' => "D,dv",
       'castka_kdy' => "D,d",
       'diky_kdy'   => "D,d",
       'pozn'       => "D",
@@ -49,13 +55,20 @@ function ch_import($par) { trace();
   // rozdělíme na clen a dar
   $n_clen= 0;
   foreach ($data as $row) {
-    // najdi nebo vlož člena
-    $prijmeni= $row['prijmeni'];
-    if (!$prijmeni) continue;
+//                                                    debug($row);
+    // najdi kontakt: fyzické podle jmeno+prijmeni (osoba=1), právnické podle firma (osoba=0)
+    // nebo vlož nvý kontakt
+    $osoba= $row['osoba'];
     $jmeno= $row['jmeno'];
-    $idc= select('id_clen','clen',"prijmeni='$prijmeni' AND jmeno='$jmeno'");
+    $prijmeni= $row['prijmeni'];
+    $firma= trim($row['firma']);
+    if (!$prijmeni && !$firma) continue;
+    $idc= select('id_clen','clen', $osoba||!$firma
+        ? "prijmeni='$prijmeni' AND jmeno='$jmeno'"
+        : "firma='$firma' AND prijmeni='$prijmeni' AND jmeno='$jmeno'"
+        );
     if (!$idc) {
-      query("INSERT INTO clen (jmeno,prijmeni) VALUE ('$jmeno','$prijmeni')");
+      query("INSERT INTO clen (osoba,firma,jmeno,prijmeni) VALUE ($osoba,'$firma','$jmeno','$prijmeni')");
       $idc= pdo_insert_id();
       $n_clen++;
     }
@@ -66,47 +79,63 @@ function ch_import($par) { trace();
     foreach ($flds as $fld=>$desc) {
       list($tab,$cnv)= explode(',',$desc);
       $val= $row[$fld];
-      if ($tab=='X') {
-        if ($val==1) $c['osoba']= 1;
-        elseif ($val==2) $c['osoba']= 0;
-      }
-      else {
-        switch($cnv) {
-          case 'rc': 
-            $m= null;
-            $val= str_replace('*','',$val);
-            if (preg_match("~^\d\d\d\d$~",$val)) {
-              $c['narozeni_rok']= $val;
-              display("$prijmeni: narozeni_rok:$val");
-            }
-            elseif (preg_match("~^\d+\.\d+\.\d+$~",$val)) {
-              $c['narozeni']= sql_date($val,1);
-              display("$prijmeni: narozeni:$val");
-            }
-            elseif (preg_match("~^t:\s*(\d+)$~",$val,$m)) {
-              $c['telefony']= $m[1];
-              display("$prijmeni: telefon:$val");
-            }
+      switch($cnv) {
+        case 'adr2': 
+          $m= null;
+          if (!$val) {
             break;
-          case 'dn': 
-            $d[$fld]= str_replace(' ','',$val);
-            break;
-          case 'd': 
-            if (preg_match("~^\d+\.\d+\.\d+$~",$val)) {
-              if ($tab=='C') $c[$fld]= sql_date($val,1); 
-              elseif ($tab=='D') $d[$fld]= sql_date($val,1); 
-            }
-            break;
-          case 'z': 
-            $d['zpusob']= $val=='na účet' ? 2 : ($val=='v hotovosti' ? 1 : 0); 
-            break;
-          case 'ep': 
-            if (strchr($val,'@')) $c['email']= $val; elseif ($tab=='D') $c['poznamka']= $val; 
-            break;
-          default: 
-            if ($tab=='C') $c[$fld]= $val; else $d[$fld]= $val; 
-            break;
-        }
+          }
+          elseif (preg_match("~^\*~",$val)) {
+            display("UPRAVIT:$val");
+          }
+          elseif (preg_match("~^(.*),([\s\d]+)(.*)$~",$val,$m)) {
+            $c['ulice2']= $m[1];
+            $c['psc2']= str_replace(' ','',$m[2]);
+            $c['obec2']= $m[3];
+          }
+          break;
+        case 'rc': 
+          $m= null;
+          $val= str_replace('*','',$val);
+          if (preg_match("~^\d\d\d\d$~",$val)) {
+            $c['narozeni_rok']= $val;
+            display("$prijmeni: narozeni_rok:$val");
+          }
+          elseif (preg_match("~^\d+\.\d+\.\d+$~",$val)) {
+            $c['narozeni']= sql_date($val,1);
+            display("$prijmeni: narozeni:$val");
+          }
+          elseif (preg_match("~^t:\s*(\d+)$~",$val,$m)) {
+            $c['telefony']= $m[1];
+            display("$prijmeni: telefon:$val");
+          }
+          break;
+        case 'dn': 
+          $d[$fld]= str_replace(' ','',$val);
+          break;
+        case 'd': 
+          if (preg_match("~^\d+\.\d+\.\d+$~",$val)) {
+            if ($tab=='C') $c[$fld]= sql_date($val,1); 
+            elseif ($tab=='D') $d[$fld]= sql_date($val,1); 
+          }
+          break;
+        case 'dv': 
+          if (preg_match("~věcný~",$val)) {
+            $d['zpusob']= 4; 
+          }
+          elseif (preg_match("~^\d+\.\d+\.\d+$~",$val)) {
+            $d[$fld]= sql_date($val,1); 
+          }
+          break;
+        case 'z': 
+          $d['zpusob']= $val=='na účet' ? 2 : ($val=='v hotovosti' ? 1 : 0); 
+          break;
+        case 'ep': 
+          if (strchr($val,'@')) $c['email']= $val; elseif ($tab=='D') $c['poznamka']= $val; 
+          break;
+        default: 
+          if ($tab=='C') $c[$fld]= $val; else $d[$fld]= $val; 
+          break;
       }
     }
     // přidání atributů do clen
@@ -121,7 +150,7 @@ function ch_import($par) { trace();
     if (count($attr))
       query("UPDATE clen SET ".implode(',',$attr)." WHERE id_clen=$idc");
     // vygenerování oslovení pro fyzické osoby
-    if ($c['osoba']==1)
+    if ($osoba==1)
       osl_update($idc);
     // vytvoření dar
     $attr= array();

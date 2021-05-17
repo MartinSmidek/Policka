@@ -151,9 +151,11 @@ form _clen [,,399,251] {
           conc(ulice.get),conc(psc.get,' ',obec.get)) } } }
   # ==> .. společné položky, které se zobrazují vždy
   field id       [349,20,40,18]   { data:clen.id_clen, format:'or' },
-  field titul    [80,45,85,17]   { data:clen.titul },
-  field prijmeni [173,45,106,17] { data:clen.prijmeni, format:'F' },
-  field jmeno    [287,45,101,17] { data:clen.jmeno, format:'F' },
+  field zdroj    [400,20,40,18]   { data:clen.zdroj, format:'o' },
+  field titul    [80,45,47,17]   { data:clen.titul },
+  field prijmeni [137,45,106,17] { data:clen.prijmeni, format:'F' },
+  field jmeno    [251,45,101,17] { data:clen.jmeno, format:'F' },
+  field titul_za [361,45,27,17]   { data:clen.titul_za },
   select kategorie [262,22,62,] { type:'map0', data:clen.kategorie, title:'kategorie',
     options:cis_kategorie.hodnota, value:'0' },
   # ==> .. kontakt
@@ -164,18 +166,18 @@ form _clen [,,399,251] {
   field psc      [200,91,40,17]  { tag:'k', data:clen.psc, format:'r', sql_pipe:'psc' },
   field obec     [247,91,103,17] { tag:'k', data:clen.obec, format:'F' },
   field stat     [359,91,28,17]  { tag:'k', data:clen.stat },
-  field ulice2   [80, 114,111,17] { tag:'k', data:clen.ulice2, format:'d' },
-  field psc2     [200,114,40,17]  { tag:'k', data:clen.psc2, format:'rd', sql_pipe:'psc' },
-  field obec2    [247,114,103,17] { tag:'k', data:clen.obec2, format:'Fd' },
+  field ulice2   [80, 114,111,17] { tag:'k', data:clen.ulice2 },
+  field psc2     [200,114,40,17]  { tag:'k', data:clen.psc2, format:'r', sql_pipe:'psc' },
+  field obec2    [247,114,103,17] { tag:'k', data:clen.obec2, format:'F' },
   field stat2    [359,114,28,17]  { tag:'k', data:clen.stat2, format:'d' },
-  field telefony [80,137,160,17] { tag:'k', data:clen.telefony },
+  field telefony [80,137,160,17] { tag:'k', type:'list', data:clen.telefony },
   field rodcis   [287,68,101,17] { tag:'k', data:clen.rodcis, format:'' },
   field email    [247,137,140,17] { tag:'k', type:'list', par:°{delim:';'}, data:clen.email },
   label [7,21,50,15] { tag:'k', title:'<h1>Kontakt</h1>' },
   label msg_del [174,24,75,15] { title:'je smazaný!', css:'chyba', format:'n' },
   label [336,22,10,15] { title:'č.' },
   label [9,48,68,15] { title:'tit,příj,jméno' },
-  label [9,71,70,15] { tag:'k', title:'kont.osoba' },
+  label [9,71,70,15] { tag:'k', title:'firma' },
   label [9,94,50,15] { tag:'k', title:'adresa' },
   label [9,117,70,15] { tag:'k', title:'adresa pošt.' },
   label [9,137,50,15] { tag:'k', title:'tel.,mail' },
@@ -388,7 +390,7 @@ form _dar [,,565,240] {
       1,{ typ_open.display(0); typ_close.display(0); },
       2,{ typ_open.display(0); typ_close.display(1); })}
   func autoswitch(c) {
-    switch(zpusob.get){
+    switch(zpusob){
       case 1: kas.stisk(c); break;
       case 2: ban.stisk(c); break;
       case 3: slo.stisk(c); break;
