@@ -14,7 +14,8 @@ $app_tables= (object)array(
 function ch_truncate() { trace();
   query("TRUNCATE TABLE dar");
   query("TRUNCATE TABLE clen");
-  return "clen a dar vymazány";
+  query("TRUNCATE TABLE vypis");
+  return "tabulky clen, dar, vypis jsou vymazány";
 }
 # ---------------------------------------------------------------------------------------- ch import
 # primární import dat
@@ -22,7 +23,7 @@ function ch_import($par) { trace();
   global $ezer_path_root;
   $csv= "$ezer_path_root/doc/{$par->file}.csv";
   $data= array();
-  $msg= ch_csv2array($csv,$data,$par->max?:999999);
+  $msg= ch_csv2array($csv,$data,$par->max?:999999,';','CP1250');
 //  display($msg);                                              
 //  debug($data,'darci.csv');
   // zrušíme staré záznamy
@@ -163,24 +164,61 @@ function ch_import($par) { trace();
   return "Bylo vloženo $n_clen lidí a ".count($data)." darů";
 }
 # ------------------------------------------------------------------------------------- ch csv2array
-# primární import dat
-function ch_csv2array($fpath,&$data,$max) { trace();
-  $f= fopen($fpath, "r");
+# načtení CSV-souboru do asociativního pole, při chybě navrací chybovou zprávu
+# obsahuje speciální kód pro soubory kódované UTF-16LE
+function ch_csv2array($fpath,&$data,$max=0,$del=';',$encoding='UTF-8') { trace();
+  $msg= '';
+  $f= $encoding=='UTF-16LE' ? fopen_utf8($fpath, "r") : fopen($fpath, "r");
   if ( !$f ) { $msg.= "soubor $fpath nelze otevřít"; goto end; }
   // načteme hlavičku
-  $head= fgetcsv($f, 1000, ';');
+  $s= fgets($f, 5000);
+  if ($encoding!='UTF-8' && $encoding!='UTF-16LE') {
+    if ($encoding=='CP1250')
+      $s= win2utf($s,1);
+    else 
+      $s= mb_convert_encoding($s, "UTF-8", $encoding);
+  }
+  $head= str_getcsv($s,$del);
   $n= 0;
-  while (($d= fgetcsv($f, 1000, ';')) !== false) {
+  while (($s= fgets($f, 5000)) !== false) {
+    if ($encoding!='UTF-8' && $encoding!='UTF-16LE') {
+      if ($encoding=='CP1250')
+        $s= win2utf($s,1);
+      else 
+        $s= mb_convert_encoding($s, "UTF-8", $encoding);
+    }
+    display("$n:$s");
+    $d= str_getcsv($s,$del);
     foreach ($d as $i=>$val) {
-      $val= win2utf($val,1);
       $data[$n][$head[$i]]= $val;
     }
     $n++;
-    if ($n>=$max) break;
+    if ($max && $n>=$max) break;
   }
 end:
   return $msg;
 }
+# http://www.practicalweb.co.uk/blog/2008/05/18/reading-a-unicode-excel-file-in-php/
+function fopen_utf8($filename){
+  $encoding= '';
+  $handle= fopen($filename, 'r');
+  $bom= fread($handle, 2);
+  rewind($handle);
+  if($bom === chr(0xff).chr(0xfe)  || $bom === chr(0xfe).chr(0xff)){
+    // UTF16 Byte Order Mark present
+    $encoding= 'UTF-16';
+  } 
+  else {
+    $file_sample= fread($handle, 1000) + 'e'; //read first 1000 bytes
+    // + e is a workaround for mb_string bug
+    rewind($handle);
+    $encoding= mb_detect_encoding($file_sample , 'UTF-8, UTF-7, ASCII, EUC-JP,SJIS, eucJP-win, SJIS-win, JIS, ISO-2022-JP');
+  }
+  if ($encoding){
+    stream_filter_append($handle, 'convert.iconv.'.$encoding.'/UTF-8');
+  }
+  return $handle;
+} 
 /** ===========================================================================================> GIT */
 # ----------------------------------------------------------------------------------------- git make
 # provede git par.cmd>.git.log a zobrazí jej

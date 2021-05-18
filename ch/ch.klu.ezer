@@ -140,7 +140,7 @@ form _clen [,,399,251] {
     proc onclick() { tags(this,'d|k','z|o|h|n|k|x|y',1,0,0); }}
   label ukl [345,0,48,20] {tag:'p', title:'<b>Úkoly</b>', format:'c', skill:'hdu|hdu', _sys:'uko'
     proc onclick() { tags(this,'u','d|z|o|h|n|k|x|y|d',0,1,0); }}
-  label [0,16,399,klu_cle_dary+-70] {css:'ae_work'}
+  label [0,16,399,530] {css:'ae_work'}
   # ------------------------==> . kontextové_menu
   menu { type:'context'
     item back { title:'ukázat všechny změny'
@@ -266,8 +266,8 @@ form _clen [,,399,251] {
   # úkoly - tag=u -- viz form _ukoly
 
   # skrytá_data
-  field kdo { data:clen.zmena_kdo }
-  field kdy { data:clen.zmena_kdy }
+//  field kdo { data:clen.zmena_kdo }
+//  field kdy { data:clen.zmena_kdy }
   field del { data:clen.deleted }
   # ------------------------==> . procedury
 //  # ==> .. vánoční
@@ -395,7 +395,7 @@ form _dar [,,565,240] {
       case 2: ban.stisk(c); break;
       case 3: slo.stisk(c); break;
       case 4: vec.stisk(c); break;
-      case 5: onl.stisk(c); break;
+//      case 5: onl.stisk(c); break;
     }
     if (!c) 
       form.display(0,'d')
@@ -425,25 +425,25 @@ form _dar [,,565,240] {
     form.display(1,on); form.display(0,off);
     { nochange | zpusob.set(zp); zpusob.change; a.set_css('changed','') }
   }
-  label kas [ 12,0,90,20] { tag:'z', title:'<b>Pokladnou</b>', format:'c'
+  label kas [12,0,66,20] { tag:'z', title:'<b>Pokladnou</b>', format:'c'
     proc onclick() { id_clen.get; stisk(0); }
     proc stisk(prog) { tags(prog,this,'f','v|f.',1); } }
-  label ban [112,0,90,20] { tag:'z', title:'<b>Bankou</b>',  format:'c'
+  label ban [86,0,66,20] { tag:'z', title:'<b>Bankou</b>',  format:'c'
     proc onclick() { id_clen.get; stisk(0); }
     proc stisk(prog) { tags(prog,this,'f|fb|fp','v|fs',2); } }
-  label slo [212,0,90,20] { tag:'z', title:'<b>Složenkou</b>', format:'c'
+  label slo [160,0,66,20] { tag:'z', title:'<b>Složenkou</b>', format:'c'
     proc onclick() { id_clen.get; stisk(0); }
     proc stisk(prog) { tags(prog,this,'f|fb|fs','v|fp',3); } }
-  label onl [312,0,90,20] { tag:'z', title:'<b>On-line</b>', format:'c'
-    proc onclick() { id_clen.get; stisk(0); }
-    proc stisk(prog) { tags(prog,this,'f|fb|fs','v|fs',5); } }
-  label vec [412,0,90,20] { tag:'z', title:'<b>Věcný dar</b>', format:'c'
+//  label onl [234,0,66,20] { tag:'z', title:'<b>On-line</b>', format:'c'
+//    proc onclick() { id_clen.get; stisk(0); }
+//    proc stisk(prog) { tags(prog,this,'f|fb|fs','v|fs',5); } }
+  label vec [234,0,66,20] { tag:'z', title:'<b>Věcný dar</b>', format:'c'
     proc onclick() { id_clen.get; stisk(0); }
     proc stisk(prog) { tags(prog,this,'v','f.?',4); } }
-  label    [1,16,565,239] { css:'ae_work'}
+  label    [1,16,388,239] { css:'ae_work'}
   # data
   view d: table dar
-  view p: table prevod {join_type:'LEFT', join:'ON d.id_dar=p.dar'},
+//  view p: table prevod {join_type:'LEFT', join:'ON d.id_dar=p.dar'},
 //  view vs: table _cis {join_type:'LEFT', join:"ON druh='varsym' AND data=d.varsym "}
   # ------------------------==> . položky
   field id_clen { data:d.id_clen }
@@ -452,55 +452,56 @@ form _dar [,,565,240] {
   field pot_typ { expr:"CASE WHEN  d.potvrz_kdy='0000-00-00' THEN 0 WHEN  d.potvrz_txt='' THEN 1 ELSE 2 END" }
 //  field zad_typ { expr:"CASE WHEN  d.zadost_kdy='0000-00-00' THEN 0 WHEN  d.zadost_txt='' THEN 1 ELSE 2 END" }
 //  field sml_typ { expr:"CASE WHEN d.smlouva_kdy='0000-00-00' THEN 0 WHEN d.smlouva_txt='' THEN 1 ELSE 2 END" }
-  field kdo     { data:d.zmena_kdo }
-  field kdy     { data:d.zmena_kdy }
+//  field kdo     { data:d.zmena_kdo }
+//  field kdy     { data:d.zmena_kdy }
   # obecné položky
-  field iddar   [507,0,57,17]    { data:d.id_dar, format:'or' },
-  select stred  [47,24,90,]      { type:'map', data:d.stredisko, options:cis_stredisko.hodnota, format:'x' }
-  field varsym  [47,51,38,]      { data:d.varsym, format:'r'}
+  field iddar   [327,0,57,17]    { data:d.id_dar, format:'or' },
+  select stred  [47,57,168,]      { type:'map', data:d.stredisko, options:cis_stredisko.hodnota, format:'x' }
+//  field vsym    [47,51,38,]      { data:d.vsym, format:'r'}
 //  field         [98,51,271,]     { data:vs.hodnota, format:'to'}
-  field castka  [298,25,70,17]   { data:d.castka, format:'r', value:'' },
+  field castka  [48,25,70,17]   { data:d.castka, format:'r', value:'' },
   field darce   [48,159,166,17]  { data:d.darce },
-  field dar_dne [467,103,87,17]  { format:'RUxr', type:'date', data:d.castka_kdy }
+  field dar_dne [130,25,87,17]  { format:'RUxr', type:'date', data:d.castka_kdy }
   // potvrzení
-  label pot_open [448,131,16,15] { tag:'d', title:"<img src='ch/img/letter_open.png'>", format:'n'
+  label pot_open [263,49,16,15] { tag:'d', title:"<img src='ch/img/letter_open.png'>", format:''
     help:"Vytvoření a tisk potvrzení o přijetí daru"
     proc onclick() {
       Tisk.dop.set(ask('dop_gener_new','potvrz',id_clen.get,iddar.get,pot_dne.get,pot_dne.changed));
       { Tisk.modal(0,0,this.help); _dopis_uloz('potvrz')
       | echo('ne')
   } } }
-  label pot_close [448,131,16,15] { tag:'d', title:"<img src='ch/img/letter_closed.png'>", format:'n'
+  label pot_close [263,51,16,15] { tag:'d', title:"<img src='ch/img/letter_closed.png'>", format:''
     help:"Oprava dříve vygenerovaného textu potvrzení a jeho opakovaný tisk"
     proc onclick() {
       Tisk.dop.set(ask('dop_gener_load','potvrz',iddar.get));
       { Tisk.modal(0,0,this.help); _dopis_uloz('potvrz')
       | echo('ne')
   } } }
-  field pot_dne [467,130,87,16]  { type:'date', data:d.potvrz_kdy, format:'RUr' }
-  field pozn    [47,191,508,17]  { data:d.pozn, value:'' },
-  field del     [453,226,103,18] { data:d.deleted, format:'' },
-  label [21,27,19,15]   { title:'pro', format:'r' },
-  label [21,54,20,15]   { title:'VS', format:'r' },
-  label [405,106,40,15] { title:'přijetí:', format:'r' },
-  label [240,27,54,15]  { title:'hodnota', format:'r' },
-  label [371,28,20,15]  { title:'Kč' },
-  label [9,193,32,15]   { title:'pozn.', format:'r' },
-  label [383,132,61,15] { title:'potvrzení:', format:'r' },
-  label [10,162,29,10]  { title:'od', format:'r' },
-  label [221,162,200,10]{ title:'(pokud se liší-li od kontaktního)' },
+  field dik_dne [282,25,87,16]  { type:'date', data:d.diky_kdy, format:'RUr' }
+  field pot_dne [282,51,87,16]  { type:'date', data:d.potvrz_kdy, format:'RUr' }
+  field pozn    [47,191,321,17]  { data:d.pozn, value:'' },
+  field del     [297,226,75,18] { data:d.deleted, format:'' },
+//  label [21,27,19,15]   { title:'pro', format:'r' },
+//  label [21,54,20,15]   { title:'VS', format:'r' },
+//  label [405,106,40,15] { title:'přijetí:', format:'r' },
+//  label [240,27,54,15]  { title:'hodnota', format:'r' },
+//  label [371,28,20,15]  { title:'Kč' },
+//  label [9,193,32,15]   { title:'pozn.', format:'r' },
+//  label [383,132,61,15] { title:'potvrzení:', format:'r' },
+//  label [10,162,29,10]  { title:'od', format:'r' },
+//  label [221,162,167,10]{ title:'(pokud se liší-li od kontaktního)' },
   # finanční                    - tag__f_
   # kasou                       - tag__fp_
   # bezhotovostně               - tag__fb_
-  select nucet  [143,24,104,]   { tag:'fb', type:'map', data:d.nas_ucet, options:cis_k_ucet.hodnota,
+  select nucet  [-409,97,165,]   { tag:'fb', type:'map', data:d.nas_ucet, options:cis_k_ucet.hodnota,
     value:"1", format:'nx' },
-  field ucet    [48,81,154,17]  { tag:'fb', format:'nx', data:d.ucet, value:'' },
+  field ucet    [-357,125,154,17]  { tag:'fb', format:'nx', data:d.ucet, value:'' },
   # převodem
   label [16,82,26,17]           { tag:'fp', title:'účet', format:'nr' },
-  label [254,84,26,17]          { tag:'fp', title:'výpis', format:'nr' },
-  field ident   [286,81,80,17]  { tag:'fp', data:p.ident, format:'n' },
+//  label [254,84,26,17]          { tag:'fp', title:'výpis', format:'nr' },
+//  field ident   [286,81,80,17]  { tag:'fp', data:p.ident, format:'n' },
   # složenkou                   - tag__fs_
-  label [2,82,40,17]            { tag:'fs', title:'balíček', format:'nr' },
+//  label [2,82,40,17]            { tag:'fs', title:'balíček', format:'nr' },
   # věcný dar                   - tag__v_
   label          [4,80,34,17]   { tag:'v', title:'popis', format:'nr' },
   edit  popis    [47,79,320,72] { tag:'v', data:d.popis, format:'n' },
@@ -563,8 +564,8 @@ form _dar [,,565,240] {
         castka= replace(castka,',','.'); 
         castka.change();
       }
-      kdo= sys('user','id_user'); kdo.change(); 
-      kdy= now_sql(1); kdy.change();
+//      kdo= sys('user','id_user'); kdo.change(); 
+//      kdy= now_sql(1); kdy.change();
       if (form.key()) {
         if ( form.save() ) {
           state= 1;
@@ -618,7 +619,7 @@ form _dar [,,565,240] {
     _form_state('bc','be|br'); form.focus
   }
   # Přepsat
-  button prepis_dar [308,225,,] {tag:'br', title:'Přepsat', skill:'hddd|hddd',
+  button prepis_dar [230,225,,] {tag:'br', title:'Přepsat', skill:'hddd|hddd',
     help:'přepíše dar na jiného dárce'
     proc onclick () {
       var novy_darce: number
@@ -627,7 +628,7 @@ form _dar [,,565,240] {
       confirm('opravdu přepsat dar ',castka.get,' na ',ask('klub_clen_udaje',novy_darce.get),'?');
       stary_darce.set(id_clen.get); id_clen.set(novy_darce.get); id_clen.change; form.save;
       // pokud je vazba na výpis, oprav dárce i tam
-      [ eq(zpusob.get,2); ask('klub_oprav_prevod',ident.get,novy_darce.get) ];
+//      [ eq(zpusob.get,2); ask('klub_oprav_prevod',ident.get,novy_darce.get) ];
       // obnov dárcovství pro starého i nového dárce - beze zviditelnění změn u dárců
       [ ask('klub_clen_stredisko',novy_darce.get) ];
       [ ask('klub_clen_stredisko',stary_darce.get) ]

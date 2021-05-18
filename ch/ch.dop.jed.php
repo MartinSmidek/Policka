@@ -1224,10 +1224,11 @@ function dop_gener_save($typ,$dop) { trace();
   $x_kdy= "{$typ}_kdy"; $x_kdo= "{$typ}_kdo"; $x_txt= "{$typ}_txt";
   $txt= pdo_real_escape_string($dop->text);
   $kdy= sql_date1($dop->kdy,1);
-  $zmena_kdo= $USER->abbr;
-  $zmena_kdy= date('Y-m-d H:i:s');
-  $qry= "UPDATE dar SET $x_txt='$txt',$x_kdy='$kdy',$x_kdo='{$dop->kdo}',
-         zmena_kdo='$zmena_kdo',zmena_kdy='$zmena_kdy' WHERE id_dar=$id_dar";
+//  $zmena_kdo= $USER->abbr;
+//  $zmena_kdy= date('Y-m-d H:i:s');
+  $qry= "UPDATE dar SET $x_txt='$txt',$x_kdy='$kdy',$x_kdo='{$dop->kdo}' WHERE id_dar=$id_dar";
+//  $qry= "UPDATE dar SET $x_txt='$txt',$x_kdy='$kdy',$x_kdo='{$dop->kdo}',
+//         zmena_kdo='$zmena_kdo',zmena_kdy='$zmena_kdy' WHERE id_dar=$id_dar";
   $res= pdo_qry($qry);
   return $res;
 }

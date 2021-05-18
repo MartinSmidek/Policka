@@ -89,7 +89,9 @@ div.MenuGroup3 li.m { color:orange !important; text-shadow: 1px 1px 2px black; }
 .vyp_p          { background-color:#ddf !important; }
 .pre_5          { background-color:#ffffaa !important; }
 .pre_7          { background-color:#7ff6ff !important; }
+.pre_8          { background-color:#ffbb66 !important; }
 .pre_9          { background-color:#77ff77 !important; }
+.pre_10         { background-color:#cccccc !important; }
 .sedy           { background-color:#777777 !important; }
 .zluty          { background-color:#ffff77 !important; }
 .cerveny        { background-color:#ff7777 !important; }

@@ -27,6 +27,14 @@
       . "případně zavolejte&nbsp;603 150 565 "
       . "<br/>Za spolupráci děkuje <br/>Martin";
 
+  // upozornění na testovací verzi
+  $demo= '';
+  $click= "jQuery('#DEMO').fadeOut(500);";
+  $dstyle= "left:0; top:0; position:fixed; transform:rotate(320deg) translate(-128px,-20px); "
+      . "width:500px;height:100px;background:orange; color:white; font-weight: bolder; "
+      . "text-align: center; font-size: 40px; line-height: 96px; z-index: 16; opacity: .5;";
+  $demo= "<div id='DEMO' onmouseover=\"$click\" style='$dstyle'>zkušební data</div>";
+
   $favicon= array(
       "ch_local.png",
       "ch.png",
@@ -34,7 +42,7 @@
 
   $add_pars= array(
     'favicon' => $favicon,
-    'title_right' => "<span$title_style>$title_flag $app_name</span>",
+    'title_right' => "<span$title_style>$title_flag $app_name</span>$demo",
     'watch_key' => 1,   // true = povolit přístup jen po vložení klíče
     'watch_ip' => 1,    // true = povolit přístup jen ze známých IP adres
     'contact' => $kontakt,
@@ -43,6 +51,10 @@
       Minimal:{toolbar:[['Bold','Italic','Source']]}
     }"
   );
+  $add_options= (object)array(
+    'path_files_u'    => "'{$abs_roots[$ezer_server]}'",   // absolutní cesta do kořene aplikace
+  );
+
   
   // je to aplikace se startem v rootu
   require_once("$kernel/ezer_main.php");

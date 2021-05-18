@@ -2,12 +2,10 @@
 # (c) 2010 Martin Šmídek <martin@smidek.eu>
 
 # ========================================================================================> KONTAKTY
-# const klu_cle_cleni = 13
-# const klu_cle_dary = 334
 
 use C_cleni: form _cleni [5,0,,] { tabindex:20 }
-use C_clen_butt: form _clen_butt [583,klu_cle_dary-57,,] { tabindex:30 }
-use C_dary: form _dary [5,klu_cle_dary,,] { tabindex:50, skill:'hdd' }
+use C_clen_butt: form _clen_butt [670,547,,] { tabindex:30 }
+use C_dary: form _dary [5,334,,] { tabindex:50, skill:'hdd' }
 
 proc onstart () {
   ch.modul_state.set(°{active:1,dirty:0},'klu.cle');   # poznačení, že modul je aktivní
@@ -61,7 +59,7 @@ proc onfocus () {
   C_cleni._cleni_focus
 }
 # ------------------------------------------------------------------------------------------- _cleni
-form _cleni [,,565,klu_cle_dary] {
+form _cleni [,,565,334] {
   # proměnné
   var _cleni_cond: text,
   # výběr_členů
@@ -70,12 +68,12 @@ form _cleni [,,565,klu_cle_dary] {
   select cond [64,9,170,] { type:'map', map_pipe:cis_vyber.hodnota,
     options:cis_vyber.zkratka, format:'t', help:'výběr|základní výběr definovaný v číselníku'
     proc onchanged() { _cleni_vyber(0) } }
-  field cond_dne [240,9,87,18] { format:'xt', type:'date', sql_pipe:'sql_date1',
-    help:'kdy|uplatní se jen ve výběrech s kdy:...'
-    proc onchange () { _cleni_vyber(0) } }
-  select cond_kdo [333,9,83,] { type:'map', options:user2.surname, format:'xt',
-    help:'kdo|uplatní se jen ve výběrech s kdo:...'
-    proc onchanged() { _cleni_vyber(0) } }
+//  field cond_dne [240,9,87,18] { format:'xt', type:'date', sql_pipe:'sql_date1',
+//    help:'kdy|uplatní se jen ve výběrech s kdy:...'
+//    proc onchange () { _cleni_vyber(0) } }
+//  select cond_kdo [333,9,83,] { type:'map', options:user2.surname, format:'xt',
+//    help:'kdo|uplatní se jen ve výběrech s kdo:...'
+//    proc onchanged() { _cleni_vyber(0) } }
   check cond_sel [500,0,70,17] { title:'vybraní', style:'color:#d30', format:"t",
     help:'výběr pomocí Insert', value:'0'
     proc onchange () {
@@ -88,7 +86,7 @@ form _cleni [,,565,klu_cle_dary] {
     proc onchange () { _cleni_vyber(0) } }
   var _cond: text
   proc _cleni_vyber (clenid) {
-    _cond.set(replace(cond.get,'$user',cond_kdo.key,'$datum',date2sql(cond_dne.get)));
+//    _cond.set(replace(cond.get,'$user',cond_kdo.key,'$datum',date2sql(cond_dne.get)));
     { _cond.get | _cond.set(1) };
     _cond.set(cconc(1,_cond.get,
       not(cond_del.get)," AND left(c.deleted,1)!='D'",
@@ -121,7 +119,7 @@ form _cleni [,,565,klu_cle_dary] {
   }
   # data
   view c: table clen,
-  browse cleni [4,34,0,0] {type:'smart', buf_rows:21, rows:klu_cle_cleni, qry_rows:1, wheel:5
+  browse cleni [4,34,0,0] {type:'smart', buf_rows:21, rows:13, qry_rows:1, wheel:5
     show del [,,0,] { title:'D', data:c.deleted, format:'q=' }
     show id_clen  [,, 43,] { title:'dárce', data:c.id_clen, format:'rq=s' }
     show firma    [,, 70,] { title:'firma', data:c.firma, format:'tq$s' }
@@ -158,10 +156,10 @@ form _cleni [,,565,klu_cle_dary] {
     | email.width;     email.width(0);     potvrz.width(80);
     | potvrz.width;    potvrz.width(0);    stredisko.width(80);
     }
-    # výběr_posledního_sloupce
-    show kdo { data:c.zmena_kdo },
-    show kdn { data:c.zmena_kdo, map_pipe:user.abbr },
-    show kdy { data:c.zmena_kdy },
+//    # výběr_posledního_sloupce
+//    show kdo { data:c.zmena_kdo },
+//    show kdn { data:c.zmena_kdo, map_pipe:user.abbr },
+//    show kdy { data:c.zmena_kdy },
     # události
     proc onrowclick() {
       znacka;
@@ -174,15 +172,16 @@ form _cleni [,,565,klu_cle_dary] {
     proc znacka () {
       cleni.browse_count;
       C_clen_butt._clen_load(id_clen.get);
-      zmena.set(conc('<small>poslední změna: ',kdn.get,' ',kdy.get,'</small>'));
+//      zmena.set(conc('<small>poslední změna: ',kdn.get,' ',kdy.get,'</small>'));
       [ has_skill('hdd'); C_dary._dary_load ];
       C_ukoly._ukoly_load(id_clen.get);
       C_zpravy._zpravy_load(id_clen.get)
-    | C_clen.init; zmena.set('');
-      has_skill('hdd'); C_dary.zmena.set(''); C_dary.suma.set(''); C_dary.dary.browse_init; C_dar.init
+    | C_clen.init; //zmena.set('');
+      has_skill('hdd'); //C_dary.zmena.set(''); 
+      C_dary.suma.set(''); C_dary.dary.browse_init; C_dar.init
     }
   },
-  label zmena [12,-2,391,18] { title:'' },
+//  label zmena [12,-2,391,18] { title:'' },
   # procedury
   proc _cleni_focus () {
     cleni.browse_focus }
@@ -190,13 +189,13 @@ form _cleni [,,565,klu_cle_dary] {
     cleni.browse_load(_cleni_cond.get); /*cleni.raise('onrowclick')*/  }
 }
 # -------------------------------------------------------------------------------------------- _clen
-use C_ukoly: form klu._ukoly [583,24,,] { tabindex:30
+use C_ukoly: form klu._ukoly [670,24,,] { tabindex:30
   proc u_show() { C_ukoly.get.display(1,'u|b') }
 }
-use C_zpravy: form klu._zpravy [583,24,,] { tabindex:30
+use C_zpravy: form klu._zpravy [670,24,,] { tabindex:30
   proc c_show() { C_zpravy.get.display(1,'x|y|b') }
 }
-use C_clen: form klu._clen [583,4,,] { tabindex:30
+use C_clen: form klu._clen [670,4,,] { tabindex:30
   proc _onchanged () { C_clen_butt._form_state('bc','be|br') }
 }
 # --------------------------------------------------------------------------------------- _clen_butt
@@ -355,22 +354,22 @@ form _dary [,,400,256] {
     show zpusob [,,12,] { title:'z', data:dd.zpusob, map_pipe:cis_k_zpusob.zkratka },
     show        [,,20,] { title:'s', data:dd.stredisko, map_pipe:cis_stredisko.zkratka },
 //    show        [,,32,] { title:'VS', data:dd.varsym },
-    show ucet   [,,173,] { title:'-/účet/balíček/věc', expr:"if(zpusob=4,dd.popis,dd.ucet)",
-                           format:'tfs' },
+//    show ucet   [,,173,] { title:'-/účet/balíček/věc', expr:"if(zpusob=4,dd.popis,dd.ucet)",
+//                           format:'tfs' },
     show iddar  { data:dd.id_dar },
-    show kdo    { data:dd.zmena_kdo, map_pipe:user.abbr },
-    show kdn    { data:dd.zmena_kdo },
-    show kdy    { data:dd.zmena_kdy }
+//    show kdo    { data:dd.zmena_kdo, map_pipe:user.abbr },
+//    show kdn    { data:dd.zmena_kdo },
+//    show kdy    { data:dd.zmena_kdy }
 //    show color  { data:dv.zkratka },
     proc onrowclick() { dary_znacka; }
     proc onchange()   { dary_znacka; }
-    proc dary_znacka () { dary.browse_active; C_dar._dar_load(iddar.get); set_zmena }
+    proc dary_znacka () { dary.browse_active; C_dar._dar_load(iddar.get); /*set_zmena*/ }
   }
-  label zmena [12,238,391,18] { title:'' },
+//  label zmena [12,238,391,18] { title:'' },
   # procedury
-  proc set_zmena() {
-    zmena.set(conc('<small>poslední změna: ',dary.kdn.get,' ',
-      dary.kdy.get,'</small>')) }
+//  proc set_zmena() {
+//    zmena.set(conc('<small>poslední změna: ',dary.kdn.get,' ',
+//      dary.kdy.get,'</small>')) }
   //n var nase: text -- potlačeno 13/8/2013
   proc _dary_load () {
     C_dar._dar_init;
@@ -393,7 +392,7 @@ form _dary [,,400,256] {
     dary.browse_focus }
 }
 # --------------------------------------------------------------------------------------------- _dar
-use C_dar: form klu._dar [417,klu_cle_dary,,] {  skill:'hdd' // doplnění funkcionality metod klu._dar
+use C_dar: form klu._dar [270,334,,] {  skill:'hdd' // doplnění funkcionality metod klu._dar
   # ==> Nový dar
   proc vytvor_dar.onclick() {
     form.dar_novy(C_cleni.cleni.browse_key); }

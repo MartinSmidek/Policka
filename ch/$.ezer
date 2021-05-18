@@ -92,7 +92,7 @@ menu ch { type:'main', active:*
     panel APPL {type:'right', title:'[fa-download] Git/DB', _sys:'str', skill:'m'
       menu m {type:'left', format:'f+'
         menu  {title:'Primární import dat', type:'group', skill:'m'
-          item {title:'[fa-upload] TRUNCATE clen, dar'
+          item {title:'[fa-upload] TRUNCATE clen, dar, vypis'
             func onclick (i:ezer) {
               clear(); info.display(0,'t');
               info.fill(replace_fa(i.title),php.ch_truncate());
@@ -153,8 +153,10 @@ menu ch { type:'main', active:*
           item { title:'[fa-gears] Ezer: git fetch ...' help:"po fetch>git reset --hard origin/master"
                                                         par:{folder:'ezer',op:'cmd',cmd:'fetch'}}
           proc onclick (i) {  
-            panel.display(2,'i'); 
-            info.fill(replace_fa(conc(i.owner.title,' - ',i.title)),ask('git_make',i.par));
+            info.fill(replace_fa(conc(i.owner.title,' - ',i.title)),' '); panel.display(2,'i'); 
+            sys('ezer','server'); // test na lokální běh na NTB
+            info.append(ask('git_make',i.par));
+          | alert('nelze na vývojovém serveru')  
           }
         }
       }
@@ -182,6 +184,54 @@ menu ch { type:'main', active:*
     { b.browse_seek(conc(f.id_key,'=',f.key))
     | b.browse_seek(conc(f.id_key,'=',f.key),1)
     }
+  }
+}
+# =========================================================================================> TRACK
+# přehled provedených změn
+panel track [,,540,276] { title:'Historie oprav', type:'popup', css:'dialog'
+  var reverted_table= '', reverted_key= 0
+  use back: form _back [0,16,,] { tabindex:20 },
+  proc back_show(kde,klic) {
+    panel.popup(0,1);
+    panel.set_attrib('title',conc('Historie oprav pro ',kde,' id=',klic));
+    reverted_table.set(''); reverted_key.set(0);
+    back.lst.browse_load(conc("(kde='",kde,"' AND klic=",klic,")"),"kdy DESC");
+    back.lst.raise('onrowclick')
+  }
+  # ------------------------------------------------------------- _back
+  # id_track,kdy,kdo,kde,klic,zmena:fld,op,val,old
+  form _back [,,255,250] {
+    browse lst [0,0,150,100] { rows:12,
+      show kdy [,,90,] { title:'kdy', data:_track.kdy, sql_pipe:'sql_time1' }
+      show kdn [,,30,] { title:'kdn', data:_track.kdo }
+      show op [,,12,] { title:'?', data:_track.op }
+      show kde [,,40,] { title:'tabulka', data:_track.kde }
+      show fld [,,60,] { title:'položka', data:_track.fld }
+      show old [,,160,] { title:'původní hodnota', data:_track.old, format:'t' }
+      show val [,,120,] { title:'změněná hodnota', data:_track.val, format:'t' }
+      show id_track [,,0,] { data:_track.id_track }
+      menu { type:'context'
+        item { title:'vrátit nastavenou opravu'
+          proc onclick() {
+            lst.selected('clear'); lst.selected('toggle',1); revert }}
+        item { title:'vrátit i související opravy'
+          proc onclick() { var ret:object
+            lst.selected('clear');
+            ret.set(ask('track_like',lst.browse_key));
+            { ret.ok; lst.selected('set',ret.ids); [ revert ]
+            | alert(ret.msg) }
+          }}
+      }
+      proc revert() { var ret:object
+        confirm('mám zkusit vrátit opravy označených řádků?');
+        ret.set(ask('track_revert',lst.selected('get',0)));
+        { ret.ok; warning("změny byly vráceny");
+          reverted_table.set(ret.tab); reverted_key.set(ret.klic);
+          lst.browse_refresh;
+        | alert(ret.msg) }
+      }
+    },
+    label [0,250,545,] { title:"ÚDAJE: i=vložení (insert), u=úprava, U= hromadná úprava<br>ZÁZNAM: x=smazano, o=obnoveno, r=různé od uvedeného záznamu" }
   }
 }
 # -------------------------------------------------------------------------------------------------- rightf
@@ -212,46 +262,34 @@ table _cis { key_id:'id_cis'
   text barva,
   text ikona
 }
-
 table vypis { key_id:'id_vypis'
-  number id_vypis { key:'primary' },
-  text ident { help:'ident' },
-  number vypis1 { help:'výpis|pořadí výpisu' },
-  number ucet { help:'náš účet' },
-  date datum { help:'datum', sql_pipe:'sql_date1' },
-  text soubor { help:'soubor' },
-  number stav { help:'stav' },
-  number stav_poc { help:'stav' },
+  number id_vypis
+  date   datum_od { sql_pipe:'sql_date1' }
+  date   datum_do { sql_pipe:'sql_date1' }
+  text   soubor
 }
-
-table prevod { key_id:'id_prevod'
-  number id_prevod { key:'primary' },
-  text ident { help:'ident|Uyy_nnniii' },
-  number vypis { help:'výpis|pořadí výpisu' },
-  number ucet { help:'náš účet' },
-  text popis { help:'popis' },
-  number clen { help:'člen|dárce' },
-  number dar { help:'dar' },
-  number typ { help:'typ' },
-  number castka { help:'částka' },
-  text protiucet { help:'protiúčet' },
-  text banka { help:'banka' },
-  date splatnost { help:'splatnost', sql_pipe:'sql_date1' },
-  text ksym { help:'KS' },
-  text vsym { help:'VS' },
-  text vsym2 { help:'opravený VS' },
-  text ssym { help:'SS' },
-  text poznamka { help:'poznámka' },
-  text kat { help:'kat' }
-  text metoda { help:'metoda, kterou byl vytipován dárce' }
-}
-
+//table platba { key_id:'id_platba'
+//  number id_platba
+//  number id_clen
+//  date   datum { sql_pipe:'sql_date1' }
+//  number uhrada
+//  number dar
+//  // přidané kvůli převodům z banky
+//  number typ
+//  number druh // B P
+//  number castka
+//  number mena
+//  text   ucet
+//  text   popis
+//  text   zprava
+//  text   ssym
+//  text   vsym
+//}
 table balicek {
   number id_balicek { key:'primary' }
   text   ident      { help:'identifikace balíčku Brrvvv' }
   number platby     { help:'součet částek, jejichž VS není označen jako dar' }
 }
-
 table ucet {
   text protiucet { help:'protiúčet' },
   text banka { help:'banka' },
@@ -261,7 +299,6 @@ table ucet {
   text jmeno { help:'jméno účtu' },
   text nazev { help:'náš název účtu' },
 }
-
 table _track { key_id:'id_track'
   number id_track { key:'primary' },
   date   kdy  { help:'datum změny' },
@@ -273,7 +310,6 @@ table _track { key_id:'id_track'
   text   old  { help:'původní hodnota' },
   text   val  { help:'původní hodnota' },
 }
-
 table _user { key_id:'id_user'
   number id_user { key:'primary' },
   text deleted,
@@ -285,17 +321,15 @@ table _user { key_id:'id_user'
   text forename,
   text surname,
   text history,
-  number zmena_kdo,
-  date zmena_kdy { sql_pipe:'sql_date1' },
+//  number zmena_kdo,
+//  date zmena_kdy { sql_pipe:'sql_date1' },
 }
-
 table _jmena { key_id:'id_jmena'
   number id_jmena
   text jmeno,
   number sex,
   number cetnost,
 }
-
 table osloveni { key_id:'id_clen'
   number id_clen
   number _rod { help:'rod|mluvnický rod: neurčeno/mužský/ženský' },
@@ -308,7 +342,6 @@ table osloveni { key_id:'id_clen'
     // a - ženské křestní jméno a koncovka -ova => -ová
 
 }
-
 table clen { key_id:'id_clen'
   number id_clen        { key:'primary', help:'kontakt|jedinečné číslo kontaktu' },
   text zdroj
@@ -356,22 +389,24 @@ table clen { key_id:'id_clen'
   text   prijmeni5p     { help:'příjmení 5.p|příjmení (5.pád)' },
   number vyjimka        { help:'výjimka|přepínání mezi automatickou nebo ručně zadanou hodnotou pro rok, oslovení, 5.pád' },
   text   anomalie       { help:'anomálie|neočekávaná kombinace hodnot' },
-  text   zmena_kdo      { help:'změna kým|značka autora poslední změny' },
-  date   zmena_kdy      { help:'změna kdy|čas poslední změny' },
+//  text   zmena_kdo      { help:'změna kým|značka autora poslední změny' },
+//  date   zmena_kdy      { help:'změna kdy|čas poslední změny' },
 }
-
 table dar { key_id:'id_dar'
-  text x
   number id_dar      { key:'primary', help:'dar|jedinečné číslo daru' },
   number id_clen     { help:'dárce|identifikace dárce' },
-  number IDPod       { help:'IDPod|původní číslo daru' },
+  number id_vypis    { help:'výpis|bankovní výpis, je-li' },
   text   deleted     { help:'ok|prázdné nebo D=značka smazání daru' },
   number zpusob      { help:'způsob|způsob platby 1:pokladnou 2:převodem 3:složenkou 4:věcný' },
+  number typ
   text   ucet        { help:'účet dárce|identifikace účtu vč. kódu banky nebo označení balíčku složenek' },
+  text   ucet_popis  { help:'popis účtu|popis účtu' },
   number nas_ucet    { help:'náš účet|kam došla platba' },
   number stredisko   { help:'středisko|obdarované středisko' },
-  number varsym      { help:'vs|variabilní symbol' },
+  number vsym        { help:'vs|variabilní symbol' },
+  number ssym        { help:'ss|specifický symbol' },
   text   popis       { help:'popis|popis věcného daru' },
+  text   zprava 
   text   pozn        { help:'účel platby|účel platby nebo jiná poznámka' },
   text   body        { help:'poznámka|poznámka k daru nebo dopisu' },
   text   darce       { help:'jméno dárce|jméno použité v daňovém povrzení' },
@@ -396,10 +431,9 @@ table dar { key_id:'id_dar'
   date   potvrz_kdy  { help:'potvrzení přijetí daru posláno dne', sql_pipe:'sql_date1' }
   text   potvrz_kdo  { help:'potvrzení vyřídil' }
   text   potvrz_txt  { help:'text potvrzení daru' }
-  text   zmena_kdo   { help:'změna kým|značka autora poslední změny' },
-  date   zmena_kdy   { help:'změna kdy|čas poslední změny' },
+//  text   zmena_kdo   { help:'změna kým|značka autora poslední změny' },
+//  date   zmena_kdy   { help:'změna kdy|čas poslední změny' },
 }
-
 table ukol { key_id:'id_ukol'
   number id_ukol        { key:'primary', help:'dar|jedinečné číslo úkolu' }
   number id_clen        { help:'ID kontaktu|kontakt, kterého se úkol týká' }
@@ -414,7 +448,6 @@ table ukol { key_id:'id_ukol'
   number je_diskuse     { help:'ukázat diskusi nad řešením' }
   text diskuse          { help:'diskuse o průběhu řešení' }
 }
-
 table zprava { key_id:'id_zprava'
   number id_zprava      { key:'primary', help:'poznámka|jedinečné číslo zprávy ke kontaktu' }
   number id_user	{ help:"autor|autor zprávy" }
