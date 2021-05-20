@@ -1,17 +1,19 @@
 # Systém CK - panel Klub.Kontakty
 # (c) 2010 Martin Šmídek <martin@smidek.eu>
 
-# ================================================================================================== KONTAKTY
-# const klu_cle_cleni = 13
-# const klu_cle_dary = 334
+# ========================================================================================> KONTAKTY
 
 use C_cleni: form _cleni [5,0,,] { tabindex:20 }
-use C_clen_butt: form _clen_butt [583,klu_cle_dary-57,,] { tabindex:30 }
-use C_dary: form _dary [5,klu_cle_dary,,] { tabindex:50, skill:'hdd' }
+use C_clen: form _clen [670,4,,] { tabindex:30 }
+use C_ukoly: form _ukoly [670,24,,] { tabindex:30
+  proc u_show() { C_ukoly.get.display(1,'u|b') }
+}
+use C_clen_butt: form _clen_butt [670,547,,] { tabindex:30 }
+use C_dary: form _dary [5,334,,] { tabindex:50, skill:'hdd' }
 
 proc onstart () {
   ch.modul_state.set(°{active:1,dirty:0},'klu.cle');   # poznačení, že modul je aktivní
-  C_cleni.cond.key(1015);       // s kontaktem = 1015
+  C_cleni.cond.key(1005);       // s kontaktem = 1015
   C_cleni._cleni_vyber(0);
   C_clen.kon.onclick;
   Ctrack.clen_form.set(C_clen);
@@ -60,8 +62,8 @@ proc onfocus () {
   ch.modul_state.set('cle','klu.last');   # poznačení aktivnosti cle
   C_cleni._cleni_focus
 }
-# ------------------------------------------------------------------------------------------- _cleni
-form _cleni [,,565,klu_cle_dary] {
+# =========================================================================================> _ cleni
+form _cleni [,,565,334] {
   # proměnné
   var _cleni_cond: text,
   # výběr_členů
@@ -69,13 +71,13 @@ form _cleni [,,565,klu_cle_dary] {
   label [9,6,50,15] { title:'<h1>Dárci</h1>'},
   select cond [64,9,170,] { type:'map', map_pipe:cis_vyber.hodnota,
     options:cis_vyber.zkratka, format:'t', help:'výběr|základní výběr definovaný v číselníku'
-    proc onchange () { _cleni_vyber(0) } }
-  field cond_dne [240,9,87,18] { format:'xt', type:'date', sql_pipe:'sql_date1',
-    help:'kdy|uplatní se jen ve výběrech s kdy:...'
-    proc onchange () { _cleni_vyber(0) } }
-  select cond_kdo [333,9,83,] { type:'map', options:user2.surname, format:'xt',
-    help:'kdo|uplatní se jen ve výběrech s kdo:...'
-    proc onchange () { _cleni_vyber(0) } }
+    proc onchanged() { _cleni_vyber(0) } }
+//  field cond_dne [240,9,87,18] { format:'xt', type:'date', sql_pipe:'sql_date1',
+//    help:'kdy|uplatní se jen ve výběrech s kdy:...'
+//    proc onchange () { _cleni_vyber(0) } }
+//  select cond_kdo [333,9,83,] { type:'map', options:user2.surname, format:'xt',
+//    help:'kdo|uplatní se jen ve výběrech s kdo:...'
+//    proc onchanged() { _cleni_vyber(0) } }
   check cond_sel [500,0,70,17] { title:'vybraní', style:'color:#d30', format:"t",
     help:'výběr pomocí Insert', value:'0'
     proc onchange () {
@@ -88,7 +90,7 @@ form _cleni [,,565,klu_cle_dary] {
     proc onchange () { _cleni_vyber(0) } }
   var _cond: text
   proc _cleni_vyber (clenid) {
-    _cond.set(replace(cond.get,'$user',cond_kdo.key,'$datum',date2sql(cond_dne.get)));
+//    _cond.set(replace(cond.get,'$user',cond_kdo.key,'$datum',date2sql(cond_dne.get)));
     { _cond.get | _cond.set(1) };
     _cond.set(cconc(1,_cond.get,
       not(cond_del.get)," AND left(c.deleted,1)!='D'",
@@ -121,7 +123,7 @@ form _cleni [,,565,klu_cle_dary] {
   }
   # data
   view c: table clen,
-  browse cleni [4,34,0,0] {type:'smart', buf_rows:21, rows:klu_cle_cleni, qry_rows:1, wheel:5
+  browse cleni [4,34,0,0] {type:'smart', buf_rows:21, rows:13, qry_rows:1, wheel:5
     show del [,,0,] { title:'D', data:c.deleted, format:'q=' }
     show id_clen  [,, 43,] { title:'dárce', data:c.id_clen, format:'rq=s' }
     show firma    [,, 70,] { title:'firma', data:c.firma, format:'tq$s' }
@@ -131,36 +133,37 @@ form _cleni [,,565,klu_cle_dary] {
     show psc      [,, 42,] { title:'psč', data:c.psc, format:'q$s', sql_pipe:'psc' }
     show obec     [,, 81,] { title:'obec', data:c.obec, format:'tq$s' }
     // výběrové položky
-    show ucet     [,,80,] { title:'účet',      data:c.ucet,       format:'q$rs' }
+    show ucet     [,, 0,] { title:'účet',      data:c.ucet,       format:'q$rs' }
     show rodcis   [,, 0,] { title:'rč/IČ',     data:c.rodcis,     format:'q$s' }
-    show titul    [,, 0,] { title:'titul',     data:c.titul,      format:'q$s' }
+    show titul    [,,80,] { title:'titul',     data:c.titul,      format:'q$s' }
     show telefony [,, 0,] { title:'telefony',  data:c.telefony,   format:'q$s' }
     show email    [,, 0,] { title:'email',     data:c.email,      format:'q$s' }
     show potvrz   [,, 0,] { title:'potvrzení', data:c.potvrzeni,  format:'q#s',
       map_pipe:cis_k_potvrzeni.zkratka }
-    show jenvan   [,, 0,] { title:'jen vánoční',data:c.jenvanocni,format:'q=s:e' }
-#     show raynet   [,, 0,] { title:'RAYNET',     data:c.ID_RAYNET, format:'q*rs:e' }
-#     show old_kod  [,, 0,] { title:'(kód)',     data:c.kod,       format:'q=rs' }
+//    show jenvan   [,, 0,] { title:'jen vánoční',data:c.jenvanocni,format:'q=s:e' }
+//#     show raynet   [,, 0,] { title:'RAYNET',     data:c.ID_RAYNET, format:'q*rs:e' }
+//#     show old_kod  [,, 0,] { title:'(kód)',     data:c.kod,       format:'q=rs' }
     show stredisko[,, 0,] { title:'středisko', data:c.stredisko,
       map_pipe:cis_darce.hodnota, format:'q#s' },
     show kategorie[,, 0,] { title:'kategorie', data:c.kategorie, format:'q#s'
       map_pipe:cis_kategorie.zkratka}
     proc onclick() {
-      jenvan.width;    jenvan.width(0);    stredisko.width(80); // raynet.width(80);
+//      jenvan.width;    jenvan.width(0);    stredisko.width(80); // raynet.width(80);
 #     | raynet.width;    raynet.width(0);    stredisko.width(80);
-    | stredisko.width; stredisko.width(0); ucet.width(80);
+//    |
+      stredisko.width; stredisko.width(0); ucet.width(80);
     | ucet.width;      ucet.width(0);      kategorie.width(80);
     | kategorie.width; kategorie.width(0); rodcis.width(80);
     | rodcis.width;    rodcis.width(0);    titul.width(80);
     | titul.width;     titul.width(0);     telefony.width(80);
     | telefony.width;  telefony.width(0);  email.width(80);
     | email.width;     email.width(0);     potvrz.width(80);
-    | potvrz.width;    potvrz.width(0);    jenvan.width(80);
+    | potvrz.width;    potvrz.width(0);    stredisko.width(80);
     }
-    # výběr_posledního_sloupce
-    show kdo { data:c.zmena_kdo },
-    show kdn { data:c.zmena_kdo, map_pipe:user.abbr },
-    show kdy { data:c.zmena_kdy },
+//    # výběr_posledního_sloupce
+//    show kdo { data:c.zmena_kdo },
+//    show kdn { data:c.zmena_kdo, map_pipe:user.abbr },
+//    show kdy { data:c.zmena_kdy },
     # události
     proc onrowclick() {
       znacka;
@@ -173,32 +176,348 @@ form _cleni [,,565,klu_cle_dary] {
     proc znacka () {
       cleni.browse_count;
       C_clen_butt._clen_load(id_clen.get);
-      zmena.set(conc('<small>poslední změna: ',kdn.get,' ',kdy.get,'</small>'));
+//      zmena.set(conc('<small>poslední změna: ',kdn.get,' ',kdy.get,'</small>'));
       [ has_skill('hdd'); C_dary._dary_load ];
       C_ukoly._ukoly_load(id_clen.get);
-      C_zpravy._zpravy_load(id_clen.get)
-    | C_clen.init; zmena.set('');
-      has_skill('hdd'); C_dary.zmena.set(''); C_dary.suma.set(''); C_dary.dary.browse_init; C_dar.init
+//      C_zpravy._zpravy_load(id_clen.get)
+    | C_clen.init; //zmena.set('');
+      has_skill('hdd'); //C_dary.zmena.set(''); 
+      C_dary.suma.set(''); C_dary.dary.browse_init; C_dar.init
     }
   },
-  label zmena [12,-2,391,18] { title:'' },
+//  label zmena [12,-2,391,18] { title:'' },
   # procedury
   proc _cleni_focus () {
     cleni.browse_focus }
   proc _cleni_load () {
     cleni.browse_load(_cleni_cond.get); /*cleni.raise('onrowclick')*/  }
 }
-# -------------------------------------------------------------------------------------------- _clen
-use C_ukoly: form klu._ukoly [583,24,,] { tabindex:30
-  proc u_show() { C_ukoly.get.display(1,'u|b') }
-}
-use C_zpravy: form klu._zpravy [583,24,,] { tabindex:30
-  proc c_show() { C_zpravy.get.display(1,'x|y|b') }
-}
-use C_clen: form klu._clen [583,4,,] { tabindex:30
+# ----------------------------------------------------------------------------------------==> _ clen
+//use C_ukoly: form klu._ukoly [670,24,,] { tabindex:30
+//  proc u_show() { C_ukoly.get.display(1,'u|b') }
+//}
+//use C_zpravy: form klu._zpravy [670,24,,] { tabindex:30
+//  proc c_show() { C_zpravy.get.display(1,'x|y|b') }
+//}
+//use C_clen: form /*klu.*/_clen [670,4,,] { tabindex:30
+//  proc _onchanged () { C_clen_butt._form_state('bc','be|br') }
+//}
+form _clen [,,399,251] {
+  proc onstart () { gt(plus.get,1); form.display(1,'n') }
+//  proc onload () { eq(substr(del.get,0,1),'D'); msg_del.display(1) | msg_del.display(0) }
+  func onload () { drop_show(); msg_del.display(substr(del,0,1)=='D'?1:0); }
+  # ---------------------------==> . ochrana editace více uživateli
+  func onchanged () { clen_lock('on'); _onchanged() }
+//  func _onchanged() {}
   proc _onchanged () { C_clen_butt._form_state('bc','be|br') }
+  func clen_lock(on) { var lock:object 
+    if (form.key()) {
+      lock= php.table_lock(on,'clen',form.key()); 
+      if ((on=='on') && (!lock.ok)) {
+        alert(`${lock.info} ${lock.note}`);
+        cle.zpet_clen();
+      }
+    }
+  }
+  # ------------------------==> . záložky
+  proc tags(a,on,off,butt,ukoly,zpravy) {
+    form.set_css('ae_butt_off','ae_butt_on','p');
+    a.set_css('ae_butt_on','ae_butt_off');
+    form.display(1,on); form.display(0,off);
+    [ panel.part('C_clen_butt'); panel.part('C_clen_butt').display(butt) ];
+    [ panel.part('C_ukoly'); panel.part('C_ukoly').display(ukoly); panel.call('C_ukoly.u_show') ];
+    [ panel.part('C_zpravy'); panel.part('C_zpravy').display(zpravy); panel.call('C_zpravy.c_show') ]
+  }
+  label kon [10,0,100,20] {tag:'p', title:'<b>Kontakt</b>', format:'c', css:'ae_butt_on'
+    proc onclick() { tags(this,cconc(gt(plus.get,1),'z|k|n|h|o','z|k|h|o'),'d|x|y|u',1,0,0); }}
+  label vaz [140,0,100,20] {tag:'p', title:'<b>Vazby</b>', format:'c', css:'ae_butt_on'
+    proc onclick() { tags(this,'k','z|h|o|n|d|x|y|u',1,0,0); }}
+//  label his [91,0,58,20] {tag:'p', title:'<b>Historie</b>', format:'c',
+//    proc onclick() { tags(this,'h|k','d|z|o|n|u|x|y|d',1,0,0); }}
+//  label poz [126,0,76,20] {tag:'p', title:'<b>Komunikace</b>', format:'c',
+//    proc onclick() { tags(this,'x|y','d|z|o|h|k|u|n|d',0,0,1); }}
+//  label osl [167,0,66,20] {tag:'p', title:'<b>Oslovení</b>', format:'c',
+//    proc onclick() { tags(this,'o|k','d|z|h|n|u|x|y|d',1,0,0); }}
+//  label doc [250,0,79,20] {tag:'p', title:'<b>Dokumenty</b>', format:'c', _sys:'doc'
+//    proc onclick() { tags(this,'d|k','z|o|h|n|k|x|y',1,0,0); }}
+  label ukl [270,0,120,20] {tag:'p', title:'<b>Úkoly, dokumenty</b>', format:'c', skill:'hdu|hdu', _sys:'uko'
+    proc onclick() { tags(this,'u|d','z|o|h|n|k|x|y',0,1,0); }}
+  label [0,16,399,530] {css:'ae_work'}
+  # ------------------------==> . kontextové_menu
+  menu { type:'context'
+    item back { title:'ukázat všechny změny'
+      proc onclick () { Ctrack.CT_load(form.key) } }
+    item adresa { type:'clipboard', title:'vložit adresu do schránky'
+      proc onclick () {
+        clipboard(conc(titul.get,' ',jmeno.get,' ',prijmeni.get),
+          conc(ulice.get),conc(psc.get,' ',obec.get)) } } }
+  # ==> .. společné položky, které se zobrazují vždy
+  field id       [349,20,40,18]   { data:clen.id_clen, format:'or' },
+  field zdroj    [400,20,40,18]   { data:clen.zdroj, format:'o' },
+  field titul    [80,68,47,17]   { title:'tit,příj,jméno', data:clen.titul },
+  field prijmeni [137,68,106,17] { data:clen.prijmeni, format:'F' },
+  field jmeno    [251,68,101,17] { data:clen.jmeno, format:'F' },
+  field titul_za [361,68,27,17]   { data:clen.titul_za },
+  select kategorie [262,22,62,] { type:'map0', data:clen.kategorie, title:'kategorie',
+    options:cis_kategorie.hodnota, value:'0' },
+  # ==> .. kontakt
+  select osoba   [80,22,87,]     { tag:'k', type:'map', data:clen.osoba,
+                                   options:cis_k_osoba.hodnota, value:'1' },
+  field firma    [80, 45,160,17] { tag:'k', title:'firma', data:clen.firma, format:'F' },
+  field ulice    [80, 91,111,17] { tag:'k', title:'adresa', data:clen.ulice, format:'' },
+  field psc      [200,91,40,17]  { tag:'k', data:clen.psc, format:'r', sql_pipe:'psc' },
+  field obec     [247,91,103,17] { tag:'k', data:clen.obec, format:'F' },
+  field stat     [359,91,28,17]  { tag:'k', data:clen.stat },
+  field ulice2   [80, 114,111,17] { tag:'k', title:'adresa pošt.', data:clen.ulice2 },
+  field psc2     [200,114,40,17]  { tag:'k', data:clen.psc2, format:'r', sql_pipe:'psc' },
+  field obec2    [247,114,103,17] { tag:'k', data:clen.obec2, format:'F' },
+  field stat2    [359,114,28,17]  { tag:'k', data:clen.stat2, format:'d' },
+  field telefony [80,137,160,17] { tag:'k', title:'tel.,mail', type:'list', data:clen.telefony },
+  field rodcis   [287,45,101,17] { tag:'k', title:'rč/IČ', data:clen.rodcis, format:'' },
+  field email    [247,137,140,17] { tag:'k', type:'list', par:°{delim:';'}, data:clen.email },
+  label [7,21,50,15] { tag:'k', title:'<h1>Kontakt</h1>' },
+  label msg_del [174,24,75,15] { title:'je smazaný!', css:'chyba', format:'n' },
+//  label [336,22,10,15] { title:'č.' },
+//  label [9,71,68,15] { title:'tit,příj,jméno' },
+//  label [9,48,70,15] { tag:'k', title:'firma' },
+//  label [9,94,50,15] { tag:'k', title:'adresa' },
+//  label [9,117,70,15] { tag:'k', title:'adresa pošt.' },
+//  label [9,137,50,15] { tag:'k', title:'tel.,mail' },
+//  label [256,45,31,15] { tag:'k', title:'rč/IČ' },
+
+  const spec=137+23, hist= 420, oslo=300, zasi=170
+  # ==> .. zasílání - tag=z (zobrazí se při startu)
+  field darce   [212,zasi+88,173,17] {tag:'z', type:'list', title:'potvrzení na:', par:°{delim:';'}, data:clen.darce  }
+//#   field raynet  [268,zasi+111,54,17] {tag:'z', title:'RAYNET:', data:clen.ID_RAYNET, format:':e',       skill:'a|a'  }
+  check [9,zasi+19,100,17] { tag:'z', title:'jen mailem', data:clen.jen_mail }
+  check [9,zasi+36,100,17] { tag:'z', title:'nic neposílat', data:clen.neposilat }
+//  check jenvanocni [9,zasi+53,100,17] { tag:'z', title:'jen vánoční', data:clen.jenvanocni, format:'d'
+//    proc onchange() { vanocni }
+//  }
+//  check [9,zasi+70,100,17] { tag:'z', title:'ne složenku', data:clen.neslozenku }
+//  check [9,zasi+87,100,17] { tag:'z', title:'jen potvrzení', data:clen.jenpotvrzeni }
+//  select stredisko [212,zasi+19,99,] { tag:'z', type:'map', data:clen.stredisko,
+//    options:cis_darce.hodnota, value:'0', skill:'h|a' }
+//  select svyjimka [317,zasi+19,51,] {tag:'z', type:'map', data:clen.svyjimka,
+//    options:cis_k_vyjimka.zkratka, value:'0', skill:'h|a' }
+  select potvrzeni [212,zasi+42,99,] { tag:'z', type:'map', data:clen.potvrzeni,
+    title:'daň.potvrzení:', options:cis_k_potvrzeni.hodnota, value:'0'
+//    proc onchange() { vanocni }
+  }
+//  select pvyjimka [317,zasi+42,51,] {tag:'z', type:'map', data:clen.pvyjimka,
+//    options:cis_k_vyjimka.zkratka, value:'0', skill:'h|a'
+////    proc onchange() { vanocni }
+//  }
+  field ucet    [212,zasi+65,172,17] { tag:'z', title:'účet/banka:', data:clen.ucet }
+  label [10,zasi,170,15]  { tag:'z', title:'<h1>Zasílání a dárcovství</h1>' }
+//  label [120,zasi+21,89,17] { tag:'z', title:'dárce střediska:', format:'r' }
+//  label [129,zasi+43,79,17] { tag:'z', title:'daň.potvrzení:', format:'r' }
+//  label [123,zasi+68,85,15] { tag:'z', title:'účet/banka:', format:'r' }
+//  label [135,zasi+89,72,17] { tag:'z', title:'potvrzení na:', format:'r' }
+
+//  # ==> .. poznámky - tag=n  jsou vidět až od plus=3
+//  label [8,zasi+109,50,15] { tag:'n', title:'<h1>Pozn.</h1>', format:'n' }
+//  edit [53,spec+110,331,klu_cle_dary-297] {tag:'n', data:clen.poznamka, format:'n' }
+
+  # ==> .. historie - tag=h, top=hist
+  field umrti   [309,hist,78,18]   {tag:'h', data:clen.umrti, format:'n' }
+  chat historie [9,hist+23,378,klu_cle_dary-210-28] {tag:'h', data:clen.historie, divide:70, format:'n' }
+  label [10,hist,50,15] {tag:'h', title:'<h1>Historie</h1>', format:'n' }
+  label [269,hist,2,13] {tag:'h', title:'zemřel', format:'n' }
+
+  # ==> .. oslovení - tag=o, top=oslo
+  select vyjimka [304,oslo+48,51,17] {tag:'o', type:'map', data:clen.vyjimka,
+    options:cis_k_vyjimka.zkratka, format:'n', value:'0' },
+  select rod    [128,oslo+26,67,17] {tag:'o', type:'map', data:clen.rod,
+    options:cis_k_rod.zkratka, format:'n', value:'0'
+    proc onchanged() { vyjimka.key(1); vyjimka.change } },
+  select osloveni [209,oslo+26,146,17] {tag:'o', type:'map', data:clen.osloveni,
+    options:cis_k_osloveni.zkratka, format:'n', value:'0'
+    proc onchanged() { vyjimka.key(1); vyjimka.change } },
+  field prijmeni5p [128,oslo+48,148,17] {tag:'o', data:clen.prijmeni5p, format:'nF'
+    proc onchange() { vyjimka.key(1); vyjimka.change } },
+  label [10,oslo,50,15]   {tag:'o', title:'<h1>Oslovení</h1>', format:'n' },
+  label [10,oslo+27,112,17]  {tag:'o', title:'oslovení do dopisů', format:'n' },
+  label [10,oslo+49,104,17]  {tag:'o', title:'5. pád příjmení', format:'n' },
+  label [259,oslo+73,136,34] {tag:'o', title:"nastavení 'corr' zablokuje nastavené hodnoty", format:'n' },
+
+  # ==> .. dokumenty - tag=d
+  func drop_show() { //var dir:text
+      drop.init('/dokumenty/','S:');
+//    dir= `/dokumenty/${id}`;
+    if (drop.isdir(id)) 
+      drop.lsdir(id,'S:') 
+//    else
+//      drop.init(dir,'S:') 
+  }
+  label [10,326,214,16] {tag:'d', title:'soubory uložené ke kontaktu', format:'n'}
+  label drop [10,345,380,174] {tag:'d', type:'drop', format:'n'
+    func onstart() { drop.init('/dokumenty/','S:')  } // docs/dokumenty/id_clen
+    func ondrop(f:object) { } // změna jména
+    func onload(f:object) { } // po dokončení přenosu
+    func onerror(e:object) { warning(e.msg); return(1) } 
+  }
+  
+
+  
+  //  # komunikace - tag=x  -- viz form _zpravy
+//#   label [8,23,210,15] { tag:'x', title:'<h1>komunikace o kontaktu</h1>', format:'n' },
+//#   edit [9,68,378,175] {tag:'n', data:clen.poznamka, format:'n' },
+//#   label [8,91,210,15] { tag:'x', title:'... záložka bude teprve doplněna', format:'n' },
+
+  # úkoly - tag=u -- viz form _ukoly
+
+  # skrytá_data
+//  field kdo { data:clen.zmena_kdo }
+//  field kdy { data:clen.zmena_kdy }
+  field del { data:clen.deleted }
+  # ------------------------==> . procedury
+//  # ==> .. vánoční
+//  # vyvolá dialog při kolizi hodnot položek jenvanocni & potvrzeni & auto
+//  var vanocni_off=0 // vypne spouštění dialogu během vanocni_set
+//  proc vanocni() { var y:number
+//    vanocni_off.get
+//  | echo("VANOCNI:",jenvanocni.get,'-',potvrzeni.get,'-',pvyjimka.get);
+//    // povolené kombinace
+//    or(and(eq(jenvanocni.get,0),eq(pvyjimka.key,0)),
+//       and(eq(jenvanocni.get,1),eq(potvrzeni.key,0,1),eq(pvyjimka.key,1)),
+//       and(eq(jenvanocni.get,1),eq(potvrzeni.key,2,3),eq(pvyjimka.key,0)))
+//  | // korekce hodnot dialogem
+//    y.set(Vanocni.modal);
+//    { eq(y,1); vanocni_set(0,'*',0)
+//    | eq(y,2); vanocni_set(1,2,0)
+//    | eq(y,3); vanocni_set(1,3,0)
+//    | eq(y,4); vanocni_set(1,0,1)
+//    | eq(y,5); vanocni_set(1,1,1)
+//    }
+//  }
+//  proc vanocni_set(jen,pot,cor) {
+//    vanocni_off.set(1);
+//    jenvanocni.set(jen); jenvanocni.change;
+//    potvrzeni.key(pot); potvrzeni.change;
+//    pvyjimka.key(cor); pvyjimka.change;
+//    vanocni_off.set(0);
+//  }
+//  panel Vanocni [0,0,250,150] { type:'popup', css:'dialog', title:"úprava kolizních hodnot"
+//     use f:form _f
+//     proc onfocus() { f.varianta.set(0) }
+//     form _f {
+//       label [0,0,250,] { title:"zvolte prosím jednu z povolených kombinací" }
+//       label [0,20,250,] { title:"jen vánoční / potvrzení / korekce" }
+//       radio varianta [0,40,250,110] { format:'t'
+//         case [0, 0,200,] { value:'1', title:" ne / ponechaná hodnota / auto" }
+//         case [0,20,200,] { value:'2', title:"ano / roční / auto" }
+//         case [0,40,200,] { value:'3', title:"ano / nikdy / auto" }
+//         case [0,60,200,] { value:'4', title:"ano / obvykle / corr" }
+//         case [0,80,200,] { value:'5', title:"ano / vždy / corr" }
+//         proc onchange() { echo("radio=",this.get);
+//           panel.close(this.get)
+//         }
+//       }
+//     }
+//  }
 }
-# --------------------------------------------------------------------------------------- _clen_butt
+# ---------------------------------------------------------------------------------------==> _ ukoly
+form _ukoly [,,400,50] {
+  const t_butt= klu_cle_dary-67, t_data= klu_cle_dary-92-30
+//        r_ukoly= plus+9
+  proc onchanged () { form.key; _form_state('bc','be|br') }
+  # --------------------------- seznam úkolů
+  view u: table ukol
+  view x: table _user { join_type:'LEFT', join:"ON x.id_user=u.kdo_pro" }
+  # --------------------------- popisky
+  label [7,2,,15] { tag:'u', title:'<h1>Plán práce pro kontakt</h1>', format:'n' }
+  label [225,56,80,] { tag:'u', title:'pro', format:'n' }
+  label [242,t_data+2,63,] { tag:'u', title:'termín', format:'n' }
+  label [242,t_data+25,63,] { tag:'u', title:'dokončeno', format:'n' }
+  # --------------------------- legenda
+  label [6,57,43,10] { tag:'u', title:'zahájeno', format:'nc', help:'práce je započata', css:'lege yellow'}
+  label [53,57,37,10] { tag:'u', title:'diskuse', format:'nc', help:'něco je třeba upřesnit', css:'lege diskuse'}
+  label [94,57,32,10] { tag:'u', title:'dokončeno', format:'nc', help:'hotovo', css:'lege green'}
+  label [131,57,41,10] { tag:'u', title:'odloženo', format:'nc', help:'požadavek je odložen', css:'lege blue'}
+  label [178,57,37,10] { tag:'u', title:'zrušeno', format:'nc', help:'požadavek je zrušen', css:'lege grey'}
+  # --------------------------- seznam úkolů
+  browse ukoly [5,70,180,160] { tag:'u', rows:9, format:'n'
+    css_rows:'barva,1:yellow,3:green,4:blue,5:grey'
+    show id_ukol { data:u.id_ukol }
+    show je_diskuse { data:u.je_diskuse }
+    show barva { expr:"CASE
+         WHEN stav=1 AND je_diskuse THEN 2
+         WHEN stav=1 AND cas_bg!='0000-00-00' AND cas_ok='0000-00-00' THEN 1
+         WHEN stav=1 AND cas_ok!='0000-00-00' THEN 3
+         WHEN stav=2 THEN 4
+         WHEN stav=3 THEN 5
+         ELSE 0 END" }
+    show barva2 { expr:"IF(stav=1 AND cas_do<LEFT(NOW(),10) AND cas_ok='0000-00-00',1,0)" }
+    show [,,35,] { title:'kdo', data:x.surname, format:'sq*t' }
+    show [,,85,] { title:'co', data:u.popis, format:'sq*t', css_cell:'je_diskuse,1:diskuse'  }
+    show [,,60,] { title:'do', data:u.cas_do, format:'s-q*t', css_cell:'barva2,1:termin' }
+    proc onrowclick() { u.load(id_ukol.get) }
+  }
+  # --------------------------- položky
+  field id_clen { data:u.id_clen }
+  field id_ukol { data:u.id_ukol }
+  field u_kdo { data:u.kdo_od }
+  field u_od { data:u.cas_od }
+  field stav { data:u.stav }
+  # --------------------------- zobrazené položky
+  select u_komu [246,54,92,] { tag:'u', type:'map0', options:user.surname, data:u.kdo_pro
+    format:'n', help:'výběr realizátora'
+    proc onchanged () {
+      echo('vybráno:',this.get,',',this.key);
+  } }
+  edit u_popis [225,76,162,126] { tag:'u', data:u.popis, format:'n' }
+  field u_do [307,t_data,80,] { tag:'u', type:'date', data:u.cas_do, format:'Rnr'  }
+  field [307,t_data+23,80,] { tag:'u', type:'date', data:u.cas_ok, format:'Rnr'  }
+  # --------------------------- skok na kartu Úkoly
+  label [346,54,43,] { tag:'u', title:"&rArr;úkoly", css:'href', format:'n',
+    help:"kliknutí zobrazí kartu Úkoly s aktuálním úkolem"
+    proc onclick() { href(conc('klu.uko.ukol_show/',id_ukol.get,'/',u_kdo.get,'/',u_komu.key)) }
+  }
+  # --------------------------- tlačítka a jejich obsluha - nezobrazuje se v Dary
+  # jsou dostupné pouze, pokud je formulář vnořen do ch.cle (pak je dostupný C_clen)
+  label [0,t_butt-26,399,52] { tag:'b', css:'ae_work', format:'n' }
+  proc _form_state(on,off) {
+    form.enable(1,on); form.enable(0,off);
+  }
+  # Uložit změněný úkol
+  button uloz_ukol [9,t_butt,,] { tag:'bc', type:'submit', title:'Uložit úkol', format:'n'
+    help:'provede uložení změněných (červeně orámovaných) položek'
+    proc onclick() { _ukol_uloz(); _form_state('be','bc|br') }
+  }
+  # Zpět
+  button zpet_ukol [93,t_butt,,] { tag:'bc', title:'Zpět', format:'n'
+    help:'zruší červené orámování a vrátí původní obsah'
+    proc onclick () {
+      ukoly.browse_count; form.load(ukoly.browse_key); _form_state('be','bc|br')
+    | form.init; _form_state('be','bc|br')
+    }
+  }
+  # Nový úkol
+  button vytvor_ukol [143,t_butt,,] { tag:'be', title:'Nový úkol', format:'n'
+    help:'naplní položky základními hodnotami, vlastní vytvoření se provede uložením změn'
+    proc onclick () { _ukol_novy; _form_state('bc','be|br') }
+  }
+  proc _ukol_novy () {
+    form.init(1); u_popis.change;
+    stav.set(1); stav.change;
+    id_clen.set(panel.part('C_clen.id').get); id_clen.change;
+    u_od.set(now); u_od.change; // od teď
+    u_do.set(now); u_do.change; // ASAP
+    u_kdo.set(sys('user','id_user')); u_kdo.change; // já
+    u_komu.key(u_kdo.get); u_komu.change; // sobě
+  }
+  proc _ukol_uloz () {
+    the_formsave(form,ukoly);
+  }
+  proc _ukoly_load (id) {[
+    _form_state('be','bc|br');
+    ukoly.browse_load(conc('id_clen=',id));
+    form.load(ukoly.browse_key)
+  | form.init
+  ]}
+}
+# -----------------------------------------------------------------------------------==> _ clen_butt
 form _clen_butt [,,400,50] {
   label    [0,0,399,39] { css:'ae_work' }
   # --------------------------- události
@@ -225,8 +544,8 @@ form _clen_butt [,,400,50] {
   | { bez
     | integrity.set(ask('klub_check',C_clen.id.get,C_clen.rodcis.get,C_clen.darce.get));
       integrity.ok.get };
-    C_clen.kdo.set(sys('user','id_user')); C_clen.kdo.change;
-    C_clen.kdy.set(now_sql(1)); C_clen.kdy.change;
+//    C_clen.kdo.set(sys('user','id_user')); C_clen.kdo.change;
+//    C_clen.kdy.set(now_sql(1)); C_clen.kdy.change;
     { C_clen.same
     | C_clen.key;
       // je-li potřeba, oprav oslovení
@@ -238,13 +557,13 @@ form _clen_butt [,,400,50] {
         C_clen.osloveni.key(osl.osloveni.get); C_clen.osloveni.change(1);
         C_clen.prijmeni5p.set(osl.prijmeni5p.get); C_clen.prijmeni5p.change(1);
       ];
-      // pokud nebylo opraveno středisko a byla nastavena výjimka na auto, oprav dárce (i když je)
-      [ C_clen.svyjimka.changed; not(C_clen.svyjimka.key); not(C_clen.stredisko.changed);
-        C_clen.stredisko.key(ask('klub_clen_stredisko',C_clen.key,1));
-        C_clen.stredisko.change ];
-      // bylo-li opraveno středisko, nastav výjimku
-      [ and(C_clen.stredisko.changed,not(C_clen.svyjimka.changed));
-        C_clen.svyjimka.key(1); C_clen.svyjimka.change ];
+//      // pokud nebylo opraveno středisko a byla nastavena výjimka na auto, oprav dárce (i když je)
+//      [ C_clen.svyjimka.changed; not(C_clen.svyjimka.key); not(C_clen.stredisko.changed);
+//        C_clen.stredisko.key(ask('klub_clen_stredisko',C_clen.key,1));
+//        C_clen.stredisko.change ];
+//      // bylo-li opraveno středisko, nastav výjimku
+//      [ and(C_clen.stredisko.changed,not(C_clen.svyjimka.changed));
+//        C_clen.svyjimka.key(1); C_clen.svyjimka.change ];
       C_clen.save; 
       C_clen.clen_lock('off');
       C_clen.load; C_cleni.cleni.browse_seek; C_cleni.cleni.znacka
@@ -285,7 +604,7 @@ form _clen_butt [,,400,50] {
     C_clen.ulice.change; C_clen.psc.change; C_clen.obec.change; C_clen.historie.change;
     [ moje_stredisko.get; C_clen.stredisko.key(moje_stredisko.get); C_clen.stredisko.change; ];
     _form_state('bc','be|br'); C_clen.focus }
-  button vytvor_ico [210,14,,] { tag:'be', title:'Nový kontakt/IČO', skill:'hdce|hdce'
+  button vytvor_ico [210,14,,] { tag:'be', title:'Nový kontakt/IČ', skill:'hdce|hdce'
     help:'naplní položky základními hodnotami, vlastní vytvoření se provede uložením změn'
     proc onclick () { clear; _clen_ico } }
   proc _clen_ico () { var ico:number, ret:object
@@ -324,7 +643,7 @@ form _clen_butt [,,400,50] {
   proc _clen_load (id) {
     C_clen.load(id); _form_state('br|be','bc'); }
 }
-# ================================================================================================== _dary
+# ==========================================================================================> _ dary
 form _dary [,,400,256] {
   label [9,6,50,15] { title:'<h1>Dary</h1>'}
   label [2,2,401,30] { css:'ae_parm' }
@@ -345,31 +664,31 @@ form _dary [,,400,256] {
   //   proc onchange () { _dary_load } },
   # seznam darů
   view dd: table dar
-  view dv: table _cis {join_type:"LEFT", join:"ON dd.varsym=dv.data AND dv.druh='varsym'" }
-  browse dary [4,34,0,54] { rows:10, wheel:5, css_rows:'color,0:dar_2'
+//  view dv: table _cis {join_type:"LEFT", join:"ON dd.varsym=dv.data AND dv.druh='varsym'" }
+  browse dary [4,34,0,54] { rows:10, wheel:5 //, css_rows:'color,0:dar_2'
     show del    [,,0,]  { title:'D', data:dd.deleted, format:'q' },
     show nucet  [,,0,]  { title:'ú', data:dd.nas_ucet, map_pipe:cis_k_ucet.zkratka },
     show dne    [,,70,] { title:'ze dne', data:dd.castka_kdy, format:'rfs-' },
     show castka [,,60,] { title:'hodnota', data:dd.castka, format:'rfs' },
     show zpusob [,,12,] { title:'z', data:dd.zpusob, map_pipe:cis_k_zpusob.zkratka },
     show        [,,20,] { title:'s', data:dd.stredisko, map_pipe:cis_stredisko.zkratka },
-    show        [,,32,] { title:'VS', data:dd.varsym },
-    show ucet   [,,173,] { title:'-/účet/balíček/věc', expr:"if(zpusob=4,dd.popis,dd.ucet)",
-                           format:'tfs' },
+//    show        [,,32,] { title:'VS', data:dd.varsym },
+//    show ucet   [,,173,] { title:'-/účet/balíček/věc', expr:"if(zpusob=4,dd.popis,dd.ucet)",
+//                           format:'tfs' },
     show iddar  { data:dd.id_dar },
-    show kdo    { data:dd.zmena_kdo, map_pipe:user.abbr },
-    show kdn    { data:dd.zmena_kdo },
-    show kdy    { data:dd.zmena_kdy }
-    show color  { data:dv.zkratka },
+//    show kdo    { data:dd.zmena_kdo, map_pipe:user.abbr },
+//    show kdn    { data:dd.zmena_kdo },
+//    show kdy    { data:dd.zmena_kdy }
+//    show color  { data:dv.zkratka },
     proc onrowclick() { dary_znacka; }
     proc onchange()   { dary_znacka; }
-    proc dary_znacka () { dary.browse_active; C_dar._dar_load(iddar.get); set_zmena }
+    proc dary_znacka () { dary.browse_active; C_dar._dar_load(iddar.get); /*set_zmena*/ }
   }
-  label zmena [12,238,391,18] { title:'' },
+//  label zmena [12,238,391,18] { title:'' },
   # procedury
-  proc set_zmena() {
-    zmena.set(conc('<small>poslední změna: ',dary.kdn.get,' ',
-      dary.kdy.get,'</small>')) }
+//  proc set_zmena() {
+//    zmena.set(conc('<small>poslední změna: ',dary.kdn.get,' ',
+//      dary.kdy.get,'</small>')) }
   //n var nase: text -- potlačeno 13/8/2013
   proc _dary_load () {
     C_dar._dar_init;
@@ -391,8 +710,8 @@ form _dary [,,400,256] {
   proc _dary_focus () {
     dary.browse_focus }
 }
-# --------------------------------------------------------------------------------------------- _dar
-use C_dar: form klu._dar [417,klu_cle_dary,,] {  skill:'hdd' // doplnění funkcionality metod klu._dar
+# -----------------------------------------------------------------------------------------==> _ dar
+use C_dar: form klu._dar [270,334,,] {  skill:'hdd' // doplnění funkcionality metod klu._dar
   # ==> Nový dar
   proc vytvor_dar.onclick() {
     form.dar_novy(C_cleni.cleni.browse_key); }

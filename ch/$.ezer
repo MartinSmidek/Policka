@@ -7,14 +7,14 @@
 var modul_state:object
 
 menu ch { type:'main', active:*
-  const plus = 0,                       // rozšíření karet - jednotkou je výška řádku browse
+  const plus = 2, //0,                       // rozšíření karet - jednotkou je výška řádku browse
         klu_cle_cleni = 13,
         klu_cle_dary = 334,
         klu_kom_rows = 4,
         klu_kom_zprava_t = 161,
         klu_kom_zprava_h = 35
   var global: text
-  tabs klu { title:"[fa-users] Dárci", skill:'hd', _sys:'klu',  include:'onload', active:* }
+  tabs klu { title:"[fa-users] Osoby, [fa-industry] firmy", skill:'hd', _sys:'klu',  include:'onload', active:* }
   tabs eko {title:"[fa-line-chart] Ekonomika", skill:'he', _sys:'eko',  include:'onclick', active:*  }
   tabs dop {title:"[fa-envelope] Korespondence", skill:'hk', _sys:'dop',  include:'onclick', active:* }
   tabs sys {title:"[fa-cogs] Nastavení", skill:'hn', _sys:'sys',  include:'onclick,ezer2.syst', active:*
@@ -66,11 +66,10 @@ menu ch { type:'main', active:*
           item {title:'[fa-database] tabulka CLEN'        par:°{tab:'clen'} }
           item {title:'[fa-database] tabulka DAR'         par:°{tab:'dar'} }
           item {title:'[fa-database] tabulka VYPIS'       par:°{tab:'vypis'} }
-          item {title:'[fa-database] tabulka PREVOD'      par:°{tab:'prevod'} }
+          item {title:'[fa-database] tabulka ROLE'        par:°{tab:'role'} }
           item {title:'[fa-database] tabulka OSLOVENI'    par:°{tab:'osloveni'} }
           item {title:'[fa-database] tabulka DOPIS'       par:°{tab:'dopis'} }
           item {title:'[fa-database] tabulka DOPIS_CAST'  par:°{tab:'dopis_cast'} }
-          item {title:'[fa-database] tabulka DAVKA'       par:°{tab:'davka'} }
           item {title:'[fa-database] tabulka MAIL'        par:°{tab:'mail'} }
           proc onclick (i) {
             clear; info.display(0,'t');
@@ -251,103 +250,9 @@ form right [,,*,50] {
   proc work(on) { working.display(on) }
 }
 # -------------------------------------------------------------------------------------------------- TABLES
-table _cis { key_id:'id_cis'
-  number id_cis { key:'primary' },
-  text druh,
-  text data,
-  text hodnota,
-  text zkratka,
-  text popis,
-  number poradi,
-  text barva,
-  text ikona
-}
-table vypis { key_id:'id_vypis'
-  number id_vypis
-  date   datum_od { sql_pipe:'sql_date1' }
-  date   datum_do { sql_pipe:'sql_date1' }
-  text   soubor
-}
-//table platba { key_id:'id_platba'
-//  number id_platba
-//  number id_clen
-//  date   datum { sql_pipe:'sql_date1' }
-//  number uhrada
-//  number dar
-//  // přidané kvůli převodům z banky
-//  number typ
-//  number druh // B P
-//  number castka
-//  number mena
-//  text   ucet
-//  text   popis
-//  text   zprava
-//  text   ssym
-//  text   vsym
-//}
-table balicek {
-  number id_balicek { key:'primary' }
-  text   ident      { help:'identifikace balíčku Brrvvv' }
-  number platby     { help:'součet částek, jejichž VS není označen jako dar' }
-}
-table ucet {
-  text protiucet { help:'protiúčet' },
-  text banka { help:'banka' },
-  text ksym { help:'KS' },
-  text vsym { help:'VS' },
-  text ssym { help:'SS' },
-  text jmeno { help:'jméno účtu' },
-  text nazev { help:'náš název účtu' },
-}
-table _track { key_id:'id_track'
-  number id_track { key:'primary' },
-  date   kdy  { help:'datum změny' },
-  text   kdo  { help:'pachatel' },
-  text   kde  { help:'tabulka' },
-  number klic { help:'klíč' },
-  text   fld  { help:'položka' },
-  text   op   { help:'operace' },
-  text   old  { help:'původní hodnota' },
-  text   val  { help:'původní hodnota' },
-}
-table _user { key_id:'id_user'
-  number id_user { key:'primary' },
-  text deleted,
-  text abbr,
-  text skills,
-  text username,
-  text password,
-  number state,
-  text forename,
-  text surname,
-  text history,
-//  number zmena_kdo,
-//  date zmena_kdy { sql_pipe:'sql_date1' },
-}
-table _jmena { key_id:'id_jmena'
-  number id_jmena
-  text jmeno,
-  number sex,
-  number cetnost,
-}
-table osloveni { key_id:'id_clen'
-  number id_clen
-  number _rod { help:'rod|mluvnický rod: neurčeno/mužský/ženský' },
-  number _osloveni { help:'oslovení|oslovení před jménem (5.pád)' },
-  text _prijmeni5p { help:'příjmení 5.p|příjmení (5.pád)' },
-  text _anomalie { help:'anomálie|o-f-r-a' }
-    // o - chybí právnická/fyzická => ručně
-    // f - právnická osoba má křestní jméno => fyzická osoba
-    // r - rod křestního jména a tvaru příjmení se liší => ručně
-    // a - ženské křestní jméno a koncovka -ova => -ová
-
-}
 table clen { key_id:'id_clen'
   number id_clen        { key:'primary', help:'kontakt|jedinečné číslo kontaktu' },
   text zdroj
-//  number ID             { help:'ID|původní číslo kontaktu' },
-//  number ID_RAYNET
-//  number kod            { help:'kód|původní kód dárce' },
   text   deleted        { help:'ok|prázdné nebo D=značka smazání kontaktu' },
   date   umrti          { help:'úmrtí|datum úmrtí', sql_pipe:'sql_date1' },
   text   historie       { help:'poznámky|poznámky ke kontaktu' },
@@ -391,6 +296,12 @@ table clen { key_id:'id_clen'
   text   anomalie       { help:'anomálie|neočekávaná kombinace hodnot' },
 //  text   zmena_kdo      { help:'změna kým|značka autora poslední změny' },
 //  date   zmena_kdy      { help:'změna kdy|čas poslední změny' },
+}
+table role { key_id:'id_role'
+  number id_role     { key:'primary', help:'kontakt|jedinečné číslo role' }
+  number id_firma    { help:'ID firmy|identifikace firmy s připnutými osobami' }
+  number id_osoba    { help:'ID osoby|připnutá osoba' }
+  text   popis       { help:'popis role' }
 }
 table dar { key_id:'id_dar'
   number id_dar      { key:'primary', help:'dar|jedinečné číslo daru' },
@@ -448,15 +359,74 @@ table ukol { key_id:'id_ukol'
   number je_diskuse     { help:'ukázat diskusi nad řešením' }
   text diskuse          { help:'diskuse o průběhu řešení' }
 }
-table zprava { key_id:'id_zprava'
-  number id_zprava      { key:'primary', help:'poznámka|jedinečné číslo zprávy ke kontaktu' }
-  number id_user	{ help:"autor|autor zprávy" }
-  number id_clen	{ help:"ID kontaktu|koho se poznámka týká" }
-  text   zprava	        { help:"zpráva|text poslané zprávy" }
-  date   kdy_z          { help:"kdy zpráva|datum poslání zprávy",  sql_pipe:'sql_date1' }
-  number jak_z          { help:"jak|jak byla zpráva poslána" }    // #k_zprava_jak
-  text   reakce	        { help:"reakce|text navrácené reakce" }
-  date   kdy_r          { help:"kdy reakce|datum obdržení reakce" }
+table vypis { key_id:'id_vypis'
+  number id_vypis
+  date   datum_od { sql_pipe:'sql_date1' }
+  date   datum_do { sql_pipe:'sql_date1' }
+  text   soubor
+}
+table ucet {
+  text protiucet { help:'protiúčet' },
+  text banka { help:'banka' },
+  text ksym { help:'KS' },
+  text vsym { help:'VS' },
+  text ssym { help:'SS' },
+  text jmeno { help:'jméno účtu' },
+  text nazev { help:'náš název účtu' },
+}
+table _cis { key_id:'id_cis'
+  number id_cis { key:'primary' },
+  text druh,
+  text data,
+  text hodnota,
+  text zkratka,
+  text popis,
+  number poradi,
+  text barva,
+  text ikona
+}
+table _track { key_id:'id_track'
+  number id_track { key:'primary' },
+  date   kdy  { help:'datum změny' },
+  text   kdo  { help:'pachatel' },
+  text   kde  { help:'tabulka' },
+  number klic { help:'klíč' },
+  text   fld  { help:'položka' },
+  text   op   { help:'operace' },
+  text   old  { help:'původní hodnota' },
+  text   val  { help:'původní hodnota' },
+}
+table _user { key_id:'id_user'
+  number id_user { key:'primary' },
+  text deleted,
+  text abbr,
+  text skills,
+  text username,
+  text password,
+  number state,
+  text forename,
+  text surname,
+  text history,
+//  number zmena_kdo,
+//  date zmena_kdy { sql_pipe:'sql_date1' },
+}
+table _jmena { key_id:'id_jmena'
+  number id_jmena
+  text jmeno,
+  number sex,
+  number cetnost,
+}
+table osloveni { key_id:'id_clen'
+  number id_clen
+  number _rod { help:'rod|mluvnický rod: neurčeno/mužský/ženský' },
+  number _osloveni { help:'oslovení|oslovení před jménem (5.pád)' },
+  text _prijmeni5p { help:'příjmení 5.p|příjmení (5.pád)' },
+  text _anomalie { help:'anomálie|o-f-r-a' }
+    // o - chybí právnická/fyzická => ručně
+    // f - právnická osoba má křestní jméno => fyzická osoba
+    // r - rod křestního jména a tvaru příjmení se liší => ručně
+    // a - ženské křestní jméno a koncovka -ova => -ová
+
 }
 
 # uživatelské číselníky
@@ -467,5 +437,5 @@ map cis_stredisko:      table _cis { where:"druh='stredisko'", order:'poradi', k
 map cis_darce:          table _cis { where:"druh='darce'", order:'poradi', key_id:'data'}
 map cis_k_ucet:         table _cis { where:"druh='k_ucet'", order:'data', key_id:'data'}
 map cis_u_stavy:        table _cis { where:"druh='u_stavy'", order:'data', key_id:'data'}
-map cis_k_zprava_jak:   table _cis { where:"druh='k_zprava_jak'", order:'data', key_id:'data'}
+//map cis_k_zprava_jak:   table _cis { where:"druh='k_zprava_jak'", order:'data', key_id:'data'}
 map cis_kategorie:      table _cis { where:"druh='kategorie'", order:'data', key_id:'data'}

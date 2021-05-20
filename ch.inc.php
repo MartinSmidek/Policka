@@ -52,7 +52,7 @@
       "/volume1/@appstore/MariaDB/usr/bin"    // Synology Polička
     )[$ezer_server];
 
-  $tracked= ',clen,dar,ukol,dopis,zprava,_user,_cis,';
+  $tracked= ',clen,dar,ukol,dopis,role,_user,_cis,';
   
   // PHP moduly aplikace Ark
   $app_php= array(

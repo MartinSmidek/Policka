@@ -8,12 +8,12 @@ use ss: form _strediska [12,4,,]
 use sc: form _scmd [6,222,,]
 use us: form _ucty [412,4,,]
 use uc: form _ucmd [406,222,,]
-use vs: form _symboly [12,264,,]
-use vc: form _vcmd [6,602,,]
+//use vs: form _symboly [12,264,,]
+//use vc: form _vcmd [6,602,,]
 proc onstart () {
   ss.seznam.browse_load("druh='stredisko'"); ss.seznam.raise('onrowclick');
   us.seznam.browse_load("druh='k_ucet'"); us.seznam.raise('onrowclick');
-  vs.seznam.browse_load("druh='varsym'"); vs.seznam.raise('onrowclick');
+//  vs.seznam.browse_load("druh='varsym'"); vs.seznam.raise('onrowclick');
 }
 proc the_formsave (f,b) {
   f.same
@@ -28,19 +28,19 @@ form _strediska [,,380,250] {css:'ae_parm'
     show druh           { data:_cis.druh, format:'s' },
     show       [,, 30,] { title:'id', data:_cis.data, format:'qs+r' },
     show       [,, 50,] { title:'zkratka', data:_cis.zkratka, format:'qs' },
-    show nazev [,,100,] { title:'název', data:_cis.hodnota, format:'qst' },
-    show       [,,150,] { title:'popis', data:_cis.popis, format:'qst' },
+    show nazev [,,250,] { title:'název', data:_cis.hodnota, format:'qst' },
+//    show       [,,150,] { title:'popis', data:_cis.popis, format:'qst' },
     proc onsubmit () { has_skill('hnse'); s_oprava.modal(300,100) }
   },
   label [6,6,267,17] { title:'<b>Seznam středisek</b>' },
 }
 # ----------------------------------------------------------------------------- _scmd
 form _scmd [,,300,20] {
-  button [18,1,,] {type:'submit', title:'Opravit', skill:'hnse|hnse'
+  button [18,7,,] {type:'submit', title:'Opravit', skill:'hnse|hnse'
     proc onclick () { s_oprava.modal(300,100) } }
-  button [214,1,,] {title:'Nové', skill:'r|a'
+  button [214,7,,] {title:'Nové', skill:'r|a'
     proc onclick () { s_novy.modal(300,100) } }
-  button [272,1,,] {title:'Smazat', skill:'r|a'
+  button [272,7,,] {title:'Smazat', skill:'r|a'
     proc onclick () {
       confirm(conc('Opravdu smazat středisko ',ss.seznam.nazev.get,'?'));
       _cis.delete_record(conc('id_cis=',ss.seznam.cid.get));
@@ -98,9 +98,9 @@ form _ucty [,,380,250] {css:'ae_parm'
                           help:'pořadové číslo účtu použité v darech' },
     show zkrat [,, 20,] { title:'zkratka', data:_cis.zkratka, format:'qs',
                           help:'jednopísmenná zkratka použitá jako první písmeno ve výpisech' },
-    show nazev [,,100,] { title:'název', data:_cis.hodnota, format:'qst',
+    show nazev [,,160,] { title:'název', data:_cis.hodnota, format:'qst',
                           help:'výztižný název účtu' },
-    show ucet  [,,180,] { title:'číslo účtu', data:_cis.ikona, format:'qst',
+    show ucet  [,,120,] { title:'číslo účtu', data:_cis.ikona, format:'rqst',
                           help:'předčíslí-účet/banka' },
     proc onsubmit () { has_skill('hnue'); u_oprava.modal(300,100) }
   },
@@ -108,11 +108,11 @@ form _ucty [,,380,250] {css:'ae_parm'
 }
 # ----------------------------------------------------------------------------- _ucmd
 form _ucmd [,,300,20] {
-  button [18,1,,] { type:'submit', title:'Opravit', skill:'hnue|hnue'
+  button [18,7,,] { type:'submit', title:'Opravit', skill:'hnue|hnue'
     proc onclick () { u_oprava.modal(300,100) } }
-  button [214,1,,] { title:'Nové', skill:'hnue|hnue'
+  button [214,7,,] { title:'Nové', skill:'hnue|hnue'
     proc onclick () { u_novy.modal(300,100) } }
-  button [272,1,,] { title:'Smazat', skill:'hnue|hnue'
+  button [272,7,,] { title:'Smazat', skill:'hnue|hnue'
     proc onclick () {
       confirm(conc('Opravdu smazat středisko ',us.seznam.nazev.get,'?'));
       _cis.delete_record(conc('id_cis=',us.seznam.cid.get));
@@ -157,90 +157,90 @@ form _ucet [,,300,100] {
   }
 }
 # ----------------------------------------------------------------------------------------- _symboly
-form _symboly [,,780,370] { css:'ae_parm'
-  browse seznam [9,27,200,200] { qry_rows:1, rows:sys_str_varsym
-    show cid                {data:_cis.id_cis, format:'s' },
-    show druh               {data:_cis.druh, format:'s' },
-    show stredisko [,,150,] {title:'středisko', data:_cis.ikona, format:'q#s', map_pipe:cis_stredisko.hodnota},
-    show dat       [,, 50,] {title:'VS', data:_cis.data, format:'qs+' },
-    show platba    [,, 50,] {title:'je dar', expr:"IF(_cis.zkratka,'ano','ne')", format:'qs' },
-    show deleni    [,, 50,] {title:'P/R', data:_cis.barva, map_pipe:cis_deleni.zkratka, format:'q#s' },
-    show hodnota   [,,430,] {title:'název', data:_cis.hodnota, format:'qst' },
-    proc onsubmit () { has_skill('hnve'); v_oprava.modal(300,100) }
-  },
-  label [6,6,340,17] { title:'<b>Seznam variabilních symbolů</b>' }
-  button [607,2,,] { title: 'Export'
-    proc onclick() {
-      var x: object
-      x.set(ask('sys_vs_excel'));
-      x._err; warning(x._err) | excel.set(x._html)
-  } }
-  label excel [667,6,99,16]
-}
+//form _symboly [,,780,370] { css:'ae_parm'
+//  browse seznam [9,27,200,200] { qry_rows:1, rows:sys_str_varsym
+//    show cid                {data:_cis.id_cis, format:'s' },
+//    show druh               {data:_cis.druh, format:'s' },
+//    show stredisko [,,150,] {title:'středisko', data:_cis.ikona, format:'q#s', map_pipe:cis_stredisko.hodnota},
+//    show dat       [,, 50,] {title:'VS', data:_cis.data, format:'qs+' },
+//    show platba    [,, 50,] {title:'je dar', expr:"IF(_cis.zkratka,'ano','ne')", format:'qs' },
+//    show deleni    [,, 50,] {title:'P/R', data:_cis.barva, map_pipe:cis_deleni.zkratka, format:'q#s' },
+//    show hodnota   [,,430,] {title:'název', data:_cis.hodnota, format:'qst' },
+//    proc onsubmit () { has_skill('hnve'); v_oprava.modal(300,100) }
+//  },
+//  label [6,6,340,17] { title:'<b>Seznam variabilních symbolů</b>' }
+//  button [607,2,,] { title: 'Export'
+//    proc onclick() {
+//      var x: object
+//      x.set(ask('sys_vs_excel'));
+//      x._err; warning(x._err) | excel.set(x._html)
+//  } }
+//  label excel [667,6,99,16]
+//}
 # ----------------------------------------------------------------------------- _cmd
-form _vcmd [,,300,20] {
-  button [18,1,,] { type:'submit', title:'Opravit', skill:'hnve|hnve'
-    proc onclick () { v_oprava.modal(300,100) } }
-  button [214,1,,] { title:'Nový', skill:'hnve|hnve'
-    proc onclick () { v_novy.modal(300,100) } }
-  button [272,1,,] { title:'Smazat', skill:'hnve|hnve'
-    proc onclick () {
-      confirm(conc('Opravdu smazat symbol ',vs.seznam.dat.get,'=',vs.seznam.hodnota.get,'?'));
-      _cis.delete_record(conc('id_cis=',vs.seznam.cid.get));
-      vs.seznam.raise('onrowclick',vs.seznam.browse_seek(1))
-    }
-  }
-}
-# ----------------------------------------------------------------------------- v_oprava
-panel v_oprava [0,0,400,160] { title:'oprava variabilního symbolu', type:'popup', css:'dialog'
-  use s: form _symbol [2,19,,],
-  proc onfocus() { s.load(vs.seznam.cid.get); }
-}
+//form _vcmd [,,300,20] {
+//  button [18,1,,] { type:'submit', title:'Opravit', skill:'hnve|hnve'
+//    proc onclick () { v_oprava.modal(300,100) } }
+//  button [214,1,,] { title:'Nový', skill:'hnve|hnve'
+//    proc onclick () { v_novy.modal(300,100) } }
+//  button [272,1,,] { title:'Smazat', skill:'hnve|hnve'
+//    proc onclick () {
+//      confirm(conc('Opravdu smazat symbol ',vs.seznam.dat.get,'=',vs.seznam.hodnota.get,'?'));
+//      _cis.delete_record(conc('id_cis=',vs.seznam.cid.get));
+//      vs.seznam.raise('onrowclick',vs.seznam.browse_seek(1))
+//    }
+//  }
+//}
+//# ----------------------------------------------------------------------------- v_oprava
+//panel v_oprava [0,0,400,160] { title:'oprava variabilního symbolu', type:'popup', css:'dialog'
+//  use s: form _symbol [2,19,,],
+//  proc onfocus() { s.load(vs.seznam.cid.get); }
+//}
 # ----------------------------------------------------------------------------- v_novy
-panel v_novy [0,0,400,160] { title:'nový variabilní symbol', type:'popup', css:'dialog'
-  use s: form _symbol [1,1,,]
-  proc onfocus() {
-    s.init; s.druh.set('varsym'); s.druh.change; s.dat.change; s.str.change
-  }
-}
+//panel v_novy [0,0,400,160] { title:'nový variabilní symbol', type:'popup', css:'dialog'
+//  use s: form _symbol [1,1,,]
+//  proc onfocus() {
+//    s.init; s.druh.set('varsym'); s.druh.change; s.dat.change; s.str.change
+//  }
+//}
 # ----------------------------------------------------------------------------- _symbol
-form _symbol [,,402,100] {
-  label [199,22,30,17] {  }
-  field dat  [39,18,37,17] { title:'Symbol', data:_cis.data, format:'r', proc onchanged() { jednoznacny_VS() }}
-  check dar  [78,15,54,17] { data:_cis.zkratka, title:'je dar' }
-  select del [174,18,41,17] { title:'P/R/...', type:'map0', data:_cis.barva, options:cis_deleni.zkratka }
-  select str [271,18,130,17] { title:'Středisko', type:'map', data:_cis.ikona, options:cis_stredisko.hodnota }
-  edit       [40,48,357,50] { title:'Popis', data:_cis.hodnota}
-  field druh {data:_cis.druh }
-  field cid  {data:_cis.id_cis }
-  button [41,115,,] {type:'submit', title:'Uložit', help:'uložit změny'
-    proc onclick() {
-      var x: text
-      jednoznacny_VS;
-      { gt(dat.get,0); lt(dat.get,10000);
-        { dat.set(substr(conc('0','0','0','0',dat.get),minus(4),4)); dat.change; // normalizace VS
-          cid.get;
-          [ eq(dat.get,vs.seznam.dat.get)   // při změně hodnoty změň i klíč
-          | cid.set(conc('2',dat.get)); cid.change;
-          ];
-          the_formsave(form,vs.seznam); panel.hide(form.key)
-        | cid.set(conc('2',dat.get));
-          cid.change; the_formsave(form,vs.seznam); panel.hide(form.key)
-        }
-      | warning('variabilní symbol musí být čtyřmístné číslo')
-      }
-    }
-  }
-  button [118,116,,] { title:'Zpět', help:'zadané údaje neukládat, vrátit se zpět'
-    proc onclick() { panel.hide(0) }
-  }
-  proc jednoznacny_VS() { var x:text
-    eq(function('dat','return dat.original.value;',dat),dat.get);
-    return(1)
-  | x.set(ask('select',"hodnota",'_cis',conc("druh='varsym' AND data='",dat.get,"'")));
-    x; warning('variabilní symbol ',dat.get," již je použitý pro '",x,"'");
-    dat.set(vs.seznam.dat.get);
-    return(0)
-  | return(1)
-  }
-}
+//form _symbol [,,402,100] {
+//  label [199,22,30,17] {  }
+//  field dat  [39,18,37,17] { title:'Symbol', data:_cis.data, format:'r', proc onchanged() { jednoznacny_VS() }}
+//  check dar  [78,15,54,17] { data:_cis.zkratka, title:'je dar' }
+//  select del [174,18,41,17] { title:'P/R/...', type:'map0', data:_cis.barva, options:cis_deleni.zkratka }
+//  select str [271,18,130,17] { title:'Středisko', type:'map', data:_cis.ikona, options:cis_stredisko.hodnota }
+//  edit       [40,48,357,50] { title:'Popis', data:_cis.hodnota}
+//  field druh {data:_cis.druh }
+//  field cid  {data:_cis.id_cis }
+//  button [41,115,,] {type:'submit', title:'Uložit', help:'uložit změny'
+//    proc onclick() {
+//      var x: text
+//      jednoznacny_VS;
+//      { gt(dat.get,0); lt(dat.get,10000);
+//        { dat.set(substr(conc('0','0','0','0',dat.get),minus(4),4)); dat.change; // normalizace VS
+//          cid.get;
+//          [ eq(dat.get,vs.seznam.dat.get)   // při změně hodnoty změň i klíč
+//          | cid.set(conc('2',dat.get)); cid.change;
+//          ];
+//          the_formsave(form,vs.seznam); panel.hide(form.key)
+//        | cid.set(conc('2',dat.get));
+//          cid.change; the_formsave(form,vs.seznam); panel.hide(form.key)
+//        }
+//      | warning('variabilní symbol musí být čtyřmístné číslo')
+//      }
+//    }
+//  }
+//  button [118,116,,] { title:'Zpět', help:'zadané údaje neukládat, vrátit se zpět'
+//    proc onclick() { panel.hide(0) }
+//  }
+//  proc jednoznacny_VS() { var x:text
+//    eq(function('dat','return dat.original.value;',dat),dat.get);
+//    return(1)
+//  | x.set(ask('select',"hodnota",'_cis',conc("druh='varsym' AND data='",dat.get,"'")));
+//    x; warning('variabilní symbol ',dat.get," již je použitý pro '",x,"'");
+//    dat.set(vs.seznam.dat.get);
+//    return(0)
+//  | return(1)
+//  }
+//}

@@ -67,16 +67,69 @@ function ch_search_popis($popis) {
   return "($cond1 OR $cond2)";
 }
 # ===========================================================================================> BANKA
+# -------------------------------------------------------------------------------- ch bank_load_ucty
+function ch_bank_pub($pub,&$p,&$u,&$b,$padding=true) {
+  list($pu,$b)= explode('/',$pub);
+  list($p,$u)= explode('-',$pu);
+  if ( $padding ) {
+    if ( $u ) {
+      $u= str_pad($u,10,'0',STR_PAD_LEFT);
+      $p= str_pad($p,6,'0',STR_PAD_LEFT);
+    }
+    else {
+      $u= str_pad($p,10,'0',STR_PAD_LEFT);
+      $p= '000000';
+    }
+  }
+  else {
+    if ( !$u ) {
+      $u= $p;
+      $p= '';
+    }
+    $u= ltrim($u,'0');
+    $p= ltrim($p,'0');
+  }
+}
+# -------------------------------------------------------------------------------- ch bank_load_ucty
+# $bank_nase_banky = array ('0100',...)
+# $bank_nase_ucty  = array ('0100'=> array('000000-1234567890'=>'X'),...)
+# $bank_nase_nucty = array ('X'=> n) -- n je data účtu v _cis.druh=='k_ucty'
+function ch_bank_load_ucty () {
+  global $bank_nase_banky, $bank_nase_ucty, $bank_nase_nucty;
+  if ( !isset($bank_nase_banky) ) {
+    $bank_nase_ucty= array();
+    $bank_nase_banky= array();
+    $qry= "SELECT * FROM _cis WHERE druh='k_ucet' AND ikona!='' ";
+    $res= pdo_qry($qry);
+    while ( $res && $c= pdo_fetch_object($res) ) {
+      bank_pub($c->ikona,$p,$u,$b);
+      if ( !in_array($b,$bank_nase_banky) )
+        $bank_nase_banky[]= $b;
+      $bank_nase_ucty[$b]["$p-$u"]= $c->zkratka;
+      $bank_nase_nucty[$c->zkratka]= $c->data;
+    }
+  }
+}
 # -----------------------------------------------------------------------------------==> ch ban_load
 # ASK
-# načtení souboru CSV s výpisem pro Rodinný život 
+# načtení souboru CSV z ČSAS
 function ch_ban_load($file) {  trace();
   global $ezer_path_root;
   $y= (object)array('err'=>'','msg'=>'ok');
+  // načti vlastní účty
+  $nase_ucty= array(); // účet -> ID
+  $res= pdo_qry("SELECT data,ikona FROM _cis WHERE druh='k_ucet' AND ikona!='' ");
+  while ( $res && list($idu,$u_b)= pdo_fetch_row($res) ) {
+    list($u,$b)= explode('/',$u_b);
+    if ($b!='0800') { $y->err= "import je možný (zatím) pouze z ČSAS"; goto end; }
+    $nase_ucty[$u]= $idu;
+  }
+  debug($nase_ucty);
   $csv= "$ezer_path_root/banka/$file";
   $data= array();
-  $msg= ch_csv2array($csv,$data,0,',','UTF-16LE');
-  debug($data,"$csv - $msg");
+//  $msg= 
+      ch_csv2array($csv,$data,0,',','UTF-16LE');
+//  debug($data,"$csv - $msg");
   // účet organizace, způsob platby
   $zpusob= 2;
   $nas_ucet= 1;
@@ -96,13 +149,20 @@ function ch_ban_load($file) {  trace();
         if (isset($flds[$fld])) $flds[$fld][0]++;
       }
       foreach ($flds as $fld=>$desc) {
-        if (!$desc[0]) { $msg= "ve výpisu chybí povinné pole '$fld'"; goto end; }
+        if (!$desc[0]) { $y->err= "ve výpisu chybí povinné pole '$fld'"; goto end; }
       }
+      // zkontroluj název souboru: účet_0800_yyyy_mm_dd_yyyy_mm_dd.csv
+      $m= null;
+      if (!preg_match("~(\d+)_0800_(\d\d\d\d_\d\d_\d\d)_(\d\d\d\d_\d\d_\d\d)\.csv~",$file,$m)) { 
+        $y->err= "vložený soubor nemá standardní pojmenování:<br> 'účet-0800_od_do.csv', 
+          <br>kde od a do jsou datumy ve tvaru rrr-mm-dd"; goto end; }
+          debug($m);
       // vytvoř výpis
-      if ($file=='bankovni_vypis_prosinec_20_format_csv.csv')
-        query("INSERT INTO vypis SET soubor='$file', datum_od='2020-12-01', datum_do='2020-12-31' ");
-      else
-        query("INSERT INTO vypis SET soubor='$file' ");
+      $idu= isset($nase_ucty[$m[1]]) ? $nase_ucty[$m[1]] : 0;
+      if (!$idu) { $y->err= "'$m[1]' není mezi účty zapsanými v Nastavení"; goto end; }
+      $od= str_replace('_','-',$m[2]);
+      $do= str_replace('_','-',$m[3]);
+      query("INSERT INTO vypis SET soubor='$file', nas_ucet=$idu, datum_od='$od', datum_do='$do' ");
       $idv= pdo_insert_id();
     }
     // vložení záznamu
@@ -118,7 +178,7 @@ function ch_ban_load($file) {  trace();
         case 'c': $castka= preg_replace(array("/\s/u","/,/u"),array('','.'),$val);
                   $set.= ", $f=$castka"; break;
         case 'm': if ($val=='CZK') break;
-                  $msg= "nekorunové platby nejsou implementovány"; goto end;
+                  $y->err= "nekorunové platby nejsou implementovány"; goto end;
       }
     }
     // určení typu

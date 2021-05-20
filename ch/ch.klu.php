@@ -1,41 +1,4 @@
 <?php # (c) 2011-2015 Martin Smidek <martin@smidek.eu>
-/** **************************************************************************************==> REYNET */
-//# --------------------------------------------------------------------------------------- reynet get
-//# zobrazí odkaz na člena
-//function reynet_get($typ,$id) { trace();
-//  $url= "https://app.raynet.cz/api/v2/$typ/$id";
-//  // ezer
-//  $inst= "ezer";
-//  $user= "martin.smidek@outlook.com";
-//  $pass= "ezer2017";
-//  // procharitu
-//  $inst= "procharitu";
-//  $user= "martin@smidek.eu";
-//  $pass= "wlxt1lsw";
-//  $ch= curl_init($url);
-//                                                        display("curl=$ch.");
-//  $headers = array(
-//    'accept: */*',
-////     'accept-encoding:gzip, deflate, sdch, br',
-////     'accept-language:cs,fr;q=0.8',
-//    "Content-Type:application/json",
-//    "X-Instance-Name: $inst",
-////     'authorization: Basic bWFydGluLnNtaWRla0BvdXRsb29rLmNvbTplemVyMjAxNw=='
-//    "Authorization: Basic ".base64_encode("$user:$pass")
-//  );
-//  curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-//  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-//  $resp= @curl_exec($ch);
-//  $err= curl_error($ch);
-//  $stat= curl_getinfo($ch);   //get status code
-//                                                        display("curl=$resp");
-//                                                        debug($stat,$err);
-//  curl_close($ch);
-//  $ret= json_decode($resp);
-//  $ret= $ret->data;
-//                                                        debug($ret);
-//  return $ret;
-//}
 /** *************************************************************************************==> CLENOVE */
 # ----------------------------------------------------------------------------------- klub firma_ico
 # najde údaje o firmě podle zadaného IČO
@@ -164,6 +127,27 @@ function klub_select_cleny($ids_clen,$caption,$barva='') {
 function klub_ukaz_dar($id_dar,$barva='') {
   $style= $barva ? "style='color:$barva'" : '';
   return "<b><a $style href='ezer://klu.dry.show_dar/$id_dar'>$id_dar</a></b>";
+}
+# --------------------------------------------------------------------------------- klub role_pripni
+# připne osobu k firmě
+function klub_role_pripni($idf,$ido) {
+  $ret= (object)array(msg=>'',ido=>0);
+  list($idr,$role)= select('id_role,popis','role',"id_firma=$idf AND id_osoba=$ido");
+  if ($idr) {
+    $ret->msg= "POZOR tato osoba již má ve firmě roli '$role'";
+  }
+  elseif ($idf==$ido) {
+    $ret->msg= "POZOR pokoušíte se připnout firmu k sobě samé ";
+  }
+  else {
+    query("INSERT INTO role SET id_firma=$idf, id_osoba=$ido");
+  }
+  return $ret;
+}
+# --------------------------------------------------------------------------------- klub role_odepni
+# odepne osobu z firmy
+function klub_role_odepni($idf,$ido) {
+  query("DELETE FROM role WHERE id_firma=$idf AND id_osoba=$ido");
 }
 # -------------------------------------------------------------------------------- klub oprav_prevod
 # opraví dárce v převodu
@@ -406,7 +390,7 @@ function klub_dary_suma ($id_clen,$strediska) {  trace();
   $suma= 0;
   $qry= "SELECT sum(castka) as suma FROM dar AS dd
          -- LEFT JOIN _cis ON dd.varsym=data AND druh='varsym'
-         WHERE LEFT(deleted,1)!='D' AND id_clen=$id_clen AND _cis.zkratka=1 $strediska";
+         WHERE LEFT(deleted,1)!='D' AND id_clen=$id_clen -- AND _cis.zkratka=1 $strediska";
   $res= pdo_qry($qry);
   if ( $res && $u= pdo_fetch_object($res) ) {
     $suma= $u->suma;

@@ -45,9 +45,9 @@ proc D_kalkulace () { D_calc.soucet.set(C_dary.dary.browse_map('klub_dary_soucet
 use C_ukoly: form klu._ukoly [580,klu_cle_dary+19,,] {
   proc u_show() { C_ukoly.get.display(2,'u') }
 }
-use C_zpravy: form klu._zpravy [580,klu_cle_dary+19,,] {
-  proc c_show() { C_zpravy.get.display(2,'x') }
-}
+//use C_zpravy: form klu._zpravy [580,klu_cle_dary+19,,] {
+//  proc c_show() { C_zpravy.get.display(2,'x') }
+//}
 # -------------------------------------------------------------------------------------------------- _clen
 use C_clen: form klu._clen [580,klu_dry_dar,,] { tabindex:60 }
 # -------------------------------------------------------------------------------------------------- _dary
