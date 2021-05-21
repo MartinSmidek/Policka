@@ -48,13 +48,13 @@ panel kon  {type:'right', title:"[fa-info-circle] Informace", _sys:'*',
       item pocet {title:'počet kontaktů'        ,par:°{a:'klu_inf_stat'} }
       item       {title:'vývoj obdarování'      ,par:°{a:'klu_inf_vyvoj', p:'2014'} }
     }
-    menu mapy {title:'Mapky',type:'group', _sys:'*'
-      item {title:'Rozložení letošních dárců'   ,par:°{s:'klu_mapky',c:'darci',p:'0'} }
-      item {title:'Rozložení loňských dárců'    ,par:°{s:'klu_mapky',c:'darci',p:'1'} }
+//    menu mapy {title:'Mapky',type:'group', _sys:'*'
+//      item {title:'Rozložení letošních dárců'   ,par:°{s:'klu_mapky',c:'darci',p:'0'} }
+//      item {title:'Rozložení loňských dárců'    ,par:°{s:'klu_mapky',c:'darci',p:'1'} }
 //      item {title:'Rozložení dárců 2010-2019'   ,par:°{s:'klu_mapky',c:'dekada',p:'2010'} }
 //      item {title:'Rozložení dárců 2000-2009'   ,par:°{s:'klu_mapky',c:'dekada',p:'2000'} }
 //      item {title:'Rozložení dárců 1990-1999'   ,par:°{s:'klu_mapky',c:'dekada',p:'1990'} }
-    }
+//    }
 //    menu {title:'Kontrola darů',type:'group', _sys:'*'
 //      item {title:'středisko a VS se liší / letos',par:°{s:'klu_spor_vs',r:'0'} }
 //      item {title:'středisko a VS se liší / loni', par:°{s:'klu_spor_vs',r:'1'} }
@@ -267,8 +267,8 @@ form _clen [,,399,251] {
   # úkoly - tag=u -- viz form _ukoly
 
   # skrytá_data
-//  field kdo { data:clen.zmena_kdo }
-//  field kdy { data:clen.zmena_kdy }
+  field kdo { data:clen.zmena_kdo }
+  field kdy { data:clen.zmena_kdy }
   field del { data:clen.deleted }
   # ------------------------==> . procedury
 //  # ==> .. vánoční
@@ -453,8 +453,8 @@ form _dar [,,565,240] {
   field pot_typ { expr:"CASE WHEN  d.potvrz_kdy='0000-00-00' THEN 0 WHEN  d.potvrz_txt='' THEN 1 ELSE 2 END" }
 //  field zad_typ { expr:"CASE WHEN  d.zadost_kdy='0000-00-00' THEN 0 WHEN  d.zadost_txt='' THEN 1 ELSE 2 END" }
 //  field sml_typ { expr:"CASE WHEN d.smlouva_kdy='0000-00-00' THEN 0 WHEN d.smlouva_txt='' THEN 1 ELSE 2 END" }
-//  field kdo     { data:d.zmena_kdo }
-//  field kdy     { data:d.zmena_kdy }
+  field kdo     { data:d.zmena_kdo }
+  field kdy     { data:d.zmena_kdy }
   # obecné položky
   field iddar   [327,0,57,17]    { data:d.id_dar, format:'or' },
   select stred  [47,57,168,]      { type:'map', data:d.stredisko, options:cis_stredisko.hodnota, format:'x' }
@@ -481,7 +481,7 @@ form _dar [,,565,240] {
   field dik_dne [282,25,87,16]  { type:'date', data:d.diky_kdy, format:'RUr' }
   field pot_dne [282,51,87,16]  { type:'date', data:d.potvrz_kdy, format:'RUr' }
   field pozn    [47,191,321,17]  { data:d.pozn, value:'' },
-  field del     [297,226,75,18] { data:d.deleted, format:'' },
+  field del { data:d.deleted }
 //  label [21,27,19,15]   { title:'pro', format:'r' },
 //  label [21,54,20,15]   { title:'VS', format:'r' },
 //  label [405,106,40,15] { title:'přijetí:', format:'r' },
@@ -494,7 +494,7 @@ form _dar [,,565,240] {
   # finanční                    - tag__f_
   # kasou                       - tag__fp_
   # bezhotovostně               - tag__fb_
-  select nucet  [-409,97,165,]   { tag:'fb', type:'map', data:d.nas_ucet, options:cis_k_ucet.hodnota,
+  select nucet  [-351,97,165,]   { tag:'fb', type:'map', data:d.nas_ucet, options:cis_k_ucet.hodnota,
     value:"1", format:'nx' },
   field ucet    [-357,125,154,17]  { tag:'fb', format:'nx', data:d.ucet, value:'' },
   # převodem
@@ -565,8 +565,8 @@ form _dar [,,565,240] {
         castka= replace(castka,',','.'); 
         castka.change();
       }
-//      kdo= sys('user','id_user'); kdo.change(); 
-//      kdy= now_sql(1); kdy.change();
+      kdo= sys('user','id_user'); kdo.change(); 
+      kdy= now_sql(1); kdy.change();
       if (form.key()) {
         if ( form.save() ) {
           state= 1;

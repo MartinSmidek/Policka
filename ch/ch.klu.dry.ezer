@@ -105,9 +105,9 @@ form _dary [,,560,klu_dry_dar] {
 //     show        [,,48,] { title:'psč',       data:c.psc, format:'q$s', sql_pipe:'psc' },
     show        [,,80,] { title:'obec',      data:c.obec, format:'q$fs' },
     show        [,,25,] { title:'stát',      data:c.stat, format:'q$fs' },
-//    show kdo { data:dd.zmena_kdo, map_pipe:user.abbr },
-//    show kdn { data:dd.zmena_kdo },
-//    show kdy { data:dd.zmena_kdy },
+    show kdo { data:dd.zmena_kdo, map_pipe:user.abbr },
+    show kdn { data:dd.zmena_kdo },
+    show kdy { data:dd.zmena_kdy },
     proc onchange () {
       this.browse_count; onrowclick
     | C_clen.init; D_dar._dar_init }
@@ -118,7 +118,7 @@ form _dary [,,560,klu_dry_dar] {
           ' nemá dárce - lze jej přeřadit správnému dárci tlačítkem [Přepsat] nebo jej lze [Smazat]');
       };
       D_dar._dar_load(id_dar.get);
-//      zmena.set(conc('<small>poslední změna: ',kdo.get,' ',kdy.get,'</small>'));
+      zmena.set(conc('<small>poslední změna: ',kdo.get,' ',kdy.get,'</small>'));
       { id_clen.get | D_dar.kopiruj_dar.enable(0); D_dar.vytvor_dar.enable(0) };
       dary.focus; dary.browse_focus
     }
@@ -126,7 +126,7 @@ form _dary [,,560,klu_dry_dar] {
     proc onsubmit () { klu.cle.show_clen(C_dary.dary.id_clen.get) }
     proc onchoice () { D_kalkulace;   }
   },
-//  label zmena [12,-2,391,18] { title:'' },
+  label zmena [12,-2,391,18] { title:'' },
   # procedury
   proc _dary2_focus (titl,reload) {
     dary.browse_focus; dary.init_queries(reload); zobrazeno.set(titl) }

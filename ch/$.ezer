@@ -255,6 +255,7 @@ table clen { key_id:'id_clen'
   text zdroj
   text   deleted        { help:'ok|prázdné nebo D=značka smazání kontaktu' },
   date   umrti          { help:'úmrtí|datum úmrtí', sql_pipe:'sql_date1' },
+  date   clen_od        { help:'člen od|zahájení členství v Klubu přátel', sql_pipe:'sql_date1' },
   text   historie       { help:'poznámky|poznámky ke kontaktu' },
   text   ps             { help:'PS|text připojený do nejbližšího dopisu' },
   text   rodcis         { help:'r.č.|narození:ddmmrrr rodčís:rrmmddxxxx' },
@@ -294,8 +295,8 @@ table clen { key_id:'id_clen'
   text   prijmeni5p     { help:'příjmení 5.p|příjmení (5.pád)' },
   number vyjimka        { help:'výjimka|přepínání mezi automatickou nebo ručně zadanou hodnotou pro rok, oslovení, 5.pád' },
   text   anomalie       { help:'anomálie|neočekávaná kombinace hodnot' },
-//  text   zmena_kdo      { help:'změna kým|značka autora poslední změny' },
-//  date   zmena_kdy      { help:'změna kdy|čas poslední změny' },
+  text   zmena_kdo      { help:'změna kým|značka autora poslední změny' },
+  date   zmena_kdy      { help:'změna kdy|čas poslední změny' },
 }
 table role { key_id:'id_role'
   number id_role     { key:'primary', help:'kontakt|jedinečné číslo role' }
@@ -342,8 +343,8 @@ table dar { key_id:'id_dar'
   date   potvrz_kdy  { help:'potvrzení přijetí daru posláno dne', sql_pipe:'sql_date1' }
   text   potvrz_kdo  { help:'potvrzení vyřídil' }
   text   potvrz_txt  { help:'text potvrzení daru' }
-//  text   zmena_kdo   { help:'změna kým|značka autora poslední změny' },
-//  date   zmena_kdy   { help:'změna kdy|čas poslední změny' },
+  text   zmena_kdo   { help:'změna kým|značka autora poslední změny' },
+  date   zmena_kdy   { help:'změna kdy|čas poslední změny' },
 }
 table ukol { key_id:'id_ukol'
   number id_ukol        { key:'primary', help:'dar|jedinečné číslo úkolu' }
@@ -407,8 +408,8 @@ table _user { key_id:'id_user'
   text forename,
   text surname,
   text history,
-//  number zmena_kdo,
-//  date zmena_kdy { sql_pipe:'sql_date1' },
+  number zmena_kdo,
+  date zmena_kdy { sql_pipe:'sql_date1' },
 }
 table _jmena { key_id:'id_jmena'
   number id_jmena
