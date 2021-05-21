@@ -694,19 +694,19 @@ form _dar [,,565,240] {
     }
   }
   # ---------------------------------------------------==> . záložky
+  const predani= '1.5.2021'
   func autoswitch(c) {
     switch(zpusob){
       case 1: kas.stisk(c); break;
       case 2: ban.stisk(c); break;
       case 3: slo.stisk(c); break;
       case 4: vec.stisk(c); break;
+      default:  x.stisk(c); break
     }
-    if (!c) 
-      form.display(0,'d')
-    else {
-      pot_open.display(pot_typ==1 ? 1 : 0); 
-      pot_close.display(pot_typ==2 ? 1 : 0);
-    }
+    dik_open.display( dik_typ==1 && js.date_gt(dik_dne,predani) ? 1 : 0); 
+    dik_close.display(dik_typ==2 && js.date_gt(dik_dne,predani) ? 1 : 0);
+    pot_open.display( pot_typ==1 && js.date_gt(pot_dne,predani) ? 1 : 0); 
+    pot_close.display(pot_typ==2 && js.date_gt(pot_dne,predani) ? 1 : 0);
   }
   proc tags(nochange,a,on,off,zp) {
     form.set_css('ae_butt_off','ae_butt_on changed','z');
@@ -723,43 +723,49 @@ form _dar [,,565,240] {
       | zrus_dar.display(1); obnov_dar.display(0) }
     | zrus_dar.display(0); obnov_dar.display(0) }  
   }
-  label kas [12,0,66,20] { tag:'z', title:'<b>Pokladnou</b>', format:'c'
+  label kas [12,0,71,20] { tag:'z', title:'<b>Pokladnou</b>', format:'c'
     proc onclick() { id_clen.get; stisk(0); }
-    proc stisk(prog) { tags(prog,this,'f','v|f.',1); } }
-  label ban [86,0,66,20] { tag:'z', title:'<b>Bankou</b>',  format:'c'
+    proc stisk(prog) { tags(prog,this,'','n|u|v|x',1); } }
+  label ban [91,0,71,20] { tag:'z', title:'<b>Bankou</b>',  format:'c'
     proc onclick() { id_clen.get; stisk(0); }
-    proc stisk(prog) { tags(prog,this,'f|fb|fp','v|fs',2); } }
-  label slo [160,0,66,20] { tag:'z', title:'<b>Složenkou</b>', format:'c'
+    proc stisk(prog) { tags(prog,this,'n|u','v|x',2); } }
+  label slo [170,0,71,20] { tag:'z', title:'<b>Složenkou</b>', format:'c'
     proc onclick() { id_clen.get; stisk(0); }
-    proc stisk(prog) { tags(prog,this,'f|fs','v|fp',3); } }
-  label vec [234,0,66,20] { tag:'z', title:'<b>Věcný dar</b>', format:'c'
+    proc stisk(prog) { tags(prog,this,'n','u|v|x',3); } }
+  label vec [249,0,71,20] { tag:'z', title:'<b>Věcný dar</b>', format:'c'
     proc onclick() { id_clen.get; stisk(0); }
-    proc stisk(prog) { tags(prog,this,'v','f.?',4); } }
-  # -----------------------------------------------==> . společné položky
+    proc stisk(prog) { tags(prog,this,'v','n|u|x',4); } }
+  label  x  [330,0,10,20] { tag:'z', title:'<b>?</b>', format:'c'
+    proc onclick() { id_clen.get; stisk(0); }
+    proc stisk(prog) { tags(prog,this,'x','v|n|u',4); } }
+  # -----------------------------------------------==> . položky
   label    [1,16,388,239] { css:'ae_work'}
   view d: table dar
   field id_clen { data:d.id_clen }
   field zpusob  { data:d.zpusob, value:'1' }  // 1:pokladnou, 2:bankou, 3:složenkou, 4:věcný
+  field del { data:d.deleted }
   // ovládání zobrazení ikony dopisu: 0:otevřená, 1:žádná, 2:zavřená
   field dik_typ { expr:"CASE WHEN  d.diky_kdy='0000-00-00' THEN 0 WHEN d.diky_txt='' THEN 1 ELSE 2 END" }
   field pot_typ { expr:"CASE WHEN  d.potvrz_kdy='0000-00-00' THEN 0 WHEN d.potvrz_txt='' THEN 1 ELSE 2 END" }
   field kdo     { data:d.zmena_kdo }
   field kdy     { data:d.zmena_kdy }
-  field iddar   [327,0,57,17]    { data:d.id_dar, format:'or' },
-  select stred  [47,57,168,]      { type:'map', data:d.stredisko, options:cis_stredisko.hodnota }
-  field castka  [48,25,70,17]   { data:d.castka, format:'r', value:'' },
-  field darce   [48,159,166,17]  { data:d.darce },
-  field dar_dne [130,25,87,17]  { format:'RUr', type:'date', data:d.castka_kdy }
-  # -----------------==> .. poděkování a potvrzení
-  field dik_dne [282,25,87,16]  { type:'date', data:d.diky_kdy, format:'RUr' }
-  label dik_open [263,23,16,15] { tag:'d', title:"<img src='ch/img/letter_open.png'>", format:''
+  field iddar   [327,0,57,17] { data:d.id_dar, format:'or' },
+  # -----------------==> .. společné 
+  field castka  [15,34,70,17] { title:'^hodnota daru', data:d.castka, format:'r', value:'' },
+  select stred  [130,34,198,] { title:'^pro středisko', type:'map', data:d.stredisko, options:cis_stredisko.hodnota }
+  field dar_dne [15,71,87,17] { title:'^došlého dne', format:'RUr', type:'date', data:d.castka_kdy }
+  field darce   [218,110,158,17] { title:'^jiné jméno do potvrzení', data:d.darce },
+  field pozn    [14,110,184,17]  { title:'^poznámka k daru', data:d.pozn, value:'' },
+  // poděkování a potvrzení
+  field dik_dne [129,71,87,16]  { title:'^poděkovaného', type:'date', data:d.diky_kdy, format:'RUr' }
+  label dik_open [110,71,16,15] { tag:'d', title:"<img src='ch/img/letter_open.png'>", format:''
       help:"Vytvoření a tisk poděkování za dar"
     proc onclick() {
       Tisk.dop.set(ask('dop_gener_new','diky',id_clen.get,iddar.get,pot_dne.get,pot_dne.changed));
       { Tisk.modal(0,0,this.help); _dopis_uloz('diky')
       | echo('ne')
   } } }
-  label pot_close [263,25,16,15] { tag:'d', title:"<img src='ch/img/letter_closed.png'>", format:''
+  label dik_close [110,71,16,15] { tag:'d', title:"<img src='ch/img/letter_closed.png'>", format:''
       help:"Oprava dříve vygenerovaného textu poděkování za dar a jeho opakovaný tisk"
     proc onclick() {
       Tisk.dop.set(ask('dop_gener_load','diky',iddar.get));
@@ -767,28 +773,27 @@ form _dar [,,565,240] {
       | echo('ne')
   } } }
   // potvrzení
-  field pot_dne [282,51,87,16]  { type:'date', data:d.potvrz_kdy, format:'RUr' }
-  label pot_open [263,49,16,15] { tag:'d', title:"<img src='ch/img/letter_open.png'>", format:''
+  field pot_dne [241,71,87,16]  { title:'^potvrzeného', type:'date', data:d.potvrz_kdy, format:'RUr' }
+  label pot_open [222,71,16,15] { tag:'d', title:"<img src='ch/img/letter_open.png'>", format:''
       help:"Vytvoření a tisk potvrzení o přijetí daru"
     proc onclick() {
       Tisk.dop.set(ask('dop_gener_new','potvrz',id_clen.get,iddar.get,pot_dne.get,pot_dne.changed));
       { Tisk.modal(0,0,this.help); _dopis_uloz('potvrz')
       | echo('ne')
   } } }
-  label pot_close [263,51,16,15] { tag:'d', title:"<img src='ch/img/letter_closed.png'>", format:''
+  label pot_close [222,71,16,15] { tag:'d', title:"<img src='ch/img/letter_closed.png'>", format:''
       help:"Oprava dříve vygenerovaného textu potvrzení a jeho opakovaný tisk"
     proc onclick() {
       Tisk.dop.set(ask('dop_gener_load','potvrz',iddar.get));
       { Tisk.modal(0,0,this.help); _dopis_uloz('potvrz')
       | echo('ne')
   } } }
-  field pozn    [47,191,321,17]  { data:d.pozn, value:'' },
-  field del { data:d.deleted }
   # -----------------------------------------------==> . položky podle způsobu 
-  select nucet  [-351,97,165,]   { tag:'fb', type:'map', data:d.nas_ucet, options:cis_k_ucet.hodnota,
-    value:"1", format:'nx' },
-  field ucet    [-357,125,154,17]  { tag:'fb', format:'nx', data:d.ucet, value:'' },
-  edit  popis    [47,79,320,72] { tag:'v', title:'popis', data:d.popis, format:'n' },
+  select nucet  [15,152,188,]   { tag:'n', type:'map', title:'^náš účet', data:d.nas_ucet, 
+    options:cis_k_ucet.hodnota, format:'n' },
+  field ucet [217,150,156,17]  { tag:'u', title:'^účet dárce', format:'n', data:d.ucet, value:'' },
+  edit popis [15,147,362,64] { tag:'v', title:'^popis věcného daru', data:d.popis, format:'n' },
+  label [15,147,362,64] { tag:'x', title:'nebylo možné určit způsob daru', format:'n' },
   # -----------------------------------------------==> . tlačítka
   # ==> .. uložit dar
   button uloz_dar [8,225,,] {tag:'bc', type:'submit', title:'Uložit', skill:'hdde|hdde',

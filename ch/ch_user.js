@@ -1,4 +1,9 @@
 // funkce pro FIS, (c) Martin Smidek <martin@smidek.eu>, 2009
+// ----------------------------------------------------------------------------------------- date_gt
+// vrátí date2sql(a)>date2sql(b) ? 1 : 0
+function date_gt(a,b) {
+  return Ezer.fce.date2sql(a)>Ezer.fce.date2sql(b) ? 1 : 0;
+}
 // ---------------------------------------------------------------------------------------- je_1_2_5
 // výběr správného tvaru slova podle množství a tabulky tvarů pro 1,2-4,5 a více
 // např. je_1_2_5(dosp,"dospělý,dospělí,dospělých")
