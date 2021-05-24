@@ -38,7 +38,7 @@ function ch_import($par) { trace();
       'ulice'   => "C",
       'psc'     => "C",
       'obec'    => "C",
-      'ico'     => "C",
+      'ico'     => "C,ic",
       'rodcis'  => "C,rc",
       'telefony'=> "C",
       'email'   => "C",
@@ -110,6 +110,9 @@ function ch_import($par) { trace();
             $c['telefony']= $m[1];
             display("$prijmeni: telefon:$val");
           }
+          break;
+        case 'ic': 
+          $c[$fld]= str_replace(' ','',$val);
           break;
         case 'dn': 
           $d[$fld]= str_replace(' ','',$val);

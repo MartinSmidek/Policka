@@ -126,9 +126,10 @@ form _cleni [,,565,334] {
     show has_o {data:ro.id_role}
     show osoba {data:c.osoba}
     // výběrové položky
+    show zdroj    [,,90,] { title:'(zdroj)',   data:c.zdroj,       format:'q$rs' }
     show ucet     [,, 0,] { title:'účet',      data:c.ucet,       format:'q$rs' }
     show rodcis   [,, 0,] { title:'rč/IČ',     data:c.rodcis,     format:'q$s' }
-    show titul    [,,90,] { title:'titul',     data:c.titul,      format:'q$s' }
+    show titul    [,, 0,] { title:'titul',     data:c.titul,      format:'q$s' }
     show telefony [,, 0,] { title:'telefony',  data:c.telefony,   format:'q$s' }
     show email    [,, 0,] { title:'email',     data:c.email,      format:'q$s' }
     show potvrz   [,, 0,] { title:'potvrzení', data:c.potvrzeni,  format:'q#s',
@@ -168,6 +169,8 @@ form _cleni [,,565,334] {
         C_ukoly._ukoly_load(id_clen);
         C_clen.if_firma.display(has_o?1:0);
         C_clen.if_osoba.display(has_f?1:0);
+        C_clen.display(osoba==1,'o');
+        C_clen.display(osoba==0,'f');
       }
       else {
         C_clen.init(); C_dary.suma= '';  C_dary.dary.browse_init();  C_dar.init()
@@ -226,14 +229,19 @@ form _clen [,,399,251] {
     }}
   }
   # ==> .. společné položky, které se zobrazují vždy
-  field id       [349,0,40,]   { data:clen.id_clen, format:'or' },
-  field zdroj    [400,20,40,]  { data:clen.zdroj, format:'o' },
-  field firma    [80, 45,160,] { title:'firma', data:clen.firma, format:'F' },
-  field titul    [80,68,47,]   { title:'osoba', data:clen.titul },
-  field prijmeni [137,68,106,] { data:clen.prijmeni, format:'F' },
-  field jmeno    [251,68,101,] { data:clen.jmeno, format:'F' },
-  field titul_za [361,68,27,]   { data:clen.titul_za },
+  label [7,21,50,15] { tag:'k', title:'<h1>Kontakt</h1>' },
+  label msg_del [174,24,75,15] { title:'je smazaný!', css:'chyba', format:'n' },
+  field id       [349,0,40,]   { data:clen.id_clen, format:'or' }
+  // firma
+  field firma    [80, 45,160,] {tag:'f', title:'firma', data:clen.firma, format:'F' }
+  field ico      [287,45,101,] {tag:'f', title:'IČ', data:clen.ico, format:'' },
+  // osoba
+  field titul    [80,68,47,]   {tag:'o', title:'osoba', data:clen.titul },
+  field prijmeni [137,68,106,] {tag:'o', data:clen.prijmeni, format:'F' },
+  field jmeno    [251,68,101,] {tag:'o', data:clen.jmeno, format:'F' },
+  field titul_za [361,68,27,]   {tag:'o', data:clen.titul_za },
   # ==> .. kontakt
+  // forma+osoba
   select osoba   [80,22,87,] { tag:'k', type:'map', data:clen.osoba,options:cis_k_osoba.hodnota, value:'1' },
   select kategorie [249,22,144,] { tag:'k', type:'map0', data:clen.kategorie, title:'kategorie',
     options:cis_kategorie.hodnota, value:'0' },
@@ -252,12 +260,13 @@ form _clen [,,399,251] {
   field obec2    [247,114,103,] { tag:'k', data:clen.obec2, format:'F' },
   field stat2    [359,114,28,]  { tag:'k', data:clen.stat2, format:'d' },
   field telefony [80,137,160,] { tag:'k', title:'tel.,mail', type:'list', data:clen.telefony },
-  field rodcis   [287,45,101,] { tag:'k', title:'rč/IČ', data:clen.rodcis, format:'' },
   field email    [247,137,148,] { tag:'k', type:'list', par:°{delim:';'}, data:clen.email },
-  label [7,21,50,15] { tag:'k', title:'<h1>Kontakt</h1>' },
-  label msg_del [174,24,75,15] { title:'je smazaný!', css:'chyba', format:'n' },
+  field narozeni [80,160,87,] { tag:'o', title:'dat.narození', type:'date', data:clen.narozeni }
+  field nar_rok  [209,160,34,] { tag:'o', title:'jen rok' data:clen.narozeni_rok, format:'r' 
+                                    help:'rok narození, pokud neznáme přesnější datum'  }
+  field clen_od  [312,160,87,] {tag:'k', type:'date', title:'v Klubu od', data:clen.clen_od, format:'n' }
 
-  const zasi=170, oslo=245, pozn=320, hist= 420 // ----------------==> .. pozice částí karty
+  const zasi=193, oslo=268, pozn=343, hist= 443 // ----------------==> .. pozice částí karty
   # ==> .. zasílání - tag=z (zobrazí se při startu)
   field darce   [212,zasi+44,177,] {tag:'z', type:'list', title:'potvrzení na:', par:°{delim:';'}, data:clen.darce  }
   check [9,zasi+19,100,17] { tag:'z', title:'jen mailem', data:clen.jen_mail }
@@ -273,7 +282,6 @@ form _clen [,,399,251] {
 
   # ==> .. historie - tag=h, top=hist
   label [10,hist,50,15] {tag:'h', title:'<h1>Historie</h1>', format:'n' }
-  field clen_od [170,hist,87,] {tag:'h', type:'date', title:'v Klubu přátel od', data:clen.clen_od, format:'n' }
   field umrti   [303,hist,81,] {tag:'h', title:'zemřel', data:clen.umrti, format:'n' }
   chat historie [9,hist+25,378,100] {tag:'h', data:clen.historie, divide:70, format:'n' }
 
@@ -432,7 +440,7 @@ form _clen_butt [,,400,50] {
     form.enable(1,'br'); form.enable(0,'be|bc');
     C_clen.same; warning('nebyla provedena žádná změna'); C_cleni._cleni_focus
   | { bez
-    | integrity.set(ask('klub_check',C_clen.id.get,C_clen.rodcis.get,C_clen.darce.get));
+    | integrity.set(ask('klub_check',C_clen.id.get,'',C_clen.darce.get));
       integrity.ok.get };
     C_clen.kdo.set(sys('user','id_user')); C_clen.kdo.change;
     C_clen.kdy.set(now_sql(1)); C_clen.kdy.change;
@@ -589,6 +597,9 @@ panel ROLE [,,616,215] { title:'Seznam odob připnutých k ...', type:'popup', c
         id_member= 0;
         Refresh();
     }}
+    button [505,70,,] { title:'[fa-undo] Zpět', help:'návrat'
+      func onclick () { show_clen(id_owner) }
+    }
     # ==> . změna role
     field {data:r.id_role}
     field nova_role [506,164,100,] { title:'^role ve firmě', data:r.popis }
