@@ -226,7 +226,7 @@ table mail { key_id:'id_mail'
 
 map map_k_zpusob: table _cis { where:"druh='k_zpusob'", order:'poradi', key_id:'data'}
 
-map map_k_ucet:   table _cis { where:"druh='k_ucet'", order:'poradi', key_id:'data'}
+map map_k_ucet:   table _cis { where:"druh='b_ucty'", order:'poradi', key_id:'data'}
 
 map map_dr_typ:   table _cis { where:"druh='dr_typ'", order:'poradi', key_id:'data' }
 

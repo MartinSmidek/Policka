@@ -93,6 +93,7 @@ div.MenuGroup3 li.m { color:orange !important; text-shadow: 1px 1px 2px black; }
 .pre_9          { background-color:#77ff77 !important; }
 .pre_10         { background-color:#cccccc !important; }
 .sedy           { background-color:#777777 !important; }
+.nasedly        { background-color:#dddddd !important; }
 .zluty          { background-color:#ffff77 !important; }
 .cerveny        { background-color:#ff7777 !important; }
 .zeleny         { background-color:#77ff77 !important; }

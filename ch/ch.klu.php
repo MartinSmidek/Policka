@@ -1,5 +1,32 @@
 <?php # (c) 2011-2015 Martin Smidek <martin@smidek.eu>
 /** *************************************************************************************==> CLENOVE */
+# --------------------------------------------------------------------------------------- klub vyber
+# pro cmd='options' sestaví podmínky výběru kontaktů 
+# pro cmd='cond' vrací SQL vybrané podmínky pro daný klíč
+function klub_vyber($cmd,$key=0) {
+  $conds= array(); // [key:{nazev,cond},...]
+  $conds[1]= (object)array(nazev=>'všichni',cond=>" 1");
+  $rk= pdo_query("SELECT data,hodnota FROM _cis WHERE druh='kategorie' ORDER BY zkratka ");
+  while ($rk && (list($data,$nazev)= pdo_fetch_row($rk))) {
+    $conds[$data+10]= (object)array(nazev=>"kategorie - $nazev",cond=>" FIND_IN_SET('$data',kategorie)");
+  }
+  $conds[100]= (object)array(nazev=>'změny tohoto měsíce',cond=>" month(c.zmena_kdy)=month(now()) and year(c.zmena_kdy)=year(now()) ");
+  $conds[101]= (object)array(nazev=>'změny kým ...',cond=>" c.zmena_kdo=\$user");
+  $conds[102]= (object)array(nazev=>'změny dne ...',cond=>" left(c.zmena_kdy,10)='\$datum'");
+  $conds[103]= (object)array(nazev=>'změny dne ... kým ...',cond=>" c.zmena_kdo=\$user and left(c.zmena_kdy,10)='\$datum'");
+  switch($cmd) {
+    case 'options':
+      $selects= $del= '';
+      foreach ($conds as $key=>$desc) {
+        $css= $key>=100 ? ":nasedly" : '';
+        $selects.= "$del{$desc->nazev}:$key$css"; $del= ',';
+      }
+      return $selects;
+    case 'cond':
+      $desc= $conds[$key];
+      return $desc->cond;
+  }
+}
 # ----------------------------------------------------------------------------------- klub firma_ico
 # najde údaje o firmě podle zadaného IČO
 function klub_firma_ico($ico) {

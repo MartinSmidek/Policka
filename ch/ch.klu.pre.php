@@ -99,7 +99,7 @@ function ch_bank_load_ucty () {
   if ( !isset($bank_nase_banky) ) {
     $bank_nase_ucty= array();
     $bank_nase_banky= array();
-    $qry= "SELECT * FROM _cis WHERE druh='k_ucet' AND ikona!='' ";
+    $qry= "SELECT * FROM _cis WHERE druh='b_ucty' AND ikona!='' ";
     $res= pdo_qry($qry);
     while ( $res && $c= pdo_fetch_object($res) ) {
       bank_pub($c->ikona,$p,$u,$b);
@@ -118,7 +118,7 @@ function ch_ban_load($file) {  trace();
   $y= (object)array('err'=>'','msg'=>'ok');
   // načti vlastní účty
   $nase_ucty= array(); // účet -> ID
-  $res= pdo_qry("SELECT data,ikona FROM _cis WHERE druh='k_ucet' AND ikona!='' ");
+  $res= pdo_qry("SELECT data,ikona FROM _cis WHERE druh='b_ucty' AND ikona!='' ");
   while ( $res && list($idu,$u_b)= pdo_fetch_row($res) ) {
     list($u,$b)= explode('/',$u_b);
     if ($b!='0800') { $y->err= "import je možný (zatím) pouze z ČSAS"; goto end; }

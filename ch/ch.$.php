@@ -14,8 +14,9 @@ $app_tables= (object)array(
 function ch_truncate() { trace();
   query("TRUNCATE TABLE dar");
   query("TRUNCATE TABLE clen");
+  query("TRUNCATE TABLE role");
   query("TRUNCATE TABLE vypis");
-  return "tabulky clen, dar, vypis jsou vymazány";
+  return "tabulky clen, role, dar, vypis jsou vymazány";
 }
 # ---------------------------------------------------------------------------------------- ch import
 # primární import dat
@@ -63,13 +64,18 @@ function ch_import($par) { trace();
     $jmeno= $row['jmeno'];
     $prijmeni= $row['prijmeni'];
     $firma= trim($row['firma']);
+    $firma_info= trim($row['firma_info']);
     if (!$prijmeni && !$firma) continue;
     $idc= select('id_clen','clen', $osoba||!$firma
         ? "prijmeni='$prijmeni' AND jmeno='$jmeno'"
-        : "firma='$firma' AND prijmeni='$prijmeni' AND jmeno='$jmeno'"
+//        : "firma='$firma' AND prijmeni='$prijmeni' AND jmeno='$jmeno'"
+        : "firma='$firma' AND firma_info='$firma_info'"
         );
     if (!$idc) {
-      query("INSERT INTO clen (osoba,firma,jmeno,prijmeni) VALUE ($osoba,'$firma','$jmeno','$prijmeni')");
+      $qry= $osoba||!$firma
+        ? "INSERT INTO clen (osoba,firma,jmeno,prijmeni) VALUE ($osoba,'$firma','$jmeno','$prijmeni')"
+        : "INSERT INTO clen (osoba,firma,firma_info) VALUE ($osoba,'$firma','$firma_info')";
+      query($qry);
       $idc= pdo_insert_id();
       $n_clen++;
     }
@@ -78,6 +84,7 @@ function ch_import($par) { trace();
     $c['email']= $c['poznamka']= '';
     $d['zpusob']= 0;
     foreach ($flds as $fld=>$desc) {
+      if (substr($fld,0,1)=='-') continue;
       list($tab,$cnv)= explode(',',$desc);
       $val= $row[$fld];
       switch($cnv) {

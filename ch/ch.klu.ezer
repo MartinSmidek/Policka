@@ -24,6 +24,7 @@ proc onstart () {
 proc warning1() { warning('Před touto operací je zapotřebí inicializovat kartu Klub|Kontakty'); return(0); }
 # ========================================================================================> KONTAKTY
 panel cle {type:'plain', title:"[fa-home] Kontakty", _sys:'*',  include:'onload'
+  func refresh_vyber() { return(warning1); }
   proc select_cleny(ids) { return(warning1); }
   proc show_clen(id) { return(warning1); }
   proc curr_clen(m) { return(warning1); }
@@ -84,7 +85,7 @@ panel kon  {type:'right', title:"[fa-info-circle] Informace", _sys:'*',
 //# ========================================================================================> OSLOVENÍ
 //panel osl  {type:'plain', title:"Oslovení", _sys:'*', include:'onclick', skill:'m|m' }
 //# ===========================================================================================> ÚKOLY
-panel uko  {type:'right', title:"Úkoly", _sys:'*', include:'onload', skill:'hdu|hdu',
+panel uko  {type:'right', title:"[fa-cutlery] Úkoly", _sys:'*', include:'onload', skill:'hdu|hdu',
   proc ukol_show() { return(warning1); }
 }
 # ===========================================================================================> (MAP)
@@ -94,7 +95,6 @@ map cis_k_zpusob:       table _cis  { where:"druh='k_zpusob'", order:'poradi', k
 map cis_k_osoba:        table _cis  { where:"druh='k_osoba'", order:'poradi', key_id:'data'}
 map cis_k_potvrzeni:    table _cis  { where:"druh='k_potvrzeni'", order:'poradi', key_id:'data'}
 map cis_podminky2:      table _cis  { where:"druh='vyber_daru' and left(zkratka,1)!='-'", order:'poradi'}
-map vyber_oslo:         table _cis  { where:"druh='vyber_oslo'", order:'poradi'}
 map cis_k_vyjimka:      table _cis  { where:"druh='k_vyjimka'", order:'poradi', key_id:'data'}
 map cis_k_rod:          table _cis  { where:"druh='k_rod'", order:'poradi', key_id:'data'}
 map user:               table _user { where:'1', order:'surname'}

@@ -52,6 +52,7 @@
     }"
   );
   $add_options= (object)array(
+    'login_interval' => 8*60,          // povolená nečinnost v minutách - 8 hodin
     'path_files_u'    => "'{$abs_roots[$ezer_server]}'",   // absolutní cesta do kořene aplikace
   );
 
