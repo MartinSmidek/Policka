@@ -18,7 +18,7 @@ func onfocus() {
 var ok: number
 
 use v:  form _p_vypisy  [6,3,,]
-use p:  form _p_prevody [304,3,,]
+use p:  form _p_prevody [321,3,,]
 use i:  form _p_info    [405,331,,]
 use r:  form _p_rok     [6,507,,]
 use c:  form _p_clen    [405,390,,]
@@ -56,24 +56,30 @@ func zmena_typu(novy_typ,idc) { var y:object // idc může být *
 }
 # --------------------------------------------------==> VÝPISY
 form _p_vypisy [,,1070,309] { css:'work'
-  view vv: table vypis
-  view vp: table dar {join_type:'LEFT' join:'USING (id_vypis)' }
   label tit [22,5,100,] { title:'<h1>Výpisy</h1>' }
-  browse _vypisy [9,29,150,100] {buf_rows:100, rows:13, qry_rows:1,
+  browse _vypisy [9,29,250,100] {buf_rows:100, rows:13, qry_rows:1,
       group_by:'vv.id_vypis', optimize:{fetch:'all'}
       css_rows:'mintyp,5:pre_5,7:pre_7,9:pre_9'
-    show datum_od [,,65,] { title:'od', data:vv.datum_od, format:'rs-q=' }
-    show datum_do [,,65,] { title:'do', data:vv.datum_do, format:'rsq=' }
-    show soubor [,,120,] { title:'soubor', data:vv.soubor, format:'t' }
-    show id_vypis { title:'ID výpisu', data:vv.id_vypis, format:'rsq=' }
+    view vv: table vypis
+    view vp: table dar {join_type:'LEFT' join:'USING (id_vypis)' }
+    view vu: table _cis {join_type:'LEFT' join:"ON druh='b_ucty' AND data=vv.nas_ucet" }
+    // sloupce
+    show id_vypis { title:'ID výpisu', data:vv.id_vypis, format:'crsq=' }
+    show {data:vp.id_dar}
     show mintyp { title:'t', expr:"IFNULL(MIN(IF(vp.typ IN (1,2,3,4,6,8),10,vp.typ)),0)", format:'s-q' }
+    show [,,20,] { title:'účet', data:vu.zkratka, format:'rsq=' }
+//    show datum_od [,,65,] { title:'od', data:vv.datum_od, format:'rs-q=' }
+//    show datum_do [,,65,] { title:'do', data:vv.datum_do, format:'rsq=' }
+    show [,,65,] { title:'od', expr:"MIN(vp.castka_kdy)", sql_pipe:'sql_date1', format:'rs-q=' }
+    show [,,65,] { title:'do', expr:"MAX(vp.castka_kdy)", sql_pipe:'sql_date1', format:'rsq=' }
+    show soubor [,,120,] { title:'soubor', data:vv.soubor, format:'rt' }
     func onrowclick () {
       p._prevody.browse_load(`id_vypis=${v._vypisy.id_vypis}`);
       k.p_rychle_off();
     }
     func onclick() {
-      if (datum_do.width()) { datum_do.width(0); id_vypis.width(65); }
-      else { datum_do.width(65); id_vypis.width(0); }
+//      if (datum_do.width()) { datum_do.width(0); id_vypis.width(65); }
+//      else { datum_do.width(65); id_vypis.width(0); }
     }
   }
 }
@@ -86,21 +92,20 @@ form _p_prevody [,,774,262] {
     <span class='pre_7'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> je navrženo spojení ... 
     <span class='pre_8'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> nespojená složenka ... 
     <span class='pre_10'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> platba není dar ... 
-    <span class='pre_5'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> zbývá vyřešit ...
-  " }
-
+    <span class='pre_5'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> zbývá vyřešit ..."
+  }
   browse _prevody [0,29,300,100] {buf_rows:500, rows:13, qry_rows:1,
       css_rows:'typ,5:pre_5,6:pre_6,7:pre_7,8:pre_8,9:pre_9'
-    show id_dar [,,65,] { title:'ID platby', data:p.id_dar, format:'r' }
-    show popis [,,150,] { title:'popis účtu', data:p.ucet_popis, format:'q*' }
-    show zprava [,,120,] { title:'zpráva', data:p.zprava, format:'q*' }
+    show id_dar [,,55,] { title:'ID platby', data:p.id_dar, format:'r' }
+    show popis [,,140,] { title:'popis účtu', data:p.ucet_popis, format:'tq*' }
+    show zprava [,,110,] { title:'zpráva', data:p.zprava, format:'tq*' }
     show idc [,,50,] { title:'člen', data:p.id_clen, format:'rq=' }
     show castka [,,70,] { title:'částka', data:p.castka, format:'rq=' }
     show vsym [,,75,] { title:'vs', data:p.vsym, format:'rq*' }
 //    show ssym [,,75,] { title:'ss', data:p.ssym, format:'rq*' }
     show ucet [,,126,] { title:'účet', data:p.ucet, format:'rq*' }
     show datum [,,75,] { title:'datum', data:p.castka_kdy, format:'rq=' }
-    show typ  { data:p.typ }
+    show typ [,,10,] { data:p.typ, format:'rq=' }
     func onrowclick () {
       i.load(id_dar);
       d.load(id_dar);
@@ -112,6 +117,16 @@ form _p_prevody [,,774,262] {
       item { title:'ukázat změny platebních údajů'
         func onclick () { 
           track.back_show('dar',_prevody.browse_key()) 
+      }}
+      item { title:'-spojit s existujícím darem'
+        func onclick () { 
+          php.ch_bank_join_dar(_prevody.browse_key());
+          _prevody.browse_row();
+      }}
+      item { title:'... celý výpis'
+        func onclick () { 
+          php.ch_bank_join_dary(v._vypisy.browse_key());
+          _prevody.browse_refresh();
       }}
     }
   }
@@ -269,11 +284,9 @@ form _cmd [,,897,62] { css:'work'
   # ==> . < kontakty
   button kontakt_set [188,9,,] { title:'kontakt [fa-arrow-left] plátce'
     help:'nastaví kartu Kontakty podle účtu plátce'
-    proc onclick() {
-//      p._prevody.idc.get;
-//      rod.odb.ukaz_ctenare(p._prevody.idc.get)
-    }
-  }
+    func onclick() {
+      cle.show_clen(p._prevody.idc)
+  }}
   # ==> . > kontakty
   button kontakt_get [188,35,,] { title:'kontakt [fa-arrow-right] plátce'
     help:'vymění plátce za osobu nastavenou v Kontakty'

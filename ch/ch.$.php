@@ -72,9 +72,17 @@ function ch_import($par) { trace();
         : "firma='$firma' AND firma_info='$firma_info'"
         );
     if (!$idc) {
-      $qry= $osoba||!$firma
-        ? "INSERT INTO clen (osoba,firma,jmeno,prijmeni) VALUE ($osoba,'$firma','$jmeno','$prijmeni')"
-        : "INSERT INTO clen (osoba,firma,firma_info) VALUE ($osoba,'$firma','$firma_info')";
+      if ($osoba||!$firma) {
+        $JM= trim(utf2ascii($jmeno,' .'));
+        $PR= trim(utf2ascii($prijmeni,' .'));
+        $qry= "INSERT INTO clen (osoba,firma,jmeno,prijmeni,ascii_jmeno,ascii_prijmeni) 
+          VALUE ($osoba,'$firma','$jmeno','$prijmeni','$JM','$PR')";
+      }
+      else {
+        $FI= trim(utf2ascii($firma_info,' .'));
+        $qry= "INSERT INTO clen (osoba,firma,firma_info,ascii_firma_info) 
+          VALUE ($osoba,'$firma','$firma_info','$FI')";
+      }
       query($qry);
       $idc= pdo_insert_id();
       $n_clen++;

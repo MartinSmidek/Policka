@@ -8,9 +8,9 @@ use C_clen: form _clen [670,4,,] { tabindex:30 }
 use C_ukoly: form _ukoly [670,24,,] { tabindex:30
   proc u_show() { C_ukoly.get.display(1,'u|b') }
 }
-use C_clen_butt: form _clen_butt [670,547,,] { tabindex:30 }
-use C_dary: form _dary [5,334,,] { tabindex:50, skill:'hdd' }
-use C_dar: form _dar [270,334,,] {  skill:'hdd' }
+use C_clen_butt: form _clen_butt [670,580,,] { tabindex:30 }
+use C_dary: form _dary [5,360,,] { tabindex:50, skill:'hdd' }
+use C_dar: form _dar [270,360,,] {  skill:'hdd' }
 
 proc onstart () {
   ch.modul_state.set(°{active:1,dirty:0},'klu.cle');   # poznačení, že modul je aktivní
@@ -60,7 +60,7 @@ proc onfocus () {
   C_cleni._cleni_focus
 }
 # ===========================================================================================> Členi
-form _cleni [,,565,334] {
+form _cleni [,,660,334+17] {
   # ------------------------------------------==> podmínka výběru členů
   label [2,2,651,30] { css:'ae_parm'},
   label [9,11,50,15] { title:'<h1>Výběr</h1>'
@@ -136,7 +136,7 @@ form _cleni [,,565,334] {
   }
   # ---------------------------------------==> . vybraný seznam členů
   view c: table clen,
-  browse cleni [4,34,0,0] {buf_rows:21, rows:13, qry_rows:1, wheel:5, 
+  browse cleni [4,34,0,0] {buf_rows:21, rows:14, qry_rows:1, wheel:5, 
       group_by:'id_clen', optimize:{fetch:'all'}
     view rf: table role {join_type:'LEFT', join:"ON rf.id_osoba=c.id_clen"}
     view ro: table role {join_type:'LEFT', join:"ON ro.id_firma=c.id_clen"}
@@ -247,7 +247,7 @@ form _clen [,,399,251] {
     proc onclick() { tags(this,'d','u|z|o|h|n|k|x|y',1,0,0); }}
   label ukl [240,0,69,20] {tag:'p', title:'<b>Úkoly</b>', format:'c', skill:'hdu|hdu', _sys:'uko'
     proc onclick() { tags(this,'u','d|z|o|h|n|k|x|y',0,1,0); }}
-  label [0,16,399,530] {css:'ae_work'}
+  label [0,16,399,560] {css:'ae_work'}
   # ------------------------==> . kontextové_menu
   menu { type:'context'
     item back { title:'ukázat všechny změny'
@@ -453,8 +453,8 @@ form _ukoly [,,400,524] {
   ]}
 }
 # -------------------------------------------------------------------------------------==> Člen_butt
-form _clen_butt [,,400,50] {
-  label    [0,0,399,39] { css:'ae_work' }
+form _clen_butt [,,400,35] {
+  label    [0,0,399,35] { css:'ae_parm' }
   proc onsubmit () { _clen_uloz(0) }
   proc _form_state(on,off) {
     form.enable(1,on); form.enable(0,off);
@@ -465,7 +465,7 @@ form _clen_butt [,,400,50] {
       | zrus_clena.display(1); obnov_clena.display(0) }
     | zrus_clena.display(0); obnov_clena.display(0) }  }
   # Uložit
-  button uloz_clena [9,14,,] { tag:'bc', type:'submit', title:'Uložit ', skill:'hdce|hdce'
+  button uloz_clena [9,9,,] { tag:'bc', type:'submit', title:'Uložit ', skill:'hdce|hdce'
     help:'provede uložení změněných (červeně orámovaných) položek'
     proc onclick() { _clen_uloz(0) }  }
   proc _clen_uloz (bez) {
@@ -514,12 +514,12 @@ form _clen_butt [,,400,50] {
   | warning(integrity.msg.get)
   }
   # Zpět
-  button zpet_clena [65,14,,] { tag:'bc', title:'Zpět', skill:'hdce|hdce'
+  button zpet_clena [65,9,,] { tag:'bc', title:'Zpět', skill:'hdce|hdce'
     help:'zruší červené orámování a vrátí původní obsah'
     func onclick () { zpet_clen() }
   }
   # Nový
-  button vytvor_clena [121,14,,] { tag:'be', title:'Nový kontakt', skill:'hdce|hdce'
+  button vytvor_clena [121,9,,] { tag:'be', title:'Nový kontakt', skill:'hdce|hdce'
     help:'naplní položky základními hodnotami, vlastní vytvoření se provede uložením změn'
     proc onclick () { _clen_novy } }
   proc _clen_novy () {
@@ -528,7 +528,7 @@ form _clen_butt [,,400,50] {
     C_clen.ulice.change; C_clen.psc.change; C_clen.obec.change; C_clen.historie.change;
     [ moje_stredisko.get; C_clen.stredisko.key(moje_stredisko.get); C_clen.stredisko.change; ];
     _form_state('bc','be|br'); C_clen.focus }
-  button vytvor_ico [210,14,,] { tag:'be', title:'Nový kontakt/IČ', skill:'hdce|hdce'
+  button vytvor_ico [210,9,,] { tag:'be', title:'Nový kontakt/IČ', skill:'hdce|hdce'
     help:'naplní položky základními hodnotami, vlastní vytvoření se provede uložením změn'
     proc onclick () { clear; _clen_ico } }
   proc _clen_ico () { var ico:number, ret:object
@@ -546,7 +546,7 @@ form _clen_butt [,,400,50] {
 #     _form_state('bc','be|br'); C_clen.focus
   }
   # Smazat
-  button zrus_clena [336,14,,] { tag:'br', skill:'hdcd|hdcd', title:'Smazat',
+  button zrus_clena [336,9,,] { tag:'br', skill:'hdcd|hdcd', title:'Smazat',
     help:'smaže kontakt po předchozím dotazu (je vhodné napsat předtím do historie důvod)'
     proc onclick () {
       confirm('opravdu smazat kontakt č.',C_clen.id.get,' ',
@@ -555,7 +555,7 @@ form _clen_butt [,,400,50] {
       _clen_uloz(1)
     | echo('kontakt zůstává jak byl') } }
   # Obnovit
-  button obnov_clena [332,14,,] { tag:'br', skill:'hdcd|hdcd', title:'Obnovit',
+  button obnov_clena [332,9,,] { tag:'br', skill:'hdcd|hdcd', title:'Obnovit',
     help:'obnoví kontakt po předchozím dotazu (je vhodné uvést důvod) '
     proc onclick () {
       confirm('opravdu obnovit kontakt č.',C_clen.id.get,' ',
@@ -664,7 +664,7 @@ panel ROLE [,,616,215] { title:'Seznam odob připnutých k ...', type:'popup', c
   }
 }
 # ============================================================================================> Dary
-form _dary [,,400,256] {
+form _dary [,,260,256] {
   label [9,6,50,15] { title:'<h1>Dary</h1>'}
   label [2,2,257,30] { css:'ae_parm' }
   label [60,4,20,] { title:'celkem' }
@@ -672,13 +672,14 @@ form _dary [,,400,256] {
   # ==> . přepínání sloupců
   check show_del [109,0,100,18] { title:'i smazané', format:'t', value:'0'
     proc onchange () {
-      {  show_del.get; dary.del.width(10); dary.ucet.width(168)
-      | dary.del.width(0); dary.ucet.width(179) };
+      {  show_del.get; dary.del.width(10); dary.info.width(29)
+      | dary.del.width(0); dary.info.width(40) };
       _dary_load
   } },
   check show_new [109,14,125,18] { title:'jen letošní a loňské', format:'t', value:'1'
     proc onchange () { _dary_load } }
   # ----------------------------------------------------==> . seznam darů
+  # jsou zobrazeny jen dary s typ=8|9 
   view dd: table dar
   browse dary [4,34,0,54] { rows:10, wheel:5 //, css_rows:'color,0:dar_2'
     show del    [,,0,]  { title:'D', data:dd.deleted, format:'q' },
@@ -708,8 +709,8 @@ form _dary [,,400,256] {
     //n nase.set(conc(" AND FIND_IN_SET(dd.stredisko,'",klu.cond_strediska.get,"')"));
     //n [ if(has_skill('hdks'),{nase.set(cconc(show_our.get,nase.get,''))}) ];
     dary.browse_load(conc(
-      cconc(C_dary.show_del.get,'',"left(deleted,1)!='D' AND"),
-      " id_clen=",C_cleni.cleni.browse_key,
+      cconc(C_dary.show_del.get,'',"left(deleted,1)!='D' AND "),
+      " typ IN (8,9) AND id_clen=",C_cleni.cleni.browse_key,
       //n nase.get,
       cconc(C_dary.show_new.get," AND year(castka_kdy)>=year(curdate())-1")
     ));
@@ -724,7 +725,7 @@ form _dary [,,400,256] {
   }
 }
 # -------------------------------------------------------------------------------------------==> Dar
-form _dar [,,565,240] {
+form _dar [,,390,240] {
   # --------------------------- události
   proc onload () { autoswitch(1) }
   proc onsave () {
@@ -791,7 +792,7 @@ form _dar [,,565,240] {
     proc onclick() { id_clen.get; stisk(0); }
     proc stisk(prog) { tags(prog,this,'x','v|n|u',4); } }
   # -----------------------------------------------==> . položky
-  label    [1,16,388,239] { css:'ae_work'}
+  label    [1,16,388,205] { css:'ae_work'}
   view d: table dar
   field id_clen { data:d.id_clen }
   field zpusob  { data:d.zpusob, value:'1' }  // 1:pokladnou, 2:bankou, 3:složenkou, 4:věcný
@@ -843,12 +844,13 @@ form _dar [,,565,240] {
   # -----------------------------------------------==> . položky podle způsobu 
   select nucet  [15,152,188,]   { tag:'n', type:'map', title:'^náš účet', data:d.nas_ucet, 
     options:cis_k_ucet.hodnota, format:'n' },
-  field ucet [217,150,156,17]  { tag:'u', title:'^účet dárce', format:'n', data:d.ucet, value:'' },
+  field ucet [217,150,156,17]  { tag:'u', title:'^účet dárce', format:'rn', data:d.ucet, value:'' },
   edit popis [15,147,362,64] { tag:'v', title:'^popis věcného daru', data:d.popis, format:'n' },
-  label [15,147,362,64] { tag:'x', title:'nebylo možné určit způsob daru', format:'n' },
+  label [15,147,362,64] { tag:'x', title:'nebylo možné určit cestu doručení daru', format:'n' },
   # -----------------------------------------------==> . tlačítka
   # ==> .. uložit dar
-  button uloz_dar [8,225,,] {tag:'bc', type:'submit', title:'Uložit', skill:'hdde|hdde',
+  label [1,220,388,35] { css:'ae_parm'}
+  button uloz_dar [11,229,,] {tag:'bc', type:'submit', title:'Uložit', skill:'hdde|hdde',
       help:'provede uložení změněných (červeně orámovaných) položek'
     func onclick() { var stav: number
       stav= dar_uloz();
@@ -900,7 +902,7 @@ form _dar [,,565,240] {
     return state 
   }
   # ==> .. zpět dar
-  button zpet_dar [66,225,,] {tag:'bcc', title:'Zpět', skill:'hdde|hdde',
+  button zpet_dar [69,229,,] {tag:'bcc', title:'Zpět', skill:'hdde|hdde',
       help:'zruší červené orámování a vrátí původní obsah'
     func onclick() { echo(3);
       form.dar_zpet(C_dary.dary.browse_key()); 
@@ -918,7 +920,7 @@ form _dar [,,565,240] {
     }
   }
   # ==> .. nový dar
-  button vytvor_dar [118,225,,] {tag:'be', title:'Nový', skill:'hdde|hdde',
+  button vytvor_dar [121,229,,] {tag:'be', title:'Nový', skill:'hdde|hdde',
       help:'naplní položky základními hodnotami pro nový dar, vlastní vytvoření se provede uložením změn' 
     proc onclick() {
       form.dar_novy(C_cleni.cleni.browse_key); 
@@ -930,7 +932,7 @@ form _dar [,,565,240] {
     _form_state('bc','be|br'); form.focus
   }
   # ==> . přepsat dar na jiného
-  button prepis_dar [230,225,,] {tag:'br', title:'Přepsat', skill:'hddd|hddd',
+  button prepis_dar [233,229,,] {tag:'br', title:'Přepsat', skill:'hddd|hddd',
     help:'přepíše dar na jiného dárce'
     proc onclick () {
       var novy_darce: number
@@ -941,7 +943,7 @@ form _dar [,,565,240] {
     | echo('dar zůstává jak byl') } 
   }
   # ==> . smazat dar
-  button zrus_dar [325,225,,] {tag:'br', title:'Smazat', skill:'hddd|hddd',
+  button zrus_dar [328,229,,] {tag:'br', title:'Smazat', skill:'hddd|hddd',
     help:'smaže dar po předchozím dotazu'
     proc onclick () {
       confirm('opravdu smazat dar ',castka.get,' Kč?');

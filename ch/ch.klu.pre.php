@@ -1,6 +1,11 @@
 <?php # (c) 2011 Martin Smidek <martin@smidek.eu>
 # ----------------------------------------------------------------------------------==> ch ban_zmena
-# ASK
+# 
+# 
+#  nutno upravit do nového způsobu, kdy dar.typ=7 implikuje dar.idc!=0
+# 
+# 
+# # ASK
 # $idc_new je buďto '*' pokud se ID plátce nemá měnit, nebo nové ID plátce
 # povolené kombinace old(typ,idc)->new(typ,idc) 
 #   jedar     (6,0)->(5,0)
@@ -60,13 +65,53 @@ end:
 # viz https://php.vrana.cz/vyhledani-textu-bez-diakritiky.php
 function ch_search_popis($popis) {
   $popis= utf2ascii($popis,' .');
-  $cond1= "REPLACE(REPLACE(REPLACE(REPLACE(CONCAT(prijmeni,' ',jmeno),
-    'č','c'),'ř','r'),'š','s'),'ž','z') LIKE '%$popis%'";
-  $cond2= "REPLACE(REPLACE(REPLACE(REPLACE(CONCAT(jmeno,' ',prijmeni),
-    'č','c'),'ř','r'),'š','s'),'ž','z') LIKE '%$popis%'";
+  $popis= strtr($popis,array(
+      'mgr.'=>'', 'mudr.'=>'', 'mvdr.'=>'', 'rndr.'=>'', 'ing.'=>'', 'bc.'=>'', 
+      '_'=>''));
+  $popis= trim($popis);
+  $cond1= "CONCAT(ascii_prijmeni,' ',ascii_jmeno) LIKE '%$popis%'";
+  $cond2= "CONCAT(ascii_jmeno,' ',ascii_prijmeni) LIKE '%$popis%'";
+//  $cond1= "REPLACE(REPLACE(REPLACE(REPLACE(CONCAT(prijmeni,' ',jmeno),
+//    'č','c'),'ř','r'),'š','s'),'ž','z') LIKE '%$popis%'";
+//  $cond2= "REPLACE(REPLACE(REPLACE(REPLACE(CONCAT(jmeno,' ',prijmeni),
+//    'č','c'),'ř','r'),'š','s'),'ž','z') LIKE '%$popis%'";
   return "($cond1 OR $cond2)";
 }
 # ===========================================================================================> BANKA
+# -------------------------------------------------------------------------------- ch bank_join_dary
+# spáruj dary výpisu 
+function ch_bank_join_dary ($idv) {
+  $rv= pdo_query("SELECT id_dar FROM dar WHERE id_vypis=$idv AND typ=5 AND ucet_popis!='' ");
+  while ($rv && (list($idd)=pdo_fetch_row($rv))) {
+    ch_bank_join_dar($idd);
+  }
+}
+# --------------------------------------------------------------------------------- ch bank_join_dar
+# spáruj dar
+function ch_bank_join_dar ($idd) {
+  // podrobnosti z převodu a cískání podmínky na popis
+  list($castka,$datum,$popis,$nas_ucet,$typ)= 
+      select('castka,castka_kdy,ucet_popis,nas_ucet,typ','dar',"id_dar=$idd");
+  if ($typ!=5) goto end;
+  $cond= ch_search_popis($popis);
+  // hledání dárce
+  list($idd2,$idc)= select('id_dar,id_clen','dar JOIN clen USING (id_clen)',
+      "zpusob=2 AND typ=5 AND dar.deleted='' AND $cond AND castka=$castka AND castka_kdy='$datum' ");
+  if ($idd2) {
+    display("idc=$idc, idd2= $idd2");
+    query("UPDATE dar SET deleted='D x' WHERE id_dar=$idd2");
+    query("UPDATE dar SET typ=9,id_clen=$idc WHERE id_dar=$idd");
+  }
+  else {
+    $idc= select('id_clen','clen',$cond);
+    if ($idc) {
+      display("idc=$idc, idd2= ---");
+      query("UPDATE dar SET typ=7,id_clen=$idc WHERE id_dar=$idd");
+    }
+    display("? $popis ");
+  }
+end:
+}
 # -------------------------------------------------------------------------------- ch bank_load_ucty
 function ch_bank_pub($pub,&$p,&$u,&$b,$padding=true) {
   list($pu,$b)= explode('/',$pub);
