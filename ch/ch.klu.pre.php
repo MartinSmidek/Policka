@@ -90,13 +90,13 @@ function ch_bank_join_dary ($idv) {
 # spáruj dar
 function ch_bank_join_dar ($idd) {
   // podrobnosti z převodu a cískání podmínky na popis
-  list($castka,$datum,$popis,$nas_ucet,$typ)= 
-      select('castka,castka_kdy,ucet_popis,nas_ucet,typ','dar',"id_dar=$idd");
-  if ($typ!=5) goto end;
+  list($castka,$datum,$popis,$typ)= 
+      select('castka,castka_kdy,ucet_popis,typ','dar',"id_dar=$idd");
+  if ($typ==9) goto end;
   $cond= ch_search_popis($popis);
   // hledání dárce
   list($idd2,$idc)= select('id_dar,id_clen','dar JOIN clen USING (id_clen)',
-      "zpusob=2 AND typ=5 AND dar.deleted='' AND $cond AND castka=$castka AND castka_kdy='$datum' ");
+      "zpusob=2 AND typ=9 AND dar.deleted='' AND $cond AND castka=$castka AND castka_kdy='$datum' ");
   if ($idd2) {
     display("idc=$idc, idd2= $idd2");
     query("UPDATE dar SET deleted='D x' WHERE id_dar=$idd2");
