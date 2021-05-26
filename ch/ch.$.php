@@ -177,7 +177,7 @@ function ch_import($par) { trace();
     foreach ($d as $fld=>$val) {
       $attr[]= "$fld='$val'";
     }
-    query("INSERT INTO dar SET ".implode(',',$attr));
+    query("INSERT INTO dar SET typ=9,".implode(',',$attr));
   }
   return "Bylo vloženo $n_clen lidí a ".count($data)." darů";
 }
