@@ -158,7 +158,7 @@ function ch_bank_load_ucty () {
 # načtení souboru CSV z ČSAS
 function ch_ban_load($file) {  trace();
   global $ezer_path_root;
-  $y= (object)array('err'=>'','msg'=>'ok');
+  $y= (object)array('err'=>'','msg'=>'ok',idv=>0);
   // načti vlastní účty
   $nase_ucty= array(); // účet -> ID
   $res= pdo_qry("SELECT data,ikona FROM _cis WHERE druh='b_ucty' AND ikona!='' ");
@@ -201,7 +201,7 @@ function ch_ban_load($file) {  trace();
       $od= str_replace('_','-',$m[2]);
       $do= str_replace('_','-',$m[3]);
       query("INSERT INTO vypis SET soubor='$file', nas_ucet=$idu, datum_od='$od', datum_do='$do' ");
-      $idv= pdo_insert_id();
+      $y->idv= pdo_insert_id();
     }
     // vložení záznamu
     $set= ''; $castka= 0; $ucet= $popis= '';
@@ -222,8 +222,23 @@ function ch_ban_load($file) {  trace();
     // určení typu a způsobu
     $typ= $castka<=0 ? 1 : ($ucet=='160987123/0300' && $popis=='CESKA POSTA, S.P.' ? 8 : 5);
     $zpusob= $typ==8 ? 3 : 2;
+    // pokus o zjištění dárce
+    $idc= 0;
+    if ($typ==5) {
+      // nejprve podle účtu je-li
+      if ($ucet)
+        $idc= select('id_clen','dar',"zpusob=2 AND ucet='$ucet' ORDER BY castka_kdy DESC LIMIT 1");
+      // potom podle popisu
+      if (!$idc && $popis) {
+        $cond= ch_search_popis($popis);
+        $idc= select('id_clen','clen',"deleted='' AND $cond LIMIT 1");
+      }
+      $idc= $idc ?: 0;
+      $typ= $idc ? 7 : 5;
+    }
     // vložení záznamu
-    $qry= "INSERT INTO dar SET id_vypis=$idv, nas_ucet=$idu, typ= $typ, zpusob=$zpusob $set ";
+    $qry= "INSERT INTO dar SET id_vypis=$y->idv, id_clen=$idc, nas_ucet=$idu, 
+        typ= $typ, zpusob=$zpusob $set ";
     display($qry);
     query($qry);
   }

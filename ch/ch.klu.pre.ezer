@@ -41,7 +41,7 @@ use k:  form _cmd       [180,520,,]
 #==> . p_reload
 func p_reload () {
   r.filter_refresh();
-  v.tit= "<h1>Výpisy</h1>";
+//  v.tit= "<h1>Výpisy</h1>";
   p._prevody.browse_init(); c.init(); d.init(); i.init();
   v._vypisy.browse_load(r.p_filter);
 }
@@ -57,25 +57,33 @@ func zmena_typu(novy_typ,idc) { var y:object // idc může být *
 # --------------------------------------------------==> VÝPISY
 form _p_vypisy [,,1070,309] { css:'work'
   label tit [22,5,100,] { title:'<h1>Výpisy</h1>' }
+  func Seek(idv) {
+    p_reload();
+    if (!_vypisy.browse_seek(`vv.id_vypis=${idv}`)) {
+      r.filter_init();
+      p_reload();
+      _vypisy.browse_seek(`id_vypis=${idv}`);
+    }
+  }
   browse _vypisy [9,29,250,100] {buf_rows:100, rows:13, qry_rows:1,
-      group_by:'vv.id_vypis', optimize:{fetch:'all'}
+      group_by:'vv.id_vypis', // optimize:{qry:'noseek'}
       css_rows:'mintyp,5:pre_5,7:pre_7,8:pre_8,9:pre_9'
     view vv: table vypis
     view vp: table dar {join_type:'LEFT' join:'USING (id_vypis)' }
     view vu: table _cis {join_type:'LEFT' join:"ON druh='b_ucty' AND data=vv.nas_ucet" }
     // sloupce
-    show id_vypis { title:'ID výpisu', data:vv.id_vypis}
+    show id_vypis [,,0,] { title:'ID výpisu', data:vv.id_vypis, format:'rsq=' }
     show {data:vp.id_dar}
     show mintyp { title:'t', format:'s-q' 
         expr:"IFNULL(MIN(IF(vp.typ IN (1,2,3,4,6),10,IF(vp.typ=8 AND vp.id_clen!=0,9,vp.typ))),0)"}
     show [,,20,] { title:'účet', data:vu.zkratka, format:'csq=' 
         help:'zkratka našeho účtu'}
-//    show datum_od [,,65,] { title:'od', data:vv.datum_od, format:'rs-q=' }
-//    show datum_do [,,65,] { title:'do', data:vv.datum_do, format:'rsq=' }
-    show [,,65,] { title:'od', expr:"MIN(vp.castka_kdy)", sql_pipe:'sql_date1', format:'rs-q=' 
-        help:'datum nejstarší platby v souboru'}
-    show [,,65,] { title:'do', expr:"MAX(vp.castka_kdy)", sql_pipe:'sql_date1', format:'rsq=' 
-        help:'datum nejnovější platby v souboru'}
+    show datum_od [,,65,] { title:'od', data:vv.datum_od, format:'rs-q=' }
+    show datum_do [,,65,] { title:'do', data:vv.datum_do, format:'rsq=' }
+//    show [,,65,] { title:'od', expr:"MIN(vp.castka_kdy)", sql_pipe:'sql_date1', format:'rs-q=' 
+//        help:'datum nejstarší platby v souboru'}
+//    show [,,65,] { title:'do', expr:"MAX(vp.castka_kdy)", sql_pipe:'sql_date1', format:'rsq=' 
+//        help:'datum nejnovější platby v souboru'}
     show soubor [,,120,] { title:'soubor', data:vv.soubor, format:'rt' 
         help:'název importovaného souboru'}
     func onrowclick () {
@@ -83,8 +91,8 @@ form _p_vypisy [,,1070,309] { css:'work'
       k.p_rychle_off();
     }
     func onclick() {
-//      if (datum_do.width()) { datum_do.width(0); id_vypis.width(65); }
-//      else { datum_do.width(65); id_vypis.width(0); }
+      if (id_vypis.width()) { id_vypis.width(0); soubor.width(120) }
+      else { id_vypis.width(40); soubor.width(79) }
     }
   }
 }
@@ -96,14 +104,14 @@ form _p_prevody [,,774,262] {
     <span class='pre_10'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> není dar ... 
     <span class='pre_5'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> zbývá vyřešit ...
     <span class='pre_7'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> navrženo spojení ... 
-    <span class='pre_8'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> nespojená a  
-    <span class='pre_8'>&nbsp;&nbsp;</span><span class='pre_9'>&nbsp;&nbsp;</span> spojená složenka ... 
+    (<span class='pre_8'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> nespojená a  
+     <span class='pre_8'>&nbsp;&nbsp;</span><span class='pre_9'>&nbsp;&nbsp;</span> spojená složenka) ... 
     <span class='pre_9'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> OK spojeno s dárcem"
   }
   browse _prevody [0,29,300,100] {buf_rows:500, rows:13, qry_rows:1,
       css_rows:'typ,5:pre_5,6:pre_6,7:pre_7,8:pre_8,9:pre_9'
     show id_dar [,,55,] { title:'ID platby', data:p.id_dar, format:'r' }
-    show popis [,,140,] { title:'popis účtu', data:p.ucet_popis, format:'tq*' }
+    show popis [,,151,] { title:'popis účtu', data:p.ucet_popis, format:'tq*' }
     show zprava [,,110,] { title:'zpráva', data:p.zprava, format:'tq*' }
     show idc [,,50,] { title:'člen', data:p.id_clen, format:'rq=' 
         css_cell:'typ_slozenka,5:pre_5,6:pre_6,7:pre_7,8:pre_8,9:pre_9' }
@@ -111,15 +119,19 @@ form _p_prevody [,,774,262] {
         css_cell:'typ_slozenka,5:pre_5,6:pre_6,7:pre_7,8:pre_8,9:pre_9' }
     show vsym [,,75,] { title:'vs', data:p.vsym, format:'rq*' }
 //    show ssym [,,75,] { title:'ss', data:p.ssym, format:'rq*' }
-    show ucet [,,126,] { title:'účet', data:p.ucet, format:'rq*' }
+    show ucet [,,126,] { title:'účet', data:p.ucet, format:'trq*' }
     show datum [,,75,] { title:'datum', data:p.castka_kdy, format:'rq=' }
-    show typ [,,10,] { data:p.typ, format:'rq=' }
+    show typ [,,0,] { data:p.typ, format:'rq=' }
     show typ_slozenka { expr:"IF(p.typ=8 AND p.id_clen!=0,9,p.typ)" }
     func onrowclick () {
       i.load(id_dar);
       d.load(id_dar);
       if (idc) c.load(idc); else c.init();
 //      { eq(typ.get,9); d.enable(0,'d') | d.enable(1,'d') } 
+    }
+    func onclick() {
+      if (typ.width()) { typ.width(0); popis.width(151) }
+      else { typ.width(10); popis.width(140) }
     }
     # -------------------------------------==> . kontextové menu
     menu { type:'context'
@@ -159,7 +171,9 @@ form _drop [,,392,161] { css:'work'
       echo(`load: ${f.name}`);
       y= php.ch_ban_load(f.name);
       if (y.err) alert(y.err);
-      p_reload();
+      else {
+        v.Seek(y.idv);
+      }
     }
     func onerror(e:object) { 
       warning(e.msg); return(1) 
