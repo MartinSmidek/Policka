@@ -1,5 +1,5 @@
-= Korespondence/1 =
-Modul pro korespondenci s dárci.
+= Korespondence/2 =
+Modul pro korespondenci s dárci pro ''Oblastní charitu Polička'' a související organizace..
 
 == Šablony dopisů ==
 
@@ -28,32 +28,5 @@ Odlišná je však možnost používat ''proměnné'', kterými je text doplněn
 // ; {diky}                : zformátované poděkování za dary
 
 [[Image:wiki/img/ck_dopisy.png||]]
-
-// -------------------------------------------------------------------------------------------------- Mailem
-== Rozesílání mailem ==
-
-Rozesílání mailem je napřed potřeba povolit na kartě '''Nastavení období''' přepínačem podle obrázku
-
-[[Image:wiki/img/rozesilani_mailem_2.png||]]
-
-Karta '''Bulletin mailem - pro 'jen mailem' ''' se vyvolává stejnojmeným příkazem v levém menu.
-Karta slouží pro rozesílání Bulletinů mailem.
-
-Způsob použití je popsán v obrázku.
-
-[[Image:wiki/img/rozesilani_mailem.png||]]
-
-// -------------------------------------------------------------------------------------------------- Exporty
-== Exporty ==
-
-Karta slouží pro obecné exporty z databáze.
-
-Levé menu dává možnost prohlížet aktuální strukturu důležitých tabulek systému
-(jména, formáty a popis položek jsou vypisovány přímo z MySQL).
-
-Dotazy je možné pojmenovávat a uchovávat pro pozdější použití.
-
-[[Image:wiki/img/ck_dop_sql.png||]]
-
 
 

@@ -1,7 +1,0 @@
-= Ekonomika/1 =
-
-Modul pro zobrazení ekonomických a přehledových informací o darech a sbírkách.
-
-== Přehledy ==
-
-[[Image:wiki/img/ck_ekonomika.png||]]

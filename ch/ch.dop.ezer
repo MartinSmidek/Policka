@@ -15,8 +15,8 @@ panel dop {type:'right', title:"[fa-paperclip] Vzory/šablony", _sys:'*'
       item {title:' ... hromadné za období'     ,par:°{s:'texty',c:'Pfo'} }
       item {title:' ... hromadné za rok'        ,par:°{s:'texty',c:'Pfr'} }
       item {title:'Potvrzení věcného daru'      ,par:°{s:'texty',c:'Pv'} }
-      item {title:'Žádost o věcný dar'          ,par:°{s:'texty',c:'Zv'} }
-      item {title:'Vzor darovací smlouvy'       ,par:°{s:'texty',c:'Sv'} }
+//      item {title:'Žádost o věcný dar'          ,par:°{s:'texty',c:'Zv'} }
+//      item {title:'Vzor darovací smlouvy'       ,par:°{s:'texty',c:'Sv'} }
       proc onclick (i) {
         ii.opravit.display(1); S_sablona.hide;
         cast_dopis.set(ask('dop_sab_text',i.par.c));
@@ -25,7 +25,7 @@ panel dop {type:'right', title:"[fa-paperclip] Vzory/šablony", _sys:'*'
       }
     }
     menu {title:'Vzory mailů', type:'group'
-      item {title:'Rozesílání Bulletinů'        ,par:°{typ:'bulletiny'} }
+      item {title:'Rozesílání Zpravodajů'        ,par:°{typ:'bulletiny'} }
       proc onclick (i) {
         ii.opravit.display(1); S_sablona.hide;
         cast_dopis.set(ask('dop_sab_mail',i.par.typ));
@@ -56,7 +56,7 @@ panel dop {type:'right', title:"[fa-paperclip] Vzory/šablony", _sys:'*'
       }
     }
     menu {title:'Ukázkové tisky šablon', type:'group', _sys:'sab'
-      item {title:'šablona Hospic'              ,par:°{s:'nahled',c:'nahled_j'} }
+      item {title:'šablona Charita'              ,par:°{s:'nahled',c:'nahled_j'} }
       proc onclick (i) {
         ii.opravit.display(0); S_sablona.hide;
         ii.nadpis(i.title,ask('dop_sab_nahled',i.par.c))

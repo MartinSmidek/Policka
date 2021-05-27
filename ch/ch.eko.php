@@ -1,19 +1,19 @@
 <?php # (c) 2007-2008 Martin Smidek <martin@smidek.eu>
 /** ========================================================================================> EKONOM */
-# ------------------------------------------------------------------------------------- eko uzaverka
-# nastaví den v číselníku jako den uzávěrky
-# údaje v tabulce dar bude možné měnit jen uživatelem s oprávněním hddeu
-function eko_uzaverka($den_sql) { trace(); 
-  query("UPDATE _cis SET ikona='$den_sql' WHERE druh='uzaverky' AND data=1");
-  $html= '';
-  return $html;
-}
-# --------------------------------------------------------------------------------- eko uzaverka_den
-# vrátí aktuální den uzávěrky
-function eko_uzaverka_den() { trace(); 
-  $den= select('ikona','_cis',"druh='uzaverky' AND data=1");
-  return $den;
-}
+//# ------------------------------------------------------------------------------------- eko uzaverka
+//# nastaví den v číselníku jako den uzávěrky
+//# údaje v tabulce dar bude možné měnit jen uživatelem s oprávněním hddeu
+//function eko_uzaverka($den_sql) { trace(); 
+//  query("UPDATE _cis SET ikona='$den_sql' WHERE druh='uzaverky' AND data=1");
+//  $html= '';
+//  return $html;
+//}
+//# --------------------------------------------------------------------------------- eko uzaverka_den
+//# vrátí aktuální den uzávěrky
+//function eko_uzaverka_den() { trace(); 
+//  $den= select('ikona','_cis',"druh='uzaverky' AND data=1");
+//  return $den;
+//}
 # ------------------------------------------------------------------------------------- eko rok_dary
 # export=1 způsobí export do Excelu
 # parms.nuly - povolí nulové řádky
@@ -28,26 +28,26 @@ function eko_rok_dary($export,$parms,$opts) { trace(); debug($parms); debug($opt
   $strediska= array();
   $map_stredisko= map_cis('stredisko','hodnota');
   $map_deleni= map_cis('deleni','zkratka');
-  $flds= 'id_clen,titul,prijmeni,jmeno,osoba,ulice,obec,psc,castka,varsym,_pro,castka_kdy';
+  $flds= 'id_clen,titul,prijmeni,jmeno,osoba,ulice,obec,psc,castka,_pro,castka_kdy';
   $flds.= $vecne ? ",popis" : ",zpusob,_ucet";
-  // střediska a jejich vs
-  $rd= pdo_qry("
-    SELECT data,ikona,hodnota,barva,zkratka
-    FROM _cis  WHERE druh='varsym'
-     --  AND data IN (1000,1100,1111,8002,8300)
-    ORDER BY ikona,data");
-  while ( $rd && list($vs,$stredisko,$nazev,$deleni,$dary)= pdo_fetch_row($rd) ) {
-    $nazev= str_replace("\n",' ',$nazev);
-    $pr= $deleni ? $map_deleni[$deleni] : '';
-    $strediska[$stredisko][$vs]= array($nazev,$dar,$pr);
-  }
+//  // střediska a jejich vs
+//  $rd= pdo_qry("
+//    SELECT data,ikona,hodnota,barva,zkratka
+//    FROM _cis  WHERE druh='varsym'
+//     --  AND data IN (1000,1100,1111,8002,8300)
+//    ORDER BY ikona,data");
+//  while ( $rd && list($vs,$stredisko,$nazev,$deleni,$dary)= pdo_fetch_row($rd) ) {
+//    $nazev= str_replace("\n",' ',$nazev);
+//    $pr= $deleni ? $map_deleni[$deleni] : '';
+//    $strediska[$stredisko][$vs]= array($nazev,$dar,$pr);
+//  }
   // dary
   $rd= pdo_qry("
-    SELECT MONTH(castka_kdy) AS _mesic,SUM(castka),varsym
+    SELECT MONTH(castka_kdy) AS _mesic,SUM(castka)
     FROM dar WHERE NOT left(dar.deleted,1)='D' AND YEAR(castka_kdy)=$rok AND $zpusob
      -- AND varsym IN (1000,1100,1111,8002,8300)
-    GROUP BY _mesic,varsym ORDER BY _mesic,varsym ");
-  while ( $rd && list($m,$kc,$vs)= pdo_fetch_row($rd) ) {
+    GROUP BY _mesic ORDER BY _mesic ");
+  while ( $rd && list($m,$kc)= pdo_fetch_row($rd) ) {
     $dary[$vs][$m]+= $kc;
   }
   // filtry po dotazu
@@ -365,24 +365,26 @@ function eko_mesic_dary($export,$od,$do,$vecne,$VS='') { trace();
   $map_osoba= map_cis('k_osoba','zkratka');
   $map_zpusob= map_cis('k_zpusob','hodnota');
   $map_stredisko= map_cis('stredisko','hodnota');
-  $flds= 'id_clen,titul,prijmeni,jmeno,osoba,ulice,obec,psc,castka,varsym,_pro,castka_kdy';
+  $flds= 'id_clen,titul,prijmeni,jmeno,osoba,ulice,obec,psc,castka,_pro,castka_kdy';
   $flds.= $vecne ? ",popis" : ",zpusob,_ucet";
-  $AND_VS= $symbol= '';
-  if ( $VS!='' ) {
-    $symbol= " s variabilním symbolem $VS";
-    $VS= strtr($VS,array('*'=>'%','?'=>'_'));
-    $AND_VS= "AND varsym LIKE '$VS'";
-  }
+//  $AND_VS= $symbol= '';
+//  if ( $VS!='' ) {
+//    $symbol= " s variabilním symbolem $VS";
+//    $VS= strtr($VS,array('*'=>'%','?'=>'_'));
+//    $AND_VS= "AND varsym LIKE '$VS'";
+//  }
   $qry= "SELECT IFNULL(clen.deleted,id_clen) AS _err,
-           id_dar,id_clen,titul,prijmeni,jmeno,osoba,ulice,obec,psc,castka,varsym,
+           id_dar,id_clen,titul,prijmeni,jmeno,osoba,ulice,obec,psc,castka,
            dar.stredisko AS _pro,castka_kdy,zpusob,dar.popis,IF(zpusob=2,dar.ucet,'') AS _ucet
          FROM dar
          LEFT JOIN clen USING(id_clen)
-         LEFT JOIN _cis ON dar.varsym=data AND druh='varsym'
+         -- LEFT JOIN _cis ON dar.varsym=data AND druh='varsym'
          WHERE NOT left(dar.deleted,1)='D' /*AND NOT left(clen.deleted,1)='D'*/
-           AND dar.id_clen!=9999 AND $cond
+           -- AND dar.id_clen!=9999 
+           AND $cond
            AND castka_kdy BETWEEN '$od_sql' AND '$do_sql' $AND_VS
-           AND _cis.zkratka=1
+           -- AND _cis.zkratka=1
+           AND (dar.typ=9 OR dar.typ=8 AND dar.id_clen) 
          ORDER BY prijmeni  ";
   $res= pdo_qry($qry);
   $n= 0;
@@ -422,7 +424,7 @@ function eko_mesic_dary($export,$od,$do,$vecne,$VS='') { trace();
     'id_clen'=>'č.dárce:10', 'titul'=>'titul:15',
     'prijmeni'=>'příjmení:15', 'jmeno'=>'jméno:15','osoba'=>'typ:5',
     'ulice'=>'ulice:20', 'obec'=>'obec:20', 'psc'=>'psč:8',
-    'castka'=>'částka:10', 'varsym'=>'VS:6', '_pro'=>'pro:6','castka_kdy'=>'datum:12');
+    'castka'=>'částka:10', '_pro'=>'pro:6','castka_kdy'=>'datum:12');
   if ( $vecne )
     $clmn['popis']= 'popis:40';
   else {

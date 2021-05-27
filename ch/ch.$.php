@@ -14,9 +14,10 @@ $app_tables= (object)array(
 function ch_truncate() { trace();
   query("TRUNCATE TABLE dar");
   query("TRUNCATE TABLE clen");
+  query("TRUNCATE TABLE ukol");
   query("TRUNCATE TABLE role");
   query("TRUNCATE TABLE vypis");
-  return "tabulky clen, role, dar, vypis jsou vymazány";
+  return "tabulky clen, role, dar, ukol, vypis jsou vymazány";
 }
 # ---------------------------------------------------------------------------------------- ch import
 # primární import dat
@@ -543,119 +544,119 @@ function sys_backup_delete($dir) { trace();
   if ( !$ok ) fce_error("sys_backup_delete: $dir");
 }
 */
-# -------------------------------------------------------------------------------------------------- sys_vs_excel
-# ASK
-# export variabilních symbolů do Excelu
-function sys_vs_excel() {
-  $result= (object)array('_err'=>'','_html'=>'');
-  $xvs= array();
-  $map_str= map_cis('stredisko','hodnota');
-  $qryc= "SELECT * FROM _cis WHERE druh='varsym' ORDER BY ikona,data";
-  $resc= pdo_qry($qryc);
-  while ( $resc && $c= pdo_fetch_object($resc) ) {
-    $hodnota= strtr($c->hodnota,array("\n"=>' ',"|"=>'/',"::"=>": "));
-    $xvs[$c->ikona][]= (object)array('dar'=>$c->zkratka?'dar':'platba','vs'=>$c->data,'nazev'=>$hodnota);
-  }
-//                                                         debug($xs);
-  // export tabulky
-  global $ezer_root;
-  $title= "Variabilní symboly ke dni ".date("j. n. Y");
-  $file= "vs";
-  $xls= "open $file|sheet varsym;;P;page\n";
-  $xls.= "|columns B=6,C=7,D=90";
-  $r= 2;
-  $xls.= "\n|B$r $title ::size=12|B$r:D$r bold merge center";
-  $r++;
-  $xls.= "\n|B$r (vygenerované z aplikace Ezer, karta Nastavení/Střediska a účty)|B$r:D$r italic merge center";
-  $r++;
-  foreach ($xvs as $s=>$xv) {
-    $r+= 2;
-    $xls.= "\n|B$r {$map_str[$s]}::bcolor=ff8f2c2c color=ffffffff|B$r:D$r bold merge center border=t";
-    foreach ($xv as $x) {
-      $r++;
-      $xls.= "\n|B$r {$x->dar}::border=t center middle|C$r {$x->vs}::border=t center middle
-                |D$r {$x->nazev}::border=t wrap";
-    }
-  }
-  $xls.= "\n|close";
-  if ( $file ) {
-//                                                      display($xls);
-    $result->_err= Excel2007($xls,1);
-    if ( !$result->_err ) {
-      $result->_html= "<a target='dopis' href='docs/$file.xlsx'>soubor ke stažení</a>";
-    }
-  }
-  return $result;
-}
-# -------------------------------------------------------------------------------------------------- sys_regenerate_titul
-# Obnoví položku CLENI.title textem ('','Vážený pan','Vážená paní') podle CLENI.rod u fyzických osob
-# resp. ji vymaže u právnických osob.
-# Tato změna se dotkne pouze kontaktů, jejichž titul je ('','Vážený pan','Vážená paní')
-function sys_regenerate_titul ($cond=1,$update=false) {     trace();
-  $n= 0;
-  $qry= "SELECT id_clen,rod,osoba,titul,prijmeni FROM clen
-         WHERE LEFT(deleted,1)!='D' AND neposilat=0
-           AND titul IN ('','Vážený pan','Vážená paní') AND $cond
-         ORDER BY osoba,rod";
-  $res= pdo_qry($qry);
-  while ( $res && ($o= pdo_fetch_object($res)) ) {
-    $osloveni= $o->osoba==1
-      ? ($o->rod==1 ? "Vážený pan" : ($o->rod==2 ? "Vážená paní" : ''))
-      : '';
-    if ( $o->titul!=$osloveni ) {
-      $osoba= $o->osoba==1 ? 'f' : 'p';
-      $rod= $o->rod==1 ? 'm' : ($o->rod==2 ? 'ž' : '-');
-      $id= "<b><a href='ezer://klu.cle.show_clen/{$o->id_clen}'>{$o->id_clen}</a></b>";
-      $txt.= "<br>$osoba$rod $id : {$o->titul} / $osloveni - {$o->prijmeni}";
-      if ( $update ) {
-        $qry2= "UPDATE clen SET titul='$osloveni' WHERE id_clen={$o->id_clen}";
-        $res2= pdo_qry($qry2);
-      }
-      $n++;
-    }
-  }
-  $txt= $update
-   ? "Bylo obnoveno $n automatických obsahů položky titul".$txt
-   : "Budou změněny těchto $n automatických obsahů položky titul
-      (první 2 písmena označují osobu a rod)".$txt;
-  return $txt;
-}
-# -------------------------------------------------------------------------------------------------- sys_copy_osloveni
-# naplní tabulku CLENI údaji z tabulky OSLOVENI
-function sys_copy_osloveni ($limit=20000) {     trace();
-  $n= 0;
-  $qry= "SELECT c.id_clen as clen,_rod,_osloveni,_prijmeni5p
-         FROM clen AS c
-         LEFT JOIN osloveni AS o ON o.id_clen=c.id_clen
-         WHERE vyjimka=0 AND osloveni=0 AND o._osloveni!=0 AND o._anomalie='' LIMIT $limit ;";
-  $res= pdo_qry($qry);
-  while ( $res && ($o= pdo_fetch_object($res)) ) {
-    $prijmeni5p= pdo_real_escape_string($o->_prijmeni5p);
-    $qry2= "UPDATE clen SET
-            osloveni={$o->_osloveni},rod={$o->_rod},prijmeni5p='$prijmeni5p'
-            WHERE id_clen={$o->clen}";
-    $res2= pdo_qry($qry2);
-    $n++;
-  }
-  $txt= "Bylo vloženo $n oslovení (včetně 5. pádu příjmení, rodu a případné anomálie)";
-  return $txt;
-}
-# -------------------------------------------------------------------------------------------------- sys_trunc_osloveni
-# zruší v CLENI oslovení, pokud není označeno jako výjimka
-function sys_trunc_osloveni () {     trace();
-  $n= 0;
-  $qry= "SELECT c.id_clen as clen FROM clen AS c WHERE vyjimka=0";
-  $res= pdo_qry($qry);
-  while ( $res && ($o= pdo_fetch_object($res)) ) {
-    $qry2= "UPDATE clen SET osloveni=0,rod=0,prijmeni5p='' WHERE id_clen={$o->clen}";
-    $res2= pdo_qry($qry2);
-    $n++;
-  }
-  $txt= "Bylo zrušeno $n oslovení (včetně 5. pádu příjmení a rodu),
-         oslovení označená jako 'corr' byla zachována";
-  return $txt;
-}
-/** ================================================================================================== KLUB & KASA */
+//# -------------------------------------------------------------------------------------------------- sys_vs_excel
+//# ASK
+//# export variabilních symbolů do Excelu
+//function sys_vs_excel() {
+//  $result= (object)array('_err'=>'','_html'=>'');
+//  $xvs= array();
+//  $map_str= map_cis('stredisko','hodnota');
+//  $qryc= "SELECT * FROM _cis WHERE druh='varsym' ORDER BY ikona,data";
+//  $resc= pdo_qry($qryc);
+//  while ( $resc && $c= pdo_fetch_object($resc) ) {
+//    $hodnota= strtr($c->hodnota,array("\n"=>' ',"|"=>'/',"::"=>": "));
+//    $xvs[$c->ikona][]= (object)array('dar'=>$c->zkratka?'dar':'platba','vs'=>$c->data,'nazev'=>$hodnota);
+//  }
+////                                                         debug($xs);
+//  // export tabulky
+//  global $ezer_root;
+//  $title= "Variabilní symboly ke dni ".date("j. n. Y");
+//  $file= "vs";
+//  $xls= "open $file|sheet varsym;;P;page\n";
+//  $xls.= "|columns B=6,C=7,D=90";
+//  $r= 2;
+//  $xls.= "\n|B$r $title ::size=12|B$r:D$r bold merge center";
+//  $r++;
+//  $xls.= "\n|B$r (vygenerované z aplikace Ezer, karta Nastavení/Střediska a účty)|B$r:D$r italic merge center";
+//  $r++;
+//  foreach ($xvs as $s=>$xv) {
+//    $r+= 2;
+//    $xls.= "\n|B$r {$map_str[$s]}::bcolor=ff8f2c2c color=ffffffff|B$r:D$r bold merge center border=t";
+//    foreach ($xv as $x) {
+//      $r++;
+//      $xls.= "\n|B$r {$x->dar}::border=t center middle|C$r {$x->vs}::border=t center middle
+//                |D$r {$x->nazev}::border=t wrap";
+//    }
+//  }
+//  $xls.= "\n|close";
+//  if ( $file ) {
+////                                                      display($xls);
+//    $result->_err= Excel2007($xls,1);
+//    if ( !$result->_err ) {
+//      $result->_html= "<a target='dopis' href='docs/$file.xlsx'>soubor ke stažení</a>";
+//    }
+//  }
+//  return $result;
+//}
+//# -------------------------------------------------------------------------------------------------- sys_regenerate_titul
+//# Obnoví položku CLENI.title textem ('','Vážený pan','Vážená paní') podle CLENI.rod u fyzických osob
+//# resp. ji vymaže u právnických osob.
+//# Tato změna se dotkne pouze kontaktů, jejichž titul je ('','Vážený pan','Vážená paní')
+//function sys_regenerate_titul ($cond=1,$update=false) {     trace();
+//  $n= 0;
+//  $qry= "SELECT id_clen,rod,osoba,titul,prijmeni FROM clen
+//         WHERE LEFT(deleted,1)!='D' AND neposilat=0
+//           AND titul IN ('','Vážený pan','Vážená paní') AND $cond
+//         ORDER BY osoba,rod";
+//  $res= pdo_qry($qry);
+//  while ( $res && ($o= pdo_fetch_object($res)) ) {
+//    $osloveni= $o->osoba==1
+//      ? ($o->rod==1 ? "Vážený pan" : ($o->rod==2 ? "Vážená paní" : ''))
+//      : '';
+//    if ( $o->titul!=$osloveni ) {
+//      $osoba= $o->osoba==1 ? 'f' : 'p';
+//      $rod= $o->rod==1 ? 'm' : ($o->rod==2 ? 'ž' : '-');
+//      $id= "<b><a href='ezer://klu.cle.show_clen/{$o->id_clen}'>{$o->id_clen}</a></b>";
+//      $txt.= "<br>$osoba$rod $id : {$o->titul} / $osloveni - {$o->prijmeni}";
+//      if ( $update ) {
+//        $qry2= "UPDATE clen SET titul='$osloveni' WHERE id_clen={$o->id_clen}";
+//        $res2= pdo_qry($qry2);
+//      }
+//      $n++;
+//    }
+//  }
+//  $txt= $update
+//   ? "Bylo obnoveno $n automatických obsahů položky titul".$txt
+//   : "Budou změněny těchto $n automatických obsahů položky titul
+//      (první 2 písmena označují osobu a rod)".$txt;
+//  return $txt;
+//}
+//# -------------------------------------------------------------------------------------------------- sys_copy_osloveni
+//# naplní tabulku CLENI údaji z tabulky OSLOVENI
+//function sys_copy_osloveni ($limit=20000) {     trace();
+//  $n= 0;
+//  $qry= "SELECT c.id_clen as clen,_rod,_osloveni,_prijmeni5p
+//         FROM clen AS c
+//         LEFT JOIN osloveni AS o ON o.id_clen=c.id_clen
+//         WHERE vyjimka=0 AND osloveni=0 AND o._osloveni!=0 AND o._anomalie='' LIMIT $limit ;";
+//  $res= pdo_qry($qry);
+//  while ( $res && ($o= pdo_fetch_object($res)) ) {
+//    $prijmeni5p= pdo_real_escape_string($o->_prijmeni5p);
+//    $qry2= "UPDATE clen SET
+//            osloveni={$o->_osloveni},rod={$o->_rod},prijmeni5p='$prijmeni5p'
+//            WHERE id_clen={$o->clen}";
+//    $res2= pdo_qry($qry2);
+//    $n++;
+//  }
+//  $txt= "Bylo vloženo $n oslovení (včetně 5. pádu příjmení, rodu a případné anomálie)";
+//  return $txt;
+//}
+//# -------------------------------------------------------------------------------------------------- sys_trunc_osloveni
+//# zruší v CLENI oslovení, pokud není označeno jako výjimka
+//function sys_trunc_osloveni () {     trace();
+//  $n= 0;
+//  $qry= "SELECT c.id_clen as clen FROM clen AS c WHERE vyjimka=0";
+//  $res= pdo_qry($qry);
+//  while ( $res && ($o= pdo_fetch_object($res)) ) {
+//    $qry2= "UPDATE clen SET osloveni=0,rod=0,prijmeni5p='' WHERE id_clen={$o->clen}";
+//    $res2= pdo_qry($qry2);
+//    $n++;
+//  }
+//  $txt= "Bylo zrušeno $n oslovení (včetně 5. pádu příjmení a rodu),
+//         oslovení označená jako 'corr' byla zachována";
+//  return $txt;
+//}
+///** ================================================================================================== KLUB & KASA */
 # -------------------------------------------------------------------------------------------------- psc
 // doplnění mezery do PSČ
 function psc ($psc,$user2sql=0) {
@@ -667,9 +668,9 @@ function psc ($psc,$user2sql=0) {
   }
   return $text;
 }
-# -------------------------------------------------------------------------------------------------- p_pdenik_dar
-# vložení daru do pokladního deníku z Klub/Cleni
-# org: 1=NF, 2=RP; typ: 1=V, 2=P
+//# -------------------------------------------------------------------------------------------------- p_pdenik_dar
+//# vložení daru do pokladního deníku z Klub/Cleni
+//# org: 1=NF, 2=RP; typ: 1=V, 2=P
 // function p_pdenik_dar($org,$datum,$castka,$clen,$darce) {
 // //                                                           display("p_pdenik_dar($org,$datum,$castka,$clen,$darce)");
 //   $ok= false;
@@ -978,79 +979,79 @@ function osl_gen_oprava ($typ) {
   }
   return $txt;
 }
-
-/** ************************************************************************************************ MAPY */
-# ------------------------------------------------------------------------------------------------- okresy_create
-# vytvoří strukturu okresů, s text==abbr
-# <okresy> = array ( abbr => <okres>, ... )
-# <okres> = array ( 'rgb' => 'r,g,b', 'text' => text_v_mapě, 'title' => pod_myší,
-#                  'href' => click,     'xy' => 'x,y' )
-function okresy_create ($cond=1) { trace();
-  // vytvoření okresů
-  $okresy= array();
-  $res= pdo_qry("SELECT abbr,x,y,nazokr FROM okresy WHERE $cond ");
-  while ( $res && $row= pdo_fetch_assoc($res) ) {
-    $abbr= $row['abbr'];
-    $okresy[$abbr]= array ('text'=> $abbr, 'title'=> $row['nazokr']
-      , 'xy' => "{$row['x']},{$row['y']}" );
-  }
-  return $okresy;
-}
-# -------------------------------------------------------------------------------------------------- okresy_show
-# zobrazí mapku okresů se všemi údaji
-# popis struktur <okresy> viz okresy_create a <mapa> viz mapa_html
-#   $img_atr udává atribut v <img ...>
-#   $bgcolor='r,g,b' se uplatní při redukci obrázku jako pozadí
-# method=session|get -- způsob dopravení dat
-function okresy_show ($okresy,$scale=1,$img_atr='',$bgcolor='0,255,255',$method='session') { trace();
-  // transformace okresů na mapu
-  $map= '';
-  $mapa='okresy2';
-  $_SESSION['mapy']['id']= isset($_SESSION['mapy']['id']) ? $_SESSION['mapy']['id']+1 : 1;
-  $id= "okr_{$_SESSION['mapy']['id']}";
-  $xy= array();
-  foreach ( $okresy as $abbr => $desc ) {
-    $xy[$desc['xy']]= array ('rgb'=>$desc['rgb'],'text'=>$desc['text']);
-    if ( $title= $desc['title'] or $desc['href'] ) {
-      list($x,$y)= explode(',',$desc['xy']);
-      if ( $scale!= 1 ) { // uprav pokud je žádáno měřítko
-        $x= round($scale * $x);
-        $y= round($scale * $y);
-      }
-      $href= '';
-      if ( $desc['href'] ) {
-        $href= " href='{$desc['href']}'";
-        if ( !$title ) $title=' ';
-      }
-      $map.= "\n  <area $href shape='circle' title='$title' coords='$x,$y,16'>";
-    }
-  }
-  // zobrazení mapky
-  $text= '';
-  switch ($method) {
-  case 'session':
-    $_SESSION['mapy'][$mapa]['template']= "img/$mapa.png";
-    $_SESSION['mapy'][$mapa]['xy']= $xy;
-    if ( $bgcolor ) $_SESSION['mapy'][$mapa]['bgcolor']= $bgcolor;
-    $_SESSION['mapy'][$mapa]['scale']= $scale;
-    $text.= "\n<map name='$id'>$map\n</map>";
-    $text.= "<img $img_atr src='ch/map/map_png.php?rand=".mt_rand()."&mapa=$mapa' border=0 usemap='#$id'/>";
-//                                                 debug($_SESSION['mapy'][$mapa],'mapa');
-    break;
-  case 'get':
-    $_mapa= "img/$mapa.png";
-    if ( $bgcolor ) $_bg= $bgcolor;
-    $_scal= $scale;
-    $_parm= ''; $del= '';
-    foreach($xy as $coord=>$rgbt) {
-      $_parm.= "$del$coord,{$rgbt['rgb']},{$rgbt['text']}";
-      $del= ';';
-    }
-    $text.= "\n<map name='$id'>$map\n</map>";
-    $_url= "mapa=$_mapa&bg=$_bg&scal=$_scale&parm=$_parm&rand=".mt_rand();
-    $text.= "<img $img_atr src='ch/map/map_png2.php?$_url' border=0 usemap='#$id'/>";
-//                                                 display($_url);
-    break;
-  }
-  return $text;
-}
+//
+///** ************************************************************************************************ MAPY */
+//# ------------------------------------------------------------------------------------------------- okresy_create
+//# vytvoří strukturu okresů, s text==abbr
+//# <okresy> = array ( abbr => <okres>, ... )
+//# <okres> = array ( 'rgb' => 'r,g,b', 'text' => text_v_mapě, 'title' => pod_myší,
+//#                  'href' => click,     'xy' => 'x,y' )
+//function okresy_create ($cond=1) { trace();
+//  // vytvoření okresů
+//  $okresy= array();
+//  $res= pdo_qry("SELECT abbr,x,y,nazokr FROM okresy WHERE $cond ");
+//  while ( $res && $row= pdo_fetch_assoc($res) ) {
+//    $abbr= $row['abbr'];
+//    $okresy[$abbr]= array ('text'=> $abbr, 'title'=> $row['nazokr']
+//      , 'xy' => "{$row['x']},{$row['y']}" );
+//  }
+//  return $okresy;
+//}
+//# -------------------------------------------------------------------------------------------------- okresy_show
+//# zobrazí mapku okresů se všemi údaji
+//# popis struktur <okresy> viz okresy_create a <mapa> viz mapa_html
+//#   $img_atr udává atribut v <img ...>
+//#   $bgcolor='r,g,b' se uplatní při redukci obrázku jako pozadí
+//# method=session|get -- způsob dopravení dat
+//function okresy_show ($okresy,$scale=1,$img_atr='',$bgcolor='0,255,255',$method='session') { trace();
+//  // transformace okresů na mapu
+//  $map= '';
+//  $mapa='okresy2';
+//  $_SESSION['mapy']['id']= isset($_SESSION['mapy']['id']) ? $_SESSION['mapy']['id']+1 : 1;
+//  $id= "okr_{$_SESSION['mapy']['id']}";
+//  $xy= array();
+//  foreach ( $okresy as $abbr => $desc ) {
+//    $xy[$desc['xy']]= array ('rgb'=>$desc['rgb'],'text'=>$desc['text']);
+//    if ( $title= $desc['title'] or $desc['href'] ) {
+//      list($x,$y)= explode(',',$desc['xy']);
+//      if ( $scale!= 1 ) { // uprav pokud je žádáno měřítko
+//        $x= round($scale * $x);
+//        $y= round($scale * $y);
+//      }
+//      $href= '';
+//      if ( $desc['href'] ) {
+//        $href= " href='{$desc['href']}'";
+//        if ( !$title ) $title=' ';
+//      }
+//      $map.= "\n  <area $href shape='circle' title='$title' coords='$x,$y,16'>";
+//    }
+//  }
+//  // zobrazení mapky
+//  $text= '';
+//  switch ($method) {
+//  case 'session':
+//    $_SESSION['mapy'][$mapa]['template']= "img/$mapa.png";
+//    $_SESSION['mapy'][$mapa]['xy']= $xy;
+//    if ( $bgcolor ) $_SESSION['mapy'][$mapa]['bgcolor']= $bgcolor;
+//    $_SESSION['mapy'][$mapa]['scale']= $scale;
+//    $text.= "\n<map name='$id'>$map\n</map>";
+//    $text.= "<img $img_atr src='ch/map/map_png.php?rand=".mt_rand()."&mapa=$mapa' border=0 usemap='#$id'/>";
+////                                                 debug($_SESSION['mapy'][$mapa],'mapa');
+//    break;
+//  case 'get':
+//    $_mapa= "img/$mapa.png";
+//    if ( $bgcolor ) $_bg= $bgcolor;
+//    $_scal= $scale;
+//    $_parm= ''; $del= '';
+//    foreach($xy as $coord=>$rgbt) {
+//      $_parm.= "$del$coord,{$rgbt['rgb']},{$rgbt['text']}";
+//      $del= ';';
+//    }
+//    $text.= "\n<map name='$id'>$map\n</map>";
+//    $_url= "mapa=$_mapa&bg=$_bg&scal=$_scale&parm=$_parm&rand=".mt_rand();
+//    $text.= "<img $img_atr src='ch/map/map_png2.php?$_url' border=0 usemap='#$id'/>";
+////                                                 display($_url);
+//    break;
+//  }
+//  return $text;
+//}

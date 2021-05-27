@@ -263,45 +263,45 @@ function klub_dary_soucet ($xkeys) {  trace();
   return number_format($suma,2,'.','');
 }
 /** *******************************************************************************==> KLUB/složenky */
-# ----------------------------------------------------------------------------- klub slozenky_soucet
-# k balíčku zjistí počet a součet, vrátí součet
-function klub_slozenky_soucet ($ident) {
-  global $klub_slozenky;
-  $klub_slozenky= array(0,0,0);
-  // přečtení převodu
-  $qry= "SELECT castka,platby FROM prevod AS p
-         LEFT JOIN balicek AS b ON b.ident=concat(left(p.ident,3),substr(p.ident,5,3))
-         WHERE p.ident='$ident'";
-  $res= pdo_qry($qry);
-  if ( $res && ($row= pdo_fetch_assoc($res)) ) {
-    $klub_slozenky[2]= $row['castka'];
-    $klub_slozenky[3]= $row['platby'];
-  }
-  // přečtení info o balíčku v Klubu
-  $balicek= substr($ident,0,3).substr($ident,4,3);
-  $cond= "ucet LIKE '$balicek%' AND left(deleted,1)!='D'";
-  $qry= "SELECT sum(castka) as soucet,count(*) as pocet FROM dar
-         WHERE $cond";
-  $res= pdo_qry($qry);
-  if ( $res && ($row= pdo_fetch_assoc($res)) ) {
-    $klub_slozenky[0]= $row['soucet'];
-    $klub_slozenky[1]= $row['pocet'];
-  }
-  $klub_slozenky[0]= number_format($klub_slozenky[0],2,'.','');
-  return $klub_slozenky[0];
-}
-# ------------------------------------------------------------------------------ klub slozenky_pocet
-# k balíčku vrátí v předchozí funkci zjištěny počet
-function klub_slozenky_pocet ($ident) {
-  global $klub_slozenky;
-  return $klub_slozenky[1];
-}
-# ------------------------------------------------------------------------------ klub slozenky_color
-# k balíčku vrátí v předchozí funkci zjištěnou barvu
-function klub_slozenky_color ($ident) {
-  global $klub_slozenky;
-  return $klub_slozenky[0]==$klub_slozenky[2]-$klub_slozenky[3] ? 0 : 1;
-}
+//# ----------------------------------------------------------------------------- klub slozenky_soucet
+//# k balíčku zjistí počet a součet, vrátí součet
+//function klub_slozenky_soucet ($ident) {
+//  global $klub_slozenky;
+//  $klub_slozenky= array(0,0,0);
+//  // přečtení převodu
+//  $qry= "SELECT castka,platby FROM prevod AS p
+//         LEFT JOIN balicek AS b ON b.ident=concat(left(p.ident,3),substr(p.ident,5,3))
+//         WHERE p.ident='$ident'";
+//  $res= pdo_qry($qry);
+//  if ( $res && ($row= pdo_fetch_assoc($res)) ) {
+//    $klub_slozenky[2]= $row['castka'];
+//    $klub_slozenky[3]= $row['platby'];
+//  }
+//  // přečtení info o balíčku v Klubu
+//  $balicek= substr($ident,0,3).substr($ident,4,3);
+//  $cond= "ucet LIKE '$balicek%' AND left(deleted,1)!='D'";
+//  $qry= "SELECT sum(castka) as soucet,count(*) as pocet FROM dar
+//         WHERE $cond";
+//  $res= pdo_qry($qry);
+//  if ( $res && ($row= pdo_fetch_assoc($res)) ) {
+//    $klub_slozenky[0]= $row['soucet'];
+//    $klub_slozenky[1]= $row['pocet'];
+//  }
+//  $klub_slozenky[0]= number_format($klub_slozenky[0],2,'.','');
+//  return $klub_slozenky[0];
+//}
+//# ------------------------------------------------------------------------------ klub slozenky_pocet
+//# k balíčku vrátí v předchozí funkci zjištěny počet
+//function klub_slozenky_pocet ($ident) {
+//  global $klub_slozenky;
+//  return $klub_slozenky[1];
+//}
+//# ------------------------------------------------------------------------------ klub slozenky_color
+//# k balíčku vrátí v předchozí funkci zjištěnou barvu
+//function klub_slozenky_color ($ident) {
+//  global $klub_slozenky;
+//  return $klub_slozenky[0]==$klub_slozenky[2]-$klub_slozenky[3] ? 0 : 1;
+//}
 /** ***********************************************************************************==> INFORMACE */
 # ------------------------------------------------------------------------------------------ klu_inf
 # rozskok na informační funkce
@@ -513,90 +513,90 @@ function klu_osl_zrus($akeys) {
   return "Bylo zrušeno $n navržených oslovení";
 }
 /** =========================================================================================> MAPKY */
-# ---------------------------------------------------------------------------------------- klu_mapky
-# zabrazení v okresech
-# používá funkce z fis.eko.php
-# <mapa> = array ( 'rgb'  => 'r,g,b', 'text' => text_v_mapě, 'title' => pod_myší,
-#                  'href' => click,   'xy'   => 'x,y' )
-# pro dekádu je $roky_zpet=počátku dekády
-function klu_mapky($case,$roky_zpet) { trace();
-  $html.= '';
-  switch ($case) {
-  case 'darci':                   // dárci roku
-    $rok= date('Y')-$roky_zpet;
-    $where= "year(castka_kdy)=$rok";
-    $type= array(1601=>9,1401=>8,1201=>7,1001=>6, 801=>5, 601=>4, 401=>3, 201=>2, 100=>1, 0=>0);
-//     $type= array( 90=>9,   80=>8,   70=>7,   60=>6,   50=>5,   40=>4,   30=>3,   20=>2,   10=>1,  0=>0);
-//     $type= array( 9=>9,   8=>8,   7=>7,   6=>6,   5=>5,   4=>4,   3=>3,   2=>2,   1=>1,  0=>0);
-    $bw=   array(9=> 10, 8=> 30, 7=> 50, 6=> 70, 5=> 90, 4=>120, 3=>150, 2=>180, 1=>210, 0=>240);
-    break;
-  case 'dekada':                  // dárci roku ... roku+9
-    $rok= $roky_zpet;
-    $rok9= $rok+9;
-    $where= "year(castka_kdy) BETWEEN $rok AND $rok9";
-    $type= array(1601=>9,1401=>8,1201=>7,1001=>6, 801=>5, 601=>4, 401=>3, 201=>2, 100=>1, 0=>0);
-    $type= array(25601=>9,12801=>8,6401=>7,3201=>6,1601=>5, 801=>4, 401=>3, 201=>2, 100=>1, 0=>0);
-    $bw=   array(9=> 10, 8=> 30, 7=> 50, 6=> 70, 5=> 90, 4=>120, 3=>150, 2=>180, 1=>210, 0=>240);
-//     $type= array(180=>9,  160=>8,  140=>7,  120=>6,  100=>5,   80=>4,   60=>3,   40=>2,   20=>1,  0=>0);
-//     $bw=   array(9=> 10, 8=> 30, 7=> 50, 6=> 70, 5=> 90, 4=>120, 3=>150, 2=>180, 1=>210, 0=>240);
-    break;
-  }
-  $okress= "BE,BI,BK,BM,BN,BR,BV,CB,CH,CK,CL,CR,CV,DC,DO,FM,HB,HK,HO,JC,JE,JH,JI,JN,KD,KH,KI"
-        . ",KM,KO,KT,KV,LI,LN,LT,MB,ME,MO,NA,NB,NJ,OC,OP,OV,PB,PE,PH,PI,PJ,PM,PR,PS,PT,PU,PV"
-        . ",PY,PZ,RA,RK,RO,SM,SO,ST,SU,SY,TA,TC,TP,TR,TU,UH,UL,UO,VS,VY,ZL,ZN,ZR,??";
-  // mapka okresů
-  $mapa= okresy_create();
-  $pocet= array();
-  foreach ( explode(',',$okress) as $okres ) {
-    $mapa[$okres]['rgb']= '255,255,255';
-    $pocet[$c->okres]= 0;
-  }
-  $suma= 0;
-  $max= 0; $max_okr= '';
-  // výpočet
-  $qry= "SELECT IF(ISNULL(okresy.abbr),'??',okresy.abbr) as okres,count(*) as pocet
-         FROM dar JOIN clen USING(id_clen)
-         LEFT JOIN _psc ON clen.psc=_psc.psc
-         LEFT JOIN okresy ON okresy.kodokr=_psc.kodokr
-         WHERE $where
-         GROUP BY okresy.abbr";
-  $res= pdo_qry($qry);
-  while ( $res && $c= pdo_fetch_object($res) ) {
-    $pocet[$c->okres]+= $c->pocet;
-  }
-  foreach($pocet as $okres=>$clenu) {
-    // najdi typ a barvu
-    $suma+= $clenu;
-    if ( $clenu>$max ) {
-      $max= $clenu;
-      $max_okr= $okres;
-    }
-    foreach($type as $n=>$typ) {
-      if ( $clenu>$n ) {
-        $mapa[$okres]['rgb']= "{$bw[$typ]},{$bw[$typ]},{$bw[$typ]}";
-        $mapa[$okres]['title'].= "+$clenu";
-        break;
-      }
-    }
-    if ( $clenu<0 ) {
-      $mapa[$okres]['rgb']= "220,200,255";
-      $mapa[$okres]['title'].= $clenu;
-    }
-  }
-  // zobrazení
-  $html.= "<div class='graph'>"; //<h3 class='graph_title'>$title</h3>";
-  $html.= okresy_show($mapa,1,"align='center'",'255,255,255','get');
-  $html.= "<br clear='all'/></div>";
-  $html.= "CELKEM: $suma, MAXIMUM: $max v $max_okr";
-  return $html;
-}
-function klu_mapky_skala($stupnu=10) {
-  $bw= array();
-  for ($i= $stupnu-1; $i>=0; $i--) {
-    $c= 250*($stupnu-$i)/$stupnu;
-    $bw[$i]= $c;
-  }
-//                                                         debug($bw,'škála');
-  return $bw;
-}
-?>
+//# ---------------------------------------------------------------------------------------- klu_mapky
+//# zabrazení v okresech
+//# používá funkce z fis.eko.php
+//# <mapa> = array ( 'rgb'  => 'r,g,b', 'text' => text_v_mapě, 'title' => pod_myší,
+//#                  'href' => click,   'xy'   => 'x,y' )
+//# pro dekádu je $roky_zpet=počátku dekády
+//function klu_mapky($case,$roky_zpet) { trace();
+//  $html.= '';
+//  switch ($case) {
+//  case 'darci':                   // dárci roku
+//    $rok= date('Y')-$roky_zpet;
+//    $where= "year(castka_kdy)=$rok";
+//    $type= array(1601=>9,1401=>8,1201=>7,1001=>6, 801=>5, 601=>4, 401=>3, 201=>2, 100=>1, 0=>0);
+////     $type= array( 90=>9,   80=>8,   70=>7,   60=>6,   50=>5,   40=>4,   30=>3,   20=>2,   10=>1,  0=>0);
+////     $type= array( 9=>9,   8=>8,   7=>7,   6=>6,   5=>5,   4=>4,   3=>3,   2=>2,   1=>1,  0=>0);
+//    $bw=   array(9=> 10, 8=> 30, 7=> 50, 6=> 70, 5=> 90, 4=>120, 3=>150, 2=>180, 1=>210, 0=>240);
+//    break;
+//  case 'dekada':                  // dárci roku ... roku+9
+//    $rok= $roky_zpet;
+//    $rok9= $rok+9;
+//    $where= "year(castka_kdy) BETWEEN $rok AND $rok9";
+//    $type= array(1601=>9,1401=>8,1201=>7,1001=>6, 801=>5, 601=>4, 401=>3, 201=>2, 100=>1, 0=>0);
+//    $type= array(25601=>9,12801=>8,6401=>7,3201=>6,1601=>5, 801=>4, 401=>3, 201=>2, 100=>1, 0=>0);
+//    $bw=   array(9=> 10, 8=> 30, 7=> 50, 6=> 70, 5=> 90, 4=>120, 3=>150, 2=>180, 1=>210, 0=>240);
+////     $type= array(180=>9,  160=>8,  140=>7,  120=>6,  100=>5,   80=>4,   60=>3,   40=>2,   20=>1,  0=>0);
+////     $bw=   array(9=> 10, 8=> 30, 7=> 50, 6=> 70, 5=> 90, 4=>120, 3=>150, 2=>180, 1=>210, 0=>240);
+//    break;
+//  }
+//  $okress= "BE,BI,BK,BM,BN,BR,BV,CB,CH,CK,CL,CR,CV,DC,DO,FM,HB,HK,HO,JC,JE,JH,JI,JN,KD,KH,KI"
+//        . ",KM,KO,KT,KV,LI,LN,LT,MB,ME,MO,NA,NB,NJ,OC,OP,OV,PB,PE,PH,PI,PJ,PM,PR,PS,PT,PU,PV"
+//        . ",PY,PZ,RA,RK,RO,SM,SO,ST,SU,SY,TA,TC,TP,TR,TU,UH,UL,UO,VS,VY,ZL,ZN,ZR,??";
+//  // mapka okresů
+//  $mapa= okresy_create();
+//  $pocet= array();
+//  foreach ( explode(',',$okress) as $okres ) {
+//    $mapa[$okres]['rgb']= '255,255,255';
+//    $pocet[$c->okres]= 0;
+//  }
+//  $suma= 0;
+//  $max= 0; $max_okr= '';
+//  // výpočet
+//  $qry= "SELECT IF(ISNULL(okresy.abbr),'??',okresy.abbr) as okres,count(*) as pocet
+//         FROM dar JOIN clen USING(id_clen)
+//         LEFT JOIN _psc ON clen.psc=_psc.psc
+//         LEFT JOIN okresy ON okresy.kodokr=_psc.kodokr
+//         WHERE $where
+//         GROUP BY okresy.abbr";
+//  $res= pdo_qry($qry);
+//  while ( $res && $c= pdo_fetch_object($res) ) {
+//    $pocet[$c->okres]+= $c->pocet;
+//  }
+//  foreach($pocet as $okres=>$clenu) {
+//    // najdi typ a barvu
+//    $suma+= $clenu;
+//    if ( $clenu>$max ) {
+//      $max= $clenu;
+//      $max_okr= $okres;
+//    }
+//    foreach($type as $n=>$typ) {
+//      if ( $clenu>$n ) {
+//        $mapa[$okres]['rgb']= "{$bw[$typ]},{$bw[$typ]},{$bw[$typ]}";
+//        $mapa[$okres]['title'].= "+$clenu";
+//        break;
+//      }
+//    }
+//    if ( $clenu<0 ) {
+//      $mapa[$okres]['rgb']= "220,200,255";
+//      $mapa[$okres]['title'].= $clenu;
+//    }
+//  }
+//  // zobrazení
+//  $html.= "<div class='graph'>"; //<h3 class='graph_title'>$title</h3>";
+//  $html.= okresy_show($mapa,1,"align='center'",'255,255,255','get');
+//  $html.= "<br clear='all'/></div>";
+//  $html.= "CELKEM: $suma, MAXIMUM: $max v $max_okr";
+//  return $html;
+//}
+//function klu_mapky_skala($stupnu=10) {
+//  $bw= array();
+//  for ($i= $stupnu-1; $i>=0; $i--) {
+//    $c= 250*($stupnu-$i)/$stupnu;
+//    $bw[$i]= $c;
+//  }
+////                                                         debug($bw,'škála');
+//  return $bw;
+//}
+//?>

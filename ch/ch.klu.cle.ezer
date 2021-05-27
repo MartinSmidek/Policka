@@ -555,7 +555,7 @@ form _clen_butt [,,400,35] {
       _clen_uloz(1)
     | echo('kontakt zůstává jak byl') } }
   # Obnovit
-  button obnov_clena [332,9,,] { tag:'br', skill:'hdcd|hdcd', title:'Obnovit',
+  button obnov_clena [336,9,,] { tag:'br', skill:'hdcd|hdcd', title:'Obnovit',
     help:'obnoví kontakt po předchozím dotazu (je vhodné uvést důvod) '
     proc onclick () {
       confirm('opravdu obnovit kontakt č.',C_clen.id.get,' ',
@@ -952,7 +952,7 @@ form _dar [,,390,240] {
     | echo('dar zůstává jak byl') } 
   }
   # ==> . obnovit dar
-  button obnov_dar [382,225,,] {tag:'br', title:'Obnovit', skill:'hddd|hddd',
+  button obnov_dar [328,229,,] {tag:'br', title:'Obnovit', skill:'hddd|hddd',
     help:'obnoví dar po předchozím dotazu'
     proc onclick () {
       confirm('opravdu obnovit dar ',castka.get,' Kč smazaný ',substr(del.get,1),'?');
