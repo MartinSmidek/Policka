@@ -1,16 +1,11 @@
 <?php # (c) 2011 Martin Smidek <martin@smidek.eu>
 # ----------------------------------------------------------------------------------==> ch ban_zmena
-# 
-# 
-#  nutno upravit do nového způsobu, kdy dar.typ=7 implikuje dar.idc!=0
-# 
-# 
-# # ASK
+# ASK
 # $idc_new je buďto '*' pokud se ID plátce nemá měnit, nebo nové ID plátce
 # povolené kombinace old(typ,idc)->new(typ,idc) 
 #   jedar     (6,0)->(5,0)
-#   nedar     (5,0)->(6,0)
-#   spojit    (5/7/8,0)->(8/9,x)
+#   nedar     (5/8,0)->(6,0)
+#   spojit    (5/7/8,0/x)->(8/9,x)
 #   rozpojit  (9,x)->(5/6,0) nebo (8,x)->(8,0)
 # upozornění na chybu obsluhy
 #   napřed rozpoj (8/9,x)->(8/9,y)
@@ -23,9 +18,12 @@ function ch_ban_zmena($idd,$typ_new,$idc_new='*') {  trace();
   // zjištění starých hodnot 
   list($typ_old,$idc_old)= select('typ,id_clen','dar',"id_dar=$idd");
   // test zakázaných kombinací
-  if (!(!$idc_old && in_array($typ_old,array(1,5,6,7,8)) 
-      || $idc_old && in_array($typ_old,array(8,9)))) {
-    $y->err= "chybná vazba - je nutné opravit! Martin)";
+  $ok_kombinace= 
+         $idc_old==$idc_new && $idc_new && $typ_old==7 && $typ_new==9 
+      || !$idc_old && in_array($typ_old,array(1,5,6,7,8)) 
+      || $idc_old && in_array($typ_old,array(8,9));
+  if (!$ok_kombinace) {
+    $y->err= "chybná vazba ($typ_old,$idc_old) => ($typ_new,$idc_new) - je nutné opravit! Martin)";
     goto end;
   }
   // test upozornění na chybný požadavek
@@ -40,7 +38,7 @@ function ch_ban_zmena($idd,$typ_new,$idc_new='*') {  trace();
   elseif ( $typ_old==5 && !$idc_old && $typ_new==6 && !$idc_new ) { // jen změna typu
     $upd[]= (object)array('fld'=>'typ', 'op'=>'u','val'=>$typ_new,'old'=>$typ_old);
   }
-  elseif ( in_array($typ_old,array(5,7,8)) && !$idc_old // spojit
+  elseif ( in_array($typ_old,array(5,7,8)) && (!$idc_old || $idc_old==$idc_new) // spojit
       && in_array($typ_new,array(8,9)) && $idc_new ) { 
     $upd[]= (object)array('fld'=>'typ', 'op'=>'u','val'=>$typ_new,'old'=>$typ_old);
     $upd[]= (object)array('fld'=>'id_clen', 'op'=>'u','val'=>$idc_new,'old'=>$idc_old);
@@ -49,11 +47,11 @@ function ch_ban_zmena($idd,$typ_new,$idc_new='*') {  trace();
     $upd[]= (object)array('fld'=>'typ', 'op'=>'u','val'=>$typ_new,'old'=>$typ_old);
     $upd[]= (object)array('fld'=>'id_clen', 'op'=>'u','val'=>$idc_new,'old'=>$idc_old);
   }
-  elseif ( $typ_old==8 && $idc_old && $typ_old==8 && !$idc_new ) { 
+  elseif ( $typ_old==8 && $idc_old && $typ_new==8 && !$idc_new ) { 
     $upd[]= (object)array('fld'=>'id_clen', 'op'=>'u','val'=>$idc_new,'old'=>$idc_old);
   }
   else {
-    $y->err= "nepřípustný požadavek na změnu ($typ_old,$idc_old)->($typ_new,$idc_new)";
+    $y->err= "nepřípustný požadavek na změnu ($typ_old,$idc_old) => ($typ_new,$idc_new)";
     goto end;
   }
   // proveď změnu se zápisem do _track
@@ -172,12 +170,7 @@ function ch_ban_load($file) {  trace();
   debug($nase_ucty);
   $csv= "$ezer_path_root/banka/$file";
   $data= array();
-//  $msg= 
-      ch_csv2array($csv,$data,0,',','UTF-16LE');
-//  debug($data,"$csv - $msg");
-  // účet organizace, způsob platby
-  $zpusob= 2;
-  $nas_ucet= 1;
+  ch_csv2array($csv,$data,0,',','UTF-16LE');
   // ověření existence základních položek
   $flds= array(
       "Datum zaúčtování"  => array(0,'d','castka_kdy'),
@@ -226,10 +219,11 @@ function ch_ban_load($file) {  trace();
                   $y->err= "nekorunové platby nejsou implementovány"; goto end;
       }
     }
-    // určení typu
+    // určení typu a způsobu
     $typ= $castka<=0 ? 1 : ($ucet=='160987123/0300' && $popis=='CESKA POSTA, S.P.' ? 8 : 5);
+    $zpusob= $typ==8 ? 3 : 2;
     // vložení záznamu
-    $qry= "INSERT INTO dar SET id_vypis=$idv, nas_ucet=$nas_ucet, typ= $typ, zpusob=$zpusob $set ";
+    $qry= "INSERT INTO dar SET id_vypis=$idv, nas_ucet=$idu, typ= $typ, zpusob=$zpusob $set ";
     display($qry);
     query($qry);
   }

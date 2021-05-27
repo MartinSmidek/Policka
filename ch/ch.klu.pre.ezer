@@ -30,8 +30,8 @@ use k:  form _cmd       [180,520,,]
 //  echo("ukaz_platbu ",idp, " výpisu ",idv);
 //  v._vypisy.browse_seek(`id_vypis=${idv}`,0,0,0,1);
 //  echo('výpis=',v._vypisy.id_vypis);
-//  p._prevody.browse_seek(`id_platba=${idp}`,`id_vypis=${v._vypisy.id_vypis}`);
-//  echo('platba=',p._prevody.id_platba);
+//  p._prevody.browse_seek(`id_dar=${idp}`,`id_vypis=${v._vypisy.id_vypis}`);
+//  echo('platba=',p._prevody.id_dar);
 //}
 # ----------------------------------------==> lokální proc
 //proc detect_sign() {
@@ -59,20 +59,25 @@ form _p_vypisy [,,1070,309] { css:'work'
   label tit [22,5,100,] { title:'<h1>Výpisy</h1>' }
   browse _vypisy [9,29,250,100] {buf_rows:100, rows:13, qry_rows:1,
       group_by:'vv.id_vypis', optimize:{fetch:'all'}
-      css_rows:'mintyp,5:pre_5,7:pre_7,9:pre_9'
+      css_rows:'mintyp,5:pre_5,7:pre_7,8:pre_8,9:pre_9'
     view vv: table vypis
     view vp: table dar {join_type:'LEFT' join:'USING (id_vypis)' }
     view vu: table _cis {join_type:'LEFT' join:"ON druh='b_ucty' AND data=vv.nas_ucet" }
     // sloupce
-    show id_vypis { title:'ID výpisu', data:vv.id_vypis, format:'crsq=' }
+    show id_vypis { title:'ID výpisu', data:vv.id_vypis}
     show {data:vp.id_dar}
-    show mintyp { title:'t', expr:"IFNULL(MIN(IF(vp.typ IN (1,2,3,4,6,8),10,vp.typ)),0)", format:'s-q' }
-    show [,,20,] { title:'účet', data:vu.zkratka, format:'rsq=' }
+    show mintyp { title:'t', format:'s-q' 
+        expr:"IFNULL(MIN(IF(vp.typ IN (1,2,3,4,6),10,IF(vp.typ=8 AND vp.id_clen!=0,9,vp.typ))),0)"}
+    show [,,20,] { title:'účet', data:vu.zkratka, format:'csq=' 
+        help:'zkratka našeho účtu'}
 //    show datum_od [,,65,] { title:'od', data:vv.datum_od, format:'rs-q=' }
 //    show datum_do [,,65,] { title:'do', data:vv.datum_do, format:'rsq=' }
-    show [,,65,] { title:'od', expr:"MIN(vp.castka_kdy)", sql_pipe:'sql_date1', format:'rs-q=' }
-    show [,,65,] { title:'do', expr:"MAX(vp.castka_kdy)", sql_pipe:'sql_date1', format:'rsq=' }
-    show soubor [,,120,] { title:'soubor', data:vv.soubor, format:'rt' }
+    show [,,65,] { title:'od', expr:"MIN(vp.castka_kdy)", sql_pipe:'sql_date1', format:'rs-q=' 
+        help:'datum nejstarší platby v souboru'}
+    show [,,65,] { title:'do', expr:"MAX(vp.castka_kdy)", sql_pipe:'sql_date1', format:'rsq=' 
+        help:'datum nejnovější platby v souboru'}
+    show soubor [,,120,] { title:'soubor', data:vv.soubor, format:'rt' 
+        help:'název importovaného souboru'}
     func onrowclick () {
       p._prevody.browse_load(`id_vypis=${v._vypisy.id_vypis}`);
       k.p_rychle_off();
@@ -87,25 +92,29 @@ form _p_vypisy [,,1070,309] { css:'work'
 form _p_prevody [,,774,262] {
   view p: table dar
   label [12,5,73,] { title:'<h1>Platby</h1>' }
-  label [99,9,672,] { title:"
-    <span class='pre_9'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> OK platba je spojena ... 
-    <span class='pre_7'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> je navrženo spojení ... 
-    <span class='pre_8'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> nespojená složenka ... 
-    <span class='pre_10'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> platba není dar ... 
-    <span class='pre_5'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> zbývá vyřešit ..."
+  label [77,9,700,] { title:"
+    <span class='pre_10'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> není dar ... 
+    <span class='pre_5'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> zbývá vyřešit ...
+    <span class='pre_7'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> navrženo spojení ... 
+    <span class='pre_8'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> nespojená a  
+    <span class='pre_8'>&nbsp;&nbsp;</span><span class='pre_9'>&nbsp;&nbsp;</span> spojená složenka ... 
+    <span class='pre_9'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> OK spojeno s dárcem"
   }
   browse _prevody [0,29,300,100] {buf_rows:500, rows:13, qry_rows:1,
       css_rows:'typ,5:pre_5,6:pre_6,7:pre_7,8:pre_8,9:pre_9'
     show id_dar [,,55,] { title:'ID platby', data:p.id_dar, format:'r' }
     show popis [,,140,] { title:'popis účtu', data:p.ucet_popis, format:'tq*' }
     show zprava [,,110,] { title:'zpráva', data:p.zprava, format:'tq*' }
-    show idc [,,50,] { title:'člen', data:p.id_clen, format:'rq=' }
-    show castka [,,70,] { title:'částka', data:p.castka, format:'rq=' }
+    show idc [,,50,] { title:'člen', data:p.id_clen, format:'rq=' 
+        css_cell:'typ_slozenka,5:pre_5,6:pre_6,7:pre_7,8:pre_8,9:pre_9' }
+    show castka [,,70,] { title:'částka', data:p.castka, format:'rq=' 
+        css_cell:'typ_slozenka,5:pre_5,6:pre_6,7:pre_7,8:pre_8,9:pre_9' }
     show vsym [,,75,] { title:'vs', data:p.vsym, format:'rq*' }
 //    show ssym [,,75,] { title:'ss', data:p.ssym, format:'rq*' }
     show ucet [,,126,] { title:'účet', data:p.ucet, format:'rq*' }
     show datum [,,75,] { title:'datum', data:p.castka_kdy, format:'rq=' }
     show typ [,,10,] { data:p.typ, format:'rq=' }
+    show typ_slozenka { expr:"IF(p.typ=8 AND p.id_clen!=0,9,p.typ)" }
     func onrowclick () {
       i.load(id_dar);
       d.load(id_dar);
@@ -136,8 +145,8 @@ form _drop [,,392,161] { css:'work'
   #==> . vložení výpisů
   var  dfold='/banka'      // podsložka bez koncového / se nastavuje dynamicky
   label [10,7,371,] {title:'místo pro vložení výpisu - přesvědčte se prosím, že název souboru 
-    <br>má tvar "číslo účtu-0800_datum-od_datum-do.csv"
-  '}
+    <br>má tvar "číslo účtu-0800_datum-od_datum-do.csv"'
+  }
   label drop [10,46,370,105] { type:'drop'
     func start() {
       drop.init('/banka','U:'); 
@@ -181,7 +190,7 @@ form _p_clen [,,464,123] { css:'work'
   button spojit [26,60,,] {
     title:"<span class='pre_9'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> Ano, spojit", format:''
     func onclick () {
-      if (form.key()) { zmena_typu(9,form.key()); c.init() }
+      if (form.key()) { zmena_typu(p._prevody.typ==8?8:9,form.key()); c.init() }
   }}
   # ==> . rozpojit
   button zmenit [27,88,,] {
@@ -232,43 +241,43 @@ form _cmd [,,897,62] { css:'work'
   var done:number
   button rychle_start [379,23,,] { help:'projdi daný výpis a připisuj platby', title:"[fa-play] Rychle"
     proc onclick () {
-//      done.set(1);
-//      rychle.set(1);
-//      ram.set_css('aktivni','pasivni');
-//      rychle_start.enable(0); rychle_ano.enable(1);
-//      rychle_ne.enable(1); rychle_konec.enable(1);
-//      p._prevody.browse_next(1); eq(p._prevody.typ.get,5,7);
-//      p._prevody.raise('onrowclick',p._prevody.id_platba.get)
-//    | p_rychle_next
+      done.set(1);
+      rychle.set(1);
+      ram.set_css('aktivni','pasivni');
+      rychle_start.enable(0); rychle_ano.enable(1);
+      rychle_ne.enable(1); rychle_konec.enable(1);
+      p._prevody.browse_next(1); eq(p._prevody.typ.get,5,7);
+      p._prevody.raise('onrowclick',p._prevody.id_dar.get)
+    | p_rychle_next
   }}
   proc p_rychle_next () {
-//    p._prevody.browse_next; p_rychle_skip; eq(p._prevody.typ.get,5,7);
-//    p._prevody.raise('onrowclick',p._prevody.id_platba.get)
-//  | p_rychle_off
+    p._prevody.browse_next; p_rychle_skip; eq(p._prevody.typ.get,5,7);
+    p._prevody.raise('onrowclick',p._prevody.id_dar.get)
+  | p_rychle_off
   }
   button rychle_ano [450,23,,] { title:'[fa-plus] Ano, další', format:'d',
     help:'zapiš platbu odsouhlasenému kontaktu a běž dál'
     proc onclick () { var idd:number
-//      [ c.key; zmena_typu(9,c.key) ];
-//      p_rychle_next
+      [ c.key; zmena_typu(9,c.key) ];
+      p_rychle_next
   }}
   proc p_rychle_skip () {
-//    eq(p._prevody.typ.get,5,7); p._prevody.idc.get
-//  | p._prevody.browse_next; p_rychle_skip
+    eq(p._prevody.typ.get,5,7); p._prevody.idc.get
+  | p._prevody.browse_next; p_rychle_skip
   }
   button rychle_ne [536,23,,] { title:'[fa-minus] Ne, další', format:'d', help:'běž dál'
     proc onclick () {
-//      p_rychle_next
+      p_rychle_next
   }}
   button rychle_konec [616,23,,] { title:'[fa-stop] Konec', format:'d', help:'ukonči procházení'
     proc onclick () {
 //      p_rychle_off
   }}
   proc p_rychle_off () {
-//    rychle.set(0); ram.set_css('pasivni','aktivni');
-//    rychle_start.enable(1); rychle_ano.enable(0);
-//    rychle_ne.enable(0); rychle_konec.enable(0);
-//    v._vypisy.browse_focus
+    rychle.set(0); ram.set_css('pasivni','aktivni');
+    rychle_start.enable(1); rychle_ano.enable(0);
+    rychle_ne.enable(0); rychle_konec.enable(0);
+    v._vypisy.browse_focus
   }
   # ----------------------------------------==> . hledat ap.
   button ucty [12,9,,] { title:'[fa-search] Hledat v účtech'
