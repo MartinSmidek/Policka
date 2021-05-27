@@ -153,11 +153,11 @@ form _cleni [,,660,334+17] {
     show has_o {data:ro.id_role}
     show osoba {data:c.osoba}
     // výběrové položky
-    show zdroj    [,,90,] { title:'(zdroj)',   data:c.zdroj,       format:'q$rs' }
+    show zdroj    [,, 0,] { title:'(zdroj)',   data:c.zdroj,       format:'q$rs' }
     show ucet     [,, 0,] { title:'účet',      data:c.ucet,       format:'q$rs' }
     show rodcis   [,, 0,] { title:'rč/IČ',     data:c.rodcis,     format:'q$s' }
     show titul    [,, 0,] { title:'titul',     data:c.titul,      format:'q$s' }
-    show telefony [,, 0,] { title:'telefony',  data:c.telefony,   format:'q$s' }
+    show telefony [,,90,] { title:'telefony',  data:c.telefony,   format:'q$s' }
     show email    [,, 0,] { title:'email',     data:c.email,      format:'q$s' }
     show potvrz   [,, 0,] { title:'potvrzení', data:c.potvrzeni,  format:'q#s',
       map_pipe:cis_k_potvrzeni.zkratka }
@@ -166,14 +166,15 @@ form _cleni [,,660,334+17] {
     show kategorie[,, 0,] { title:'kategorie', data:c.kategorie, format:'q#s'
       map_pipe:cis_kategorie.zkratka}
     proc onclick() {
-      stredisko.width; stredisko.width(0); ucet.width(90);
+      zdroj.width;     zdroj.width(0);     stredisko.width(90);
+    | stredisko.width; stredisko.width(0); ucet.width(90);
     | ucet.width;      ucet.width(0);      kategorie.width(90);
     | kategorie.width; kategorie.width(0); rodcis.width(90);
     | rodcis.width;    rodcis.width(0);    titul.width(90);
     | titul.width;     titul.width(0);     telefony.width(90);
     | telefony.width;  telefony.width(0);  email.width(90);
     | email.width;     email.width(0);     potvrz.width(90);
-    | potvrz.width;    potvrz.width(0);    stredisko.width(90);
+    | potvrz.width;    potvrz.width(0);    zdroj.width(90);
     }
     // osoba nebo firma
     func osoba_firma(os,fy) {

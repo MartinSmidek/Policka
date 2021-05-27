@@ -56,7 +56,7 @@ function ch_import($par) { trace();
       'pozn'       => "D",
   );
   // rozdělíme na clen a dar
-  $n_clen= 0;
+  $n_clen= $n_dar= 0;
   foreach ($data as $row) {
 //                                                    debug($row);
     // najdi kontakt: fyzické podle jmeno+prijmeni (osoba=1), právnické podle firma (osoba=0)
@@ -178,9 +178,12 @@ function ch_import($par) { trace();
     foreach ($d as $fld=>$val) {
       $attr[]= "$fld='$val'";
     }
-    query("INSERT INTO dar SET typ=9,".implode(',',$attr));
+    if (isset($d['castka']) && $d['castka']) {
+      query("INSERT INTO dar SET typ=9,".implode(',',$attr));
+      $n_dar++;
+    }
   }
-  return "Bylo vloženo $n_clen lidí a ".count($data)." darů";
+  return "Bylo vloženo $n_clen lidí a $n_dar darů";
 }
 # ------------------------------------------------------------------------------------- ch csv2array
 # načtení CSV-souboru do asociativního pole, při chybě navrací chybovou zprávu
