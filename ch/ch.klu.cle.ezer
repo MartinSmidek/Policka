@@ -121,6 +121,9 @@ form _cleni [,,660,334+17] {
       C_dary.dary.browse_init(); C_dar._form_state('','b.');
     }
   }
+  func ShowAll() { 
+    cleni.browse_load("left(c.deleted,1)!='D' AND umrti='0000-00-00'");
+  }
   # přepínání_sloupce_del
   check cond_del [562,0,86,17] { title:'i smazaní', format:"t",
     help:'budou zobrazeni i smazaní', value:'0'
@@ -533,12 +536,16 @@ form _clen_butt [,,400,35] {
     help:'naplní položky základními hodnotami, vlastní vytvoření se provede uložením změn'
     proc onclick () { clear; _clen_ico } }
   proc _clen_ico () { var ico:number, ret:object
-    clear; C_clen.init(1);
+    clear; C_clen.init(1); 
+    C_cleni.cond_fy.set(1); C_cleni.cond_fy.onchange;
     ico.set(prompt2("Zadejte IČO firmy",'')); echo(ico);
     ret.set(ask('klub_firma_ico',ico));
-    { ret.ok; copy_by_name(ret,C_clen);
-      C_clen.prijmeni.change;
-      C_clen.rodcis.change;
+    { ret.ok; 
+      C_clen.init(1);
+      copy_by_name(ret,C_clen);
+      C_clen.osoba.change;
+      C_clen.firma.change;
+      C_clen.ico.change;
       C_clen.ulice.change;
       C_clen.obec.change;
       C_clen.psc.change;
@@ -568,11 +575,13 @@ form _clen_butt [,,400,35] {
   proc _clen_load (id) {
     C_clen.load(id); _form_state('br|be','bc'); }
 }
-# ===================================================================================> ROLE VE FIRMĚ
+# ==============================================================================> R O L E VE FIRMÁCH
 panel ROLE [,,616,215] { title:'Seznam odob připnutých k ...', type:'popup', css:'dialog'
+    par:{close:'no'}
   var typ:text,         // F=firma s připnutými osobami | O= osoba ...
       id_owner:number,  // firma s připnutými osobami   | osoba a kam je připnutá
-      id_member:number  // aktuální připnutá osoba      | aktuální připnutá firma
+      id_member:number, // aktuální připnutá osoba      | aktuální připnutá firma
+      old_vyber:number, old_os:number, old_fy:number // výběrová podmínka při staru
   func Osoby(_id,firma) { // ==> .. zobraz osoby
     typ= 'F'; id_owner= _id; id_member= 0; fo.init();
     panel.title= `[fa-users] Seznam osob připnutých k "${firma}"`;  
@@ -580,6 +589,7 @@ panel ROLE [,,616,215] { title:'Seznam odob připnutých k ...', type:'popup', c
     fo.odepni= '[fa-plug fa-rotate-180 fa-red] Odepni osobu';
     fo.osoby.display(1); fo.firmy.display(0); 
     fo.Refresh();
+    save_vyber();
     panel.popup(9,404);
   }
   func Firmy(_id,jmeno) { // .. zobraz firmy
@@ -589,7 +599,23 @@ panel ROLE [,,616,215] { title:'Seznam odob připnutých k ...', type:'popup', c
     fo.odepni= '[fa-plug fa-rotate-180 fa-red] Odepni z firmy';
     fo.osoby.display(0); fo.firmy.display(1); 
     fo.Refresh();
+    save_vyber();
     panel.popup(9,404);
+  }
+  func save_vyber() {
+    old_vyber= C_cleni.cond.key();
+    old_os= C_cleni.cond_os;
+    old_fy= C_cleni.cond_fy;
+    C_cleni.cleni.osoba_firma(1,1);
+    C_cleni.ShowAll();
+  }
+  func Hide(on) {
+    C_cleni.cond_fy= old_fy;
+    C_cleni.cond_os= old_os;
+    C_cleni.cleni.osoba_firma(old_os,old_fy);
+    C_cleni.cond.key(old_vyber);
+    C_cleni._cleni_vyber(id_owner);
+    panel.hide(on)
   }
   use fo: form {
     view r: table role
@@ -640,7 +666,7 @@ panel ROLE [,,616,215] { title:'Seznam odob připnutých k ...', type:'popup', c
         Refresh();
     }}
     button [505,70,,] { title:'[fa-undo] Zpět', help:'návrat'
-      func onclick () { show_clen(id_owner); panel.hide(0) }
+      func onclick () { show_clen(id_owner); Hide(0) }
     }
     # ==> . změna role
     field {data:r.id_role}

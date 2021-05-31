@@ -118,8 +118,9 @@ __EOD;
   if ( $x==1 ) {
     $ret->ok= 1;
     $z= (object)$js->Odpoved->Zaznam[0];
-    $ret->prijmeni= (string)$z->Obchodni_firma;
-    $ret->rodcis=   (string)$z->ICO;
+    $ret->osoba= 0;
+    $ret->firma= (string)$z->Obchodni_firma;
+    $ret->ico=      (string)$z->ICO;
     $i= $z->Identifikace[0]->Adresa_ARES;
     $ret->ulice=    (string)$i->Nazev_ulice;
     $ret->obec=     (string)$i->Nazev_obce;
