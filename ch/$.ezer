@@ -263,14 +263,14 @@ table clen { key_id:'id_clen'
   number rodina         { help:'rodina|počet osob v rodině' },
   text   titul          { help:'titul|akademický titul nebo zvláštní oslovení' },
   text   titul_za       { help:'titul|akademický titul za jménem' },
-  text   jmeno          { help:'první jméno|křestní jméno fyzické osoby nebo plné jméno kontaktu' },
-  text   prijmeni       { help:'druhé jméno|příjmení fyzické osoby nebo jméno organizace' }
+  text   jmeno          { help:'křestní jméno|křestní jméno fyzické osoby' },
+  text   prijmeni       { help:'příjmení|příjmení fyzické osoby' }
   date   narozeni       { help:'datum narození', sql_pipe:'sql_date1' }
   number narozeni_rok   { help:'rok narození' }
   //text kategorie      { help:'kategorie|kód kategorie ve tvaru (D O H) x číslice' },
   text   kategorie      { help:'kategorie|-/město/nadace' },
-  text   firma          { help:'firma' },
-  text   firma_info     { help:'poznámka k firmě' },
+  text   firma          { help:'firma|název firmy' },
+  text   firma_info     { help:'poznámka k firmě|osoby raději připínejte' },
   number ico            { help:'IČ|IČ firmy nebo organizace' }
   text   ulice          { help:'ulice' },
   text   obec           { help:'obec' },
@@ -282,7 +282,7 @@ table clen { key_id:'id_clen'
   text   stat2          { help:'pošt. stát' },
   text   telefony       { help:'telefony|seznam známých čísel oddělených čárkou' },
   text   email          { help:'emaily|seznam emailových adres oddělených čárkou' },
-  number stredisko      { help:'středisko|posíláme materiály tohoto střediska' },
+//  number stredisko      { help:'středisko|posíláme materiály tohoto střediska' },
   text   poznamka       { help:'poznámka|obecná poznámka k tomuto kontaktu' },
   number svyjimka       { help:'svýjimka|přepínání mezi automatickou nebo ručně zadanou hodnotou pro středisko' },
   number pvyjimka       { help:'pvýjimka|přepínání mezi automatickou nebo ručně zadanou hodnotou pro potvrzení' },

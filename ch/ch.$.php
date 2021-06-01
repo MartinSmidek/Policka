@@ -5,7 +5,7 @@
 /** =======================================================================================> TABLES */
 # zobrazované tabulky >* je označuje klíč, >tab ozančuje klíč jiné tabulky
 $app_tables= (object)array(
-  'clen'   => "id_clen>*,jmeno,prijmeni",
+  'clen'   => "id_clen>*,firma,jmeno,prijmeni",
   'dar'    => "id_dar>*,id_clen>clen,zpusob,ucet,stredisko,castka_kdy",
   '_' => 'sys.dat,struc' // cesta k funkci tab_append
 );

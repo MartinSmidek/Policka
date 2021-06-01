@@ -2,25 +2,25 @@
 # Systém CK - panel Klub.Kontakty
 # (c) 2010 Martin Šmídek <martin@smidek.eu>
 # ======================================================================================= klu - Klub
-var cond_strediska: text                // seznam viditelných středisek
-var info_strediska: text                // seznam viditelných středisek pro patičku
-var moje_stredisko: text                // středisko nastavené při vytvoření kontaktu, daru
-var info_stredisko: text                // středisko pro patičku
-proc onstart () {
-  cond_strediska.set(ask('sql_query',conc(
-      "SELECT GROUP_CONCAT(data) as strediska,GROUP_CONCAT(zkratka SEPARATOR ',') as info FROM _cis",
-      "  WHERE druh='stredisko' AND (FIND_IN_SET('",sys('user','abbr'),"',ikona)
-           OR FIND_IN_SET('*",sys('user','abbr'),"',ikona))")));
-  info_strediska.set(cond_strediska.get('info'));
-  cond_strediska.set(cond_strediska.get('strediska'));
-  moje_stredisko.set(ask('sql_query',conc(
-      "SELECT data,zkratka FROM _cis",
-      "  WHERE druh='stredisko' AND FIND_IN_SET('*",sys('user','abbr'),"',ikona)")));
-  info_stredisko.set(if(moje_stredisko.get,moje_stredisko.get('zkratka'),0));
-  moje_stredisko.set(if(moje_stredisko.get,moje_stredisko.get('data'),0));
-  info_strediska.set(replace(info_strediska.get,info_stredisko.get,conc('*',info_stredisko.get)));
-  javascript(conc("Ezer.sys.user.note=' / ",info_strediska.get,"';Ezer.App.bar_clock();"),1);
-}
+//var cond_strediska: text                // seznam viditelných středisek
+//var info_strediska: text                // seznam viditelných středisek pro patičku
+//var moje_stredisko: text                // středisko nastavené při vytvoření kontaktu, daru
+//var info_stredisko: text                // středisko pro patičku
+//proc onstart () {
+//  cond_strediska.set(ask('sql_query',conc(
+//      "SELECT GROUP_CONCAT(data) as strediska,GROUP_CONCAT(zkratka SEPARATOR ',') as info FROM _cis",
+//      "  WHERE druh='stredisko' AND (FIND_IN_SET('",sys('user','abbr'),"',ikona)
+//           OR FIND_IN_SET('*",sys('user','abbr'),"',ikona))")));
+//  info_strediska.set(cond_strediska.get('info'));
+//  cond_strediska.set(cond_strediska.get('strediska'));
+//  moje_stredisko.set(ask('sql_query',conc(
+//      "SELECT data,zkratka FROM _cis",
+//      "  WHERE druh='stredisko' AND FIND_IN_SET('*",sys('user','abbr'),"',ikona)")));
+//  info_stredisko.set(if(moje_stredisko.get,moje_stredisko.get('zkratka'),0));
+//  moje_stredisko.set(if(moje_stredisko.get,moje_stredisko.get('data'),0));
+//  info_strediska.set(replace(info_strediska.get,info_stredisko.get,conc('*',info_stredisko.get)));
+//  javascript(conc("Ezer.sys.user.note=' / ",info_strediska.get,"';Ezer.App.bar_clock();"),1);
+//}
 proc warning1() { warning('Před touto operací je zapotřebí inicializovat kartu Klub|Kontakty'); return(0); }
 # ========================================================================================> KONTAKTY
 panel cle {type:'plain', title:"[fa-home] Kontakty", _sys:'*',  include:'onload'

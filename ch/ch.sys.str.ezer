@@ -4,14 +4,11 @@
 const rows= 8, top_cmd= 88 + 136 // 136=8*17
 
 use ss: form _strediska [12,4,,]
-use sc: form _scmd [6,222,,]
 use us: form _ucty [412,4,,]
-use uc: form _ucmd [406,222,,]
 use ks: form _kategorie [12,264,,]
-//use vc: form _vcmd [6,602,,]
 func onstart () {
-  ss.seznam.browse_load("druh='stredisko'"); ss.seznam.raise('onrowclick');
-  us.seznam.browse_load("druh='b_ucty'"); us.seznam.raise('onrowclick');
+  ss.Load();
+  us.Load();
   ks.Load();
 }
 proc the_formsave (f,b) {
@@ -54,7 +51,7 @@ form _kategorie [,,380,250] {css:'ae_parm'
 }
 # ----------------------------------------------------------------------------- 
 panel Kategorie [0,0,400,160] { title:'', type:'popup', css:'dialog'
-  const druh= 'kategorie', druh_base= 3300
+  var druh= 'kategorie', druh_base= 3300
   func Upravit() { 
     panel.title= 'Úprava kategorie';
     k.load(ks.seznam.cid); 
@@ -65,7 +62,7 @@ panel Kategorie [0,0,400,160] { title:'', type:'popup', css:'dialog'
     // návrh klíče
     k.init();
     k.druh= druh;
-    k.dat= 1+php.select('MAX(data)','_cis',`druh='${druh}'`);
+    k.dat= 1+php.select('MAX(0+data)','_cis',`druh='${druh}'`);
     k.cid= k.dat+druh_base;
     echo(`cid=${k.cid}, data=${k.dat}`);
     k.cid.change(); k.dat.change(); k.druh.change(); 
@@ -99,135 +96,156 @@ panel Kategorie [0,0,400,160] { title:'', type:'popup', css:'dialog'
 # =======================================================================================> Střediska
 form _strediska [,,380,250] {css:'ae_parm'
   browse seznam [9,27,200,200] {qry_rows:1, rows:rows
-    show cid            { data:_cis.id_cis, format:'s' },
-    show druh           { data:_cis.druh, format:'s' },
-    show       [,, 30,] { title:'id', data:_cis.data, format:'qs+r' },
-    show       [,, 50,] { title:'zkratka', data:_cis.zkratka, format:'qs' },
-    show nazev [,,250,] { title:'název', data:_cis.hodnota, format:'qst' },
-//    show       [,,150,] { title:'popis', data:_cis.popis, format:'qst' },
-    proc onsubmit () { has_skill('hnse'); s_oprava.modal(300,100) }
-  },
+    show cid            { data:_cis.id_cis, format:'s' }
+    show druh           { data:_cis.druh, format:'s' }
+    show dat   [,, 30,] { title:'id', data:_cis.data, format:'qs+r' }
+    show       [,, 50,] { title:'zkratka', data:_cis.zkratka, format:'qs' }
+    show nazev [,,250,] { title:'název', data:_cis.hodnota, format:'qst' }
+  }
   label [6,6,267,17] { title:'<b>Seznam středisek</b>' },
-}
-# ----------------------------------------------------------------------------- _scmd
-form _scmd [,,300,20] {
-  button [18,7,,] {type:'submit', title:'Opravit', skill:'hnse|hnse'
-    proc onclick () { s_oprava.modal(300,100) } }
-  button [214,7,,] {title:'Nové', skill:'r|a'
-    proc onclick () { s_novy.modal(300,100) } }
-  button [272,7,,] {title:'Smazat', skill:'r|a'
-    proc onclick () {
-      confirm(conc('Opravdu smazat středisko ',ss.seznam.nazev.get,'?'));
-      _cis.delete_record(conc('id_cis=',ss.seznam.cid.get));
-      ss.seznam.raise('onrowclick',ss.seznam.browse_seek(1))
+  button [18,top_cmd,,] {type:'submit', title:'Upravit', skill:'hnse|hnse'
+    func onclick () { Strediska.Upravit(); } }
+  button [214,top_cmd,,] {title:'Vytvořit', skill:'r|a'
+    func onclick () { Strediska.Vytvorit(); } }
+  button [272,top_cmd,,] {title:'Smazat', skill:'r|a'
+    func onclick () { var n:number
+      if (confirm(`Opravdu smazat středisko '${seznam.nazev}'?`)) {
+        n= php.select('COUNT(*)','dar',`stredisko=${seznam.dat}`);
+        if (n)
+          alert(`POZOR na toto středisko je připsáno ${n} darů. Proto je nelze odstranit.`);
+        else {
+          php.query(`DELETE FROM _cis WHERE id_cis=${seznam.cid}`);
+          the_formsave(form,ss.seznam);
+          klu.cle.refresh_vyber();
+          Load();
+        }
+      }
     }
   }
+  func Load() { seznam.browse_load(`druh='${Strediska.druh}'`); }
 }
-# ----------------------------------------------------------------------------- s_oprava
-panel s_oprava [0,0,400,160] { title:'oprava střediska', type:'popup', css:'dialog'
-  use s: form _stredisko [2,19,,],
-  proc onfocus() { s.load(ss.seznam.cid.get); }
-}
-# ----------------------------------------------------------------------------- s_novy
-panel s_novy [0,0,400,160] { title:'nové středisko', type:'popup', css:'dialog'
-  use s: form _stredisko [1,1,,]
-  proc onfocus() {
+# ----------------------------------------------------------------------------- 
+panel Strediska [0,0,400,160] { title:'', type:'popup', css:'dialog'
+  var druh= 'stredisko', druh_base= 3200
+  func Upravit() { 
+    panel.title= 'Úprava střediska';
+    k.load(ss.seznam.cid); 
+    panel.modal(300,100);
+  }
+  func Vytvorit() { 
+    panel.title= 'Založení nového střediska';
     // návrh klíče
-    s.init;
-    s.druh.set(ss.seznam.druh.get);
-    s.dat.set(sum(ss.seznam.browse_count,1));
-    s.cid.set(sum(s.dat.get,multiply(divide(ss.seznam.cid.get,100),100)));
-    s.cid.change; s.dat.change; s.druh.change
+    k.init();
+    k.druh= druh;
+    k.dat= 1+php.select('MAX(0+data)','_cis',`druh='${druh}'`);
+    k.cid= k.dat+druh_base;
+    echo(`cid=${k.cid}, data=${k.dat}`);
+    k.cid.change(); k.dat.change(); k.druh.change(); 
+    k.zkratka.change(); k.nazev.change(); 
+    panel.modal(300,100);
   }
-}
-# ----------------------------------------------------------------------------- _stredisko
-form _stredisko [,,300,100] {
-  label [23,14,,] { title:'Číslo' }
-  label [113,14,,] { title:'Název' }
-  label [10,44,,] { title:'Zkratka' }
-//  label [98,43,47,32] { title:'Text do potvrzení (1.pád) {stredisko}', format:'r' }
-//  label [141,127,,] { title:'Oprávnění', skill:'hnse' }
-  field dat  [51,10,37,17] { data:_cis.data, format:'r', skill:'r|m'}
-  field      [150,10,236,17] { data:_cis.hodnota, skill:'r|a'}
-  field      [51,40,37,17] { data:_cis.zkratka, skill:'r|hns'}
-//  edit       [150,40,236,58] { data:_cis.popis, skill:'r|hns' }
-//  field      [199,123,190,34] { data:_cis.ikona, skill:'r|a' }
-  field druh {data:_cis.druh }
-  field cid  {data:_cis.id_cis }
-  button [14,120,,] {type:'submit', title:'Uložit', help:'uložit změny',
-    proc onclick() {
-      the_formsave(form,ss.seznam);
-//       cis_stredisko.map_load;
-      panel.hide(form.key); }
-  }
-  button [70,121,,] { title:'Zpět', help:'zadané údaje neukládat, vrátit se zpět'
-    proc onclick() { panel.hide(0) }
+  use k: form [0,0,*,*] {
+    field cid  {data:_cis.id_cis }
+    field druh {data:_cis.druh }
+    field dat  [-10,0,40,] { data:_cis.data, format:'ro'}
+    field zkratka [100,10,70,] { title:'zkratka:', data:_cis.zkratka }
+    field nazev [100,40,200,] { title:'název:', data:_cis.hodnota }
+    edit popis [100,70,200,80] { title:'popis střediska', data:_cis.popis, skill:'r|hns' }
+    button [320,40,,] {title:'[fa-save] Uložit', help:'uložit změny',
+      func onclick() { var n:number
+        n= php.select('COUNT(*)','dar',`stredisko=${dat}`);
+        if (n==0 || confirm(`POZOR tomuto středisku je připsáno ${n} darů, 
+              změna jeho názvu by tedy neměla měnit smysl. Mám změnu uložit?`)) {
+          the_formsave(form,ss.seznam);
+        }
+        panel.hide(form.key()) 
+      }
+    }
+    button [320,70,,] { title:'[fa-undo] Zpět', help:'zadané údaje neukládat, vrátit se zpět'
+      func onclick() { 
+        panel.hide(0) 
+      }
+    }
   }
 }
 # ============================================================================================> účty
 form _ucty [,,380,250] {css:'ae_parm'
   browse seznam [9,27,200,200] {qry_rows:1, rows:rows
-    show cid            { data:_cis.id_cis, format:'s' },
-    show druh           { data:_cis.druh, format:'s' },
-    show       [,,30,]  { title:'id', data:_cis.data, format:'qs+r',
-                          help:'pořadové číslo účtu použité v darech' },
+    show cid            { data:_cis.id_cis, format:'s' }
+    show druh           { data:_cis.druh, format:'s' }
+    show dat   [,,30,]  { title:'id', data:_cis.data, format:'qs+r',
+                          help:'interní číslo účtu' },
     show zkrat [,, 20,] { title:'zkratka', data:_cis.zkratka, format:'qs',
                           help:'jednopísmenná zkratka použitá jako první písmeno ve výpisech' },
     show nazev [,,160,] { title:'název', data:_cis.hodnota, format:'qst',
                           help:'výztižný název účtu' },
     show ucet  [,,120,] { title:'číslo účtu', data:_cis.ikona, format:'rqst',
                           help:'předčíslí-účet/banka' },
-    proc onsubmit () { has_skill('hnue'); u_oprava.modal(300,100) }
-  },
+  }
   label [6,6,267,17] { title:'<b>Seznam bankovních účtů</b>' },
-}
-# ----------------------------------------------------------------------------- _ucmd
-form _ucmd [,,300,20] {
-  button [18,7,,] { type:'submit', title:'Opravit', skill:'hnue|hnue'
-    proc onclick () { u_oprava.modal(300,100) } }
-  button [214,7,,] { title:'Nové', skill:'hnue|hnue'
-    proc onclick () { u_novy.modal(300,100) } }
-  button [272,7,,] { title:'Smazat', skill:'hnue|hnue'
-    proc onclick () {
-      confirm(conc('Opravdu smazat středisko ',us.seznam.nazev.get,'?'));
-      _cis.delete_record(conc('id_cis=',us.seznam.cid.get));
-      us.seznam.raise('onrowclick',us.seznam.browse_seek(1))
+  button [18,top_cmd,,] {type:'submit', title:'Upravit', skill:'hnse|hnse'
+    func onclick () { Ucty.Upravit(); } }
+  button [214,top_cmd,,] {title:'Vytvořit', skill:'r|a'
+    func onclick () { Ucty.Vytvorit(); } }
+  button [272,top_cmd,,] {title:'Smazat', skill:'r|a'
+    func onclick () { var n:number
+      if (confirm(`Opravdu smazat účet '${seznam.nazev}'?`)) {
+        n= php.select('COUNT(*)','vypis',`nas_ucet=${seznam.dat}`);
+        if (n)
+          alert(`POZOR z tohoto účtu je staženo ${n} výpisů, takže nelze odstranit.`);
+        else {
+          php.query(`DELETE FROM _cis WHERE id_cis=${seznam.cid}`);
+          the_formsave(form,us.seznam);
+          Load();
+        }
+      }
     }
   }
+  func Load() { seznam.browse_load(`druh='${Ucty.druh}'`); }
 }
-# ----------------------------------------------------------------------------- u_oprava
-panel u_oprava [0,0,400,160] { title:'oprava bankovního účtu', type:'popup', css:'dialog'
-  use s: form _ucet [2,19,,],
-  proc onfocus() { s.load(us.seznam.cid.get); }
-}
-# ----------------------------------------------------------------------------- u_novy
-panel u_novy [0,0,400,160] { title:'nový bankovní účet', type:'popup', css:'dialog'
-  use s: form _ucet [1,1,,]
-  proc onfocus() {
+# ----------------------------------------------------------------------------- 
+panel Ucty [0,0,400,160] { title:'', type:'popup', css:'dialog'
+  var druh= 'b_ucty', druh_base= 2500
+  func Upravit() { 
+    panel.title= 'Úprava účtu';
+    k.load(us.seznam.cid); 
+    panel.modal(300,100);
+  }
+  func Vytvorit() { 
+    panel.title= 'Založení nového účtu';
     // návrh klíče
-    s.init;
-    s.druh.set(us.seznam.druh.get);
-    s.dat.set(sum(1,us.seznam.browse_count));
-    s.cid.set(sum(s.dat.get,multiply(divide(us.seznam.cid.get,100),100)));
-    s.cid.change; s.dat.change; s.druh.change
+    k.init();
+    k.druh= druh;
+    k.dat= 1+php.select('MAX(0+data)','_cis',`druh='${druh}'`);
+    k.cid= k.dat+druh_base;
+    echo(`cid=${k.cid}, data=${k.dat}`);
+    k.cid.change(); k.dat.change(); k.druh.change(); 
+    k.zkratka.change(); k.nazev.change(); k.ucet.change(); 
+    panel.modal(300,100);
   }
-}
-# ----------------------------------------------------------------------------- _ucet
-form _ucet [,,300,100] {
-  label [25,21,25,17] { title:'Číslo' }
-  label [112,22,30,17] { title:'Název' }
-  label [10,52,30,17] { title:'Zkratka' }
-  field dat  [ 51,18, 37,17] { data:_cis.data, format:'r'}
-  field      [150,18,236,17] { data:_cis.hodnota}
-  field      [ 51,48, 37,17] { data:_cis.zkratka}
-  label [116,51,30,17] { title:'Účet:', skill:'hnue' }
-  field      [150,48,236,34] { data:_cis.ikona, skill:'hnue|hnue', help:'předčíslí-účet/banka' }
-  field druh {data:_cis.druh }
-  field cid  {data:_cis.id_cis }
-  button [16,108,,] {type:'submit', title:'Uložit', help:'uložit změny',
-    proc onclick() { the_formsave(form,us.seznam); cis_k_ucet.map_load; panel.hide(form.key); }
-  }
-  button [93,109,,] { title:'Zpět', help:'zadané údaje neukládat, vrátit se zpět'
-    proc onclick() { panel.hide(0) }
+  use k: form [0,0,*,*] {
+    field cid  {data:_cis.id_cis }
+    field druh {data:_cis.druh }
+    field dat  [-10,0,40,] { data:_cis.data, format:'ro'}
+    field zkratka [100,10,20,] { title:'zkratka:', data:_cis.zkratka }
+    field nazev [100,40,200,] { title:'název:', data:_cis.hodnota }
+    field ucet [100,70,200,] { title:'účet/banka:', data:_cis.ikona, format:'r' }
+    edit popis [100,100,200,50] { title:'popis účtu', data:_cis.popis, skill:'r|hns' }
+    // fce
+    button [320,40,,] {title:'[fa-save] Uložit', help:'uložit změny',
+      func onclick() { var n:number
+        n= php.select('COUNT(*)','vypis',`nas_ucet=${dat}`);
+        if (n==0 || confirm(`POZOR z tohoto účtu je staženo ${n} výpisů, 
+              jeho změna by tedy neměla měnit smysl. Mám změnu uložit?`)) {
+          the_formsave(form,us.seznam);
+        }
+        panel.hide(form.key()) 
+      }
+    }
+    button [320,70,,] { title:'[fa-undo] Zpět', help:'zadané údaje neukládat, vrátit se zpět'
+      func onclick() { 
+        panel.hide(0) 
+      }
+    }
   }
 }

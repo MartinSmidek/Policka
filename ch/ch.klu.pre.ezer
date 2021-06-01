@@ -337,7 +337,7 @@ form _cmd [,,897,62] { css:'work'
 panel pop_ucty [,,780,215] { title:'Převody ze stejného účtu', type:'popup', css:'dialog'
   var idc: text
   func Vyber(ucet) {
-    pu.seznam.browse_load(`d.zpusob=2 AND d.ucet='${ucet}' AND d.id_clen!=0`);
+    pu.seznam.browse_load(`d.zpusob=2 AND d.ucet='${ucet}' AND d.deleted='' AND d.typ=9`);
     return panel.modal(186,100) ? idc : 0;
   }
   use pu: form {
@@ -366,7 +366,8 @@ panel pop_ucty [,,780,215] { title:'Převody ze stejného účtu', type:'popup',
 panel pop_popis [,,780,215] { title:'Kontakty Klubu', type:'popup', css:'dialog'
   var idc: text
   func Vyber(popis) {
-    pu.seznam.browse_load(php.ch_search_popis(popis),'d.castka_kdy DESC');
+    pu.seznam.browse_load(`${php.ch_search_popis(popis)} AND d.typ=9 AND d.deleted=''`,
+        'd.castka_kdy DESC');
     return panel.modal(186,100) ? idc : 0;
   }
   use pu: form {

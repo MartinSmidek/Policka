@@ -36,73 +36,6 @@ function klub_firma_ico($ico) {
   $url= "$ares=$ico#3";
                                                         display($url);
    $xml= file_get_contents($url);
-/*
-  $xml_= <<<__EOD
-<?xml version="1.0" encoding="UTF-8"?>
-<are:Ares_odpovedi xmlns:are="http://wwwinfo.mfcr.cz/ares/xml_doc/schemas/ares/ares_answer/v_1.0.1" xmlns:dtt="http://wwwinfo.mfcr.cz/ares/xml_doc/schemas/ares/ares_datatypes/v_1.0.4" xmlns:udt="http://wwwinfo.mfcr.cz/ares/xml_doc/schemas/uvis_datatypes/v_1.0.1" odpoved_datum_cas="2017-05-15T12:42:47" odpoved_pocet="1" odpoved_typ="Standard" vystup_format="XML" xslt="klient" validation_XSLT="/ares/xml_doc/schemas/ares/ares_answer/v_1.0.0/ares_answer.xsl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://wwwinfo.mfcr.cz/ares/xml_doc/schemas/ares/ares_answer/v_1.0.1 http://wwwinfo.mfcr.cz/ares/xml_doc/schemas/ares/ares_answer/v_1.0.1/ares_answer_v_1.0.1.xsd" Id="ares">
-  <are:Odpoved>
-    <are:Pocet_zaznamu>0</are:Pocet_zaznamu>
-    <are:Typ_vyhledani>FREE</are:Typ_vyhledani>
-  </are:Odpoved>
-</are:Ares_odpovedi>
-__EOD;
-
-  $xml= <<<__EOD
-<?xml version="1.0" encoding="UTF-8"?>
-<are:Ares_odpovedi
-    xmlns:are="http://wwwinfo.mfcr.cz/ares/xml_doc/schemas/ares/ares_answer/v_1.0.1"
-    xmlns:dtt="http://wwwinfo.mfcr.cz/ares/xml_doc/schemas/ares/ares_datatypes/v_1.0.4"
-    xmlns:udt="http://wwwinfo.mfcr.cz/ares/xml_doc/schemas/uvis_datatypes/v_1.0.1"
-    odpoved_datum_cas="2017-04-26T16:06:21"
-    odpoved_pocet="1" odpoved_typ="Standard" vystup_format="XML" xslt="klient"
-    validation_XSLT="/ares/xml_doc/schemas/ares/ares_answer/v_1.0.0/ares_answer.xsl"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://wwwinfo.mfcr.cz/ares/xml_doc/schemas/ares/ares_answer/v_1.0.1 http://wwwinfo.mfcr.cz/ares/xml_doc/schemas/ares/ares_answer/v_1.0.1/ares_answer_v_1.0.1.xsd"
-    Id="ares">
-  <are:Odpoved>
-  <are:Pocet_zaznamu>1</are:Pocet_zaznamu>
-  <are:Typ_vyhledani>FREE</are:Typ_vyhledani>
-  <are:Zaznam>
-    <are:Shoda_ICO>
-    <dtt:Kod>9</dtt:Kod>
-    </are:Shoda_ICO>
-    <are:Vyhledano_dle>ICO</are:Vyhledano_dle>
-    <are:Typ_registru>
-    <dtt:Kod>2</dtt:Kod>
-    <dtt:Text>OR</dtt:Text>
-    </are:Typ_registru>
-    <are:Datum_vzniku>1992-05-21</are:Datum_vzniku>
-    <are:Datum_platnosti>2017-04-26</are:Datum_platnosti>
-    <are:Pravni_forma>
-    <dtt:Kod_PF>112</dtt:Kod_PF>
-    </are:Pravni_forma>
-    <are:Obchodni_firma>100 Mega Hradec Králové, spol. s r.o.</are:Obchodni_firma>
-    <are:ICO>46507141</are:ICO>
-    <are:Identifikace>
-      <are:Adresa_ARES>
-        <dtt:ID_adresy>202693070</dtt:ID_adresy>
-        <dtt:Kod_statu>203</dtt:Kod_statu>
-        <dtt:Nazev_obce>Hradec Králové</dtt:Nazev_obce>
-        <dtt:Nazev_ulice>Gočárova</dtt:Nazev_ulice>
-        <dtt:PSC>50002</dtt:PSC>
-        <dtt:Adresa_UIR>
-          <udt:Kod_oblasti>51</udt:Kod_oblasti>
-          <udt:Kod_kraje>86</udt:Kod_kraje>
-          <udt:Kod_okresu>3602</udt:Kod_okresu>
-          <udt:Kod_obce>569810</udt:Kod_obce>
-          <udt:PSC>50002</udt:PSC>
-          <udt:Kod_ulice>128627</udt:Kod_ulice>
-        </dtt:Adresa_UIR>
-      </are:Adresa_ARES>
-    </are:Identifikace>
-    <are:Kod_FU>228</are:Kod_FU>
-    <are:Priznaky_subjektu>NAAZNANNNNNNNNNNNNNNNENNANNNNN</are:Priznaky_subjektu>
-    </are:Zaznam>
-  </are:Odpoved>
-</are:Ares_odpovedi>
-__EOD;
-*/
-                                                        display(htmlentities($xml));
   libxml_use_internal_errors(true);
   $xml= strtr($xml,array('are:'=>'','dtt:'=>'','udt:'=>'','xsi:'=>''));
 //                                                         display(htmlentities($xml));
@@ -157,7 +90,7 @@ function klub_ukaz_dar($id_dar,$barva='') {
   return "<b><a $style href='ezer://klu.dry.show_dar/$id_dar'>$id_dar</a></b>";
 }
 # --------------------------------------------------------------------------------- klub role_pripni
-# připne osobu k firmě
+# připne osobu k firmě 
 function klub_role_pripni($idf,$ido) {
   $ret= (object)array(msg=>'',ido=>0);
   list($idr,$role)= select('id_role,popis','role',"id_firma=$idf AND id_osoba=$ido");
@@ -171,6 +104,21 @@ function klub_role_pripni($idf,$ido) {
     query("INSERT INTO role SET id_firma=$idf, id_osoba=$ido");
   }
   return $ret;
+}
+# --------------------------------------------------------------------------------- klub clen_delete
+# smaže člena, pokud k němu není nic připnuto
+function klub_clen_delete($idc) {
+  global $USER;
+  $msg= '';
+  $n= select('COUNT(*)','role',"id_firma=$idc OR id_osoba=$idc");
+  if ($n) {
+    $msg= "před smazáním je třeba od tohoto kontaktu odepnout $n připnutí";
+  }
+  else {
+    $D= "D {$USER->abbr} ".date('j.n.Y');
+    ezer_qry("UPDATE",'clen',$idc,array((object)array('fld'=>'deleted', 'op'=>'u','val'=>$D)));
+  }
+  return $msg;
 }
 # --------------------------------------------------------------------------------- klub role_odepni
 # odepne osobu z firmy
@@ -235,11 +183,11 @@ function klub_check ($id_clen,$rodcis='',$darce='') { trace();
 /** ****************************************************************************************==> DARY */
 # ----------------------------------------------------------------------------------- klub dary_suma
 # ASK: vrátí součet darů dárce, $strediska je seznam _cis.data středisek
-function klub_dary_suma ($id_clen,$strediska) {  trace();
+function klub_dary_suma ($id_clen) {  trace();
   $suma= 0;
   $qry= "SELECT sum(castka) as suma FROM dar AS dd
-         -- LEFT JOIN _cis ON dd.varsym=data AND druh='varsym'
-         WHERE LEFT(deleted,1)!='D' AND id_clen=$id_clen -- AND _cis.zkratka=1 $strediska";
+         WHERE LEFT(deleted,1)!='D' AND id_clen=$id_clen 
+           AND typ IN (8,9) ";
   $res= pdo_qry($qry);
   if ( $res && $u= pdo_fetch_object($res) ) {
     $suma= $u->suma;
