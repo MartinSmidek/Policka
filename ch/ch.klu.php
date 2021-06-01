@@ -194,70 +194,31 @@ function klub_dary_suma ($id_clen) {  trace();
   }
   return number_format($suma,2,'.','');
 }
-# --------------------------------------------------------------------------------- klub dary_soucet
-# browse_map: vrátí součet částek vybraných darů
-function klub_dary_soucet ($xkeys) {  trace();
-  $keys= ''; $del= '';
-  foreach ($xkeys as $key) {
-    $keys.= "$del$key";
-    $del= ',';
-  }
-  $suma= 0;
-  if ( $keys ) {
-    $qry= "SELECT sum(castka) as suma FROM dar WHERE id_dar IN ($keys)";
-    $res= pdo_qry($qry);
-    $row= pdo_fetch_assoc($res);
-    $suma= $row['suma'];
-  }
-  return number_format($suma,2,'.','');
-}
-/** *******************************************************************************==> KLUB/složenky */
-//# ----------------------------------------------------------------------------- klub slozenky_soucet
-//# k balíčku zjistí počet a součet, vrátí součet
-//function klub_slozenky_soucet ($ident) {
-//  global $klub_slozenky;
-//  $klub_slozenky= array(0,0,0);
-//  // přečtení převodu
-//  $qry= "SELECT castka,platby FROM prevod AS p
-//         LEFT JOIN balicek AS b ON b.ident=concat(left(p.ident,3),substr(p.ident,5,3))
-//         WHERE p.ident='$ident'";
-//  $res= pdo_qry($qry);
-//  if ( $res && ($row= pdo_fetch_assoc($res)) ) {
-//    $klub_slozenky[2]= $row['castka'];
-//    $klub_slozenky[3]= $row['platby'];
+//# --------------------------------------------------------------------------------- klub dary_soucet
+//# browse_map: vrátí součet částek vybraných darů
+//function klub_dary_soucet ($xkeys) {  trace();
+//  $keys= ''; $del= '';
+//  foreach ($xkeys as $key) {
+//    $keys.= "$del$key";
+//    $del= ',';
 //  }
-//  // přečtení info o balíčku v Klubu
-//  $balicek= substr($ident,0,3).substr($ident,4,3);
-//  $cond= "ucet LIKE '$balicek%' AND left(deleted,1)!='D'";
-//  $qry= "SELECT sum(castka) as soucet,count(*) as pocet FROM dar
-//         WHERE $cond";
-//  $res= pdo_qry($qry);
-//  if ( $res && ($row= pdo_fetch_assoc($res)) ) {
-//    $klub_slozenky[0]= $row['soucet'];
-//    $klub_slozenky[1]= $row['pocet'];
+//  $suma= 0;
+//  if ( $keys ) {
+//    $qry= "SELECT sum(castka) as suma FROM dar WHERE id_dar IN ($keys)";
+//    $res= pdo_qry($qry);
+//    $row= pdo_fetch_assoc($res);
+//    $suma= $row['suma'];
 //  }
-//  $klub_slozenky[0]= number_format($klub_slozenky[0],2,'.','');
-//  return $klub_slozenky[0];
-//}
-//# ------------------------------------------------------------------------------ klub slozenky_pocet
-//# k balíčku vrátí v předchozí funkci zjištěny počet
-//function klub_slozenky_pocet ($ident) {
-//  global $klub_slozenky;
-//  return $klub_slozenky[1];
-//}
-//# ------------------------------------------------------------------------------ klub slozenky_color
-//# k balíčku vrátí v předchozí funkci zjištěnou barvu
-//function klub_slozenky_color ($ident) {
-//  global $klub_slozenky;
-//  return $klub_slozenky[0]==$klub_slozenky[2]-$klub_slozenky[3] ? 0 : 1;
+//  return number_format($suma,2,'.','');
 //}
 /** ***********************************************************************************==> INFORMACE */
 # ------------------------------------------------------------------------------------------ klu_inf
 # rozskok na informační funkce
-function klu_inf($obj) {
-  $args= (array)$obj;
-  $a= array_shift($args);
-  return call_user_func_array($a,$args);
+function klu_inf($par) {
+  switch($par->fce) {
+    case 'stat': return klu_inf_stat(); break;
+    case 'vyvoj': return klu_inf_vyvoj($par->p); break;
+  }
 }
 # ------------------------------------------------------------------------------------- klu_inf_stat
 # základní statistika
@@ -270,7 +231,7 @@ function klu_inf_stat() { trace();
   // dárci
   $clenu= $daru= 0;
   $qry= "SELECT count(*) as _pocet FROM dar JOIN clen USING(id_clen)
-         WHERE left(dar.deleted,1)!='D' /*AND left(clen.deleted,1)!='D' AND umrti='0000-00-00'*/
+         WHERE left(dar.deleted,1)!='D' AND typ IN (8,9)
          GROUP BY id_clen";
   $res= pdo_qry($qry);
   while ( $res && ($x= pdo_fetch_object($res)) ) {
@@ -288,7 +249,8 @@ function klu_inf_vyvoj($od) { trace();
   $fin_p= $vec_p= array();              // roční histogramy - počty
   $fin_s= $vec_s= array();              // roční histogramy - sumy
   $qry= "SELECT year(castka_kdy) as _year, castka, zpusob FROM dar JOIN clen USING(id_clen)
-         WHERE left(dar.deleted,1)!='D' AND left(clen.deleted,1)!='D' ";
+         WHERE left(dar.deleted,1)!='D' AND left(clen.deleted,1)!='D' 
+           AND (typ=9 OR typ=8 AND dar.id_clen!=0)";
   $res= pdo_qry($qry);
   while ( $res && ($d= pdo_fetch_object($res)) ) {
     $y= $d->_year;
@@ -326,141 +288,141 @@ function klu_vyvoj_row($r,$x1,$x2,$x3,$x4) {
   $html.= "</tr>";
   return $html;
 }
-function klu_vyvoj_add(&$kam,$rok) {
-  $rok= $rok+0;
-  $letos= date('Y');
-  if ( $rok ) {
-    if ( $rok>=1997 && $rok<=$letos) {
-      if ( !isset($kam[$rok]) ) $kam[$rok]= 0;
-      $kam[$rok]++;
-    }
-  }
-  else
-    $kam[0]++;
-}
-# -------------------------------------------------------------------------------------- klu_spor_vs
-# kontrola zda jsou dárci v době darování mezi živými
-function klu_spor_vs($roky_zpet) {
-  $rok= date('Y')-$roky_zpet;
-  $str= map_cis('stredisko','hodnota');
-  $html= '';
-  $n= 0;
-  $qry=  "SELECT id_dar,stredisko,varsym,zkratka,ikona,castka
-          FROM dar
-          LEFT JOIN _cis ON varsym=data AND druh='varsym'
-          WHERE stredisko!=ikona AND year(castka_kdy)=$rok
-          ORDER BY varsym";
-  $res= pdo_qry($qry);
-  while ( $res && $d= pdo_fetch_object($res) ) {
-    $n++;
-    $str_vs= $d->ikona ? " je určen středisku <b>{$str[$d->ikona]}</b>" : 'nemá uvedeného středisko';
-    $str_dar= $d->stredisko ? "byl připsán <b>{$str[$d->stredisko]}</b>" : 'nemá uvedeného příjemce';
-    $msg.= "<br>varsym <b>{$d->varsym}</b>  $str_vs ";
-    $msg.= "  ale dar <b>{$d->id_dar}</b> ({$d->castka} Kč) $str_dar";
-  }
-  $html.= $msg=='' ? 'Vše ok' : "<h3>Máme celkem $n takových případů:</h3><dl>$msg</dl>";
-  return $html;
-}
-# -------------------------------------------------------------------------------- klu_dar_smazaneho
-# kontrola zda jsou dary nejsou od smazaných dárců
-function klu_dar_smazaneho($roky_zpet) {
-  $rok= date('Y')-$roky_zpet;
-  $html= '';
-  $n= 0;
-  $qry=  "SELECT c.id_clen,c.jmeno,c.prijmeni,c.deleted,id_dar,castka,castka_kdy
-          FROM dar AS d
-          JOIN clen AS c USING (id_clen)
-          WHERE LEFT(d.deleted,1)!='D' AND LEFT(c.deleted,1)='D'
-            AND YEAR(castka_kdy)=$rok
-          ORDER BY c.prijmeni";
-  $res= pdo_qry($qry);
-  while ( $res && $d= pdo_fetch_object($res) ) {
-    $n++;
-    $msg.= "<br>dar ".klub_ukaz_dar($d->id_dar)." ({$d->castka} Kč ze dne {$d->castka_kdy})  ";
-    $msg.= "  je připsán smazanému dárci ".klub_ukaz_clena($d->id_clen);
-    $msg.= "  (<b>{$d->jmeno} {$d->prijmeni}</b>) ";
-  }
-  $note= "Kliknutím na číslo daru resp. číslo dárce se zobrazí příslušná karta
-          <b>Kontakty</b> resp. <b>Dary</b>.
-          <br>Pozor: na kartě <b>Kontakty</b> je vhodné zvolit <i>všichni</i> a <i> smazaní</i>";
-  $html.= $msg=='' ? 'Vše ok' : "<h3>Máme celkem $n takových případů:</h3>$note<dl>$msg</dl>";
-  return $html;
-}
-# ----------------------------------------------------------------------------------- klu_dar_prevod
-# kontrola rovnosti PREVOD.clen==DAR[PREVOD.dar].id_clen
-function klu_dar_prevod($roky_zpet,$update=0) {
-  $rok= date('Y')-$roky_zpet;
-  $html= '';
-  $n= $opraveno= 0;
-  $qry=  "SELECT p.id_prevod,ident,clen,
-                 d.id_dar,d.castka,castka_kdy,d.deleted AS d_deleted,
-                 dc.id_clen,dc.jmeno,dc.prijmeni,dc.deleted AS dc_deleted,
-                 pc.deleted AS pc_deleted
-          FROM prevod AS p
-          JOIN dar AS d ON d.id_dar=p.dar
-          JOIN clen AS dc ON dc.id_clen=d.id_clen
-          JOIN clen AS pc ON pc.id_clen=p.clen
-          WHERE YEAR(castka_kdy)=$rok AND p.dar!=0 AND d.id_clen!=p.clen
-          ORDER BY dc.prijmeni";
-  $res= pdo_qry($qry);
-  while ( $res && $d= pdo_fetch_object($res) ) {
-    $n++;
-    $oprava= "";
-    if ( $update ) {
-      // korekce PREVOD.clen= DAR[PREVOD.dar].id_clen
-      $qu= "UPDATE prevod SET clen={$d->id_clen} WHERE id_prevod={$d->id_prevod}";
-      $ru= pdo_qry($qu);
-      $oprava= pdo_affected_rows() ? " OPRAVENO" : "";
-      $opraveno+= $oprava ? 1 : 0;
-    }
-    $ddel= trim($d->d_deleted) ? "SMAZANÝ " : '';
-    $dcdel= trim($d->dc_deleted) ? " SMAZANÝ" : '';
-    $pcdel= trim($d->pc_deleted) ? " SMAZANÝ" : '';
-    $msg.= "<br>{$ddel}dar ".klub_ukaz_dar($d->id_dar)
-        ." ({$d->castka} Kč ze dne {$d->castka_kdy}, převod {$d->ident}/dárce ".klub_ukaz_clena($d->clen)
-        ."$pcdel) dárce je ".klub_ukaz_clena($d->id_clen)
-        ."  (<b>{$d->jmeno} {$d->prijmeni}</b>$dcdel) $oprava";
-  }
-  $note= "Kliknutím na číslo daru resp. číslo dárce se zobrazí příslušná karta
-          <b>Kontakty</b> resp. <b>Dary</b>.
-          <br>Pozor: na kartě <b>Kontakty</b> je vhodné zvolit <i>všichni</i> a <i> smazaní</i>";
-  $html.= $msg=='' ? 'Vše ok' : "<h3>Máme celkem $n takových případů:</h3>$note<dl>$msg</dl>";
-  return $html;
-}
-# ---------------------------------------------------------------------------------- klu_mrtvi_darci
-# kontrola zda jsou dárci v době darování mezi živými
-function klu_mrtvi_darci($rok) {
-  $html= '';
-  $map_zpusob= array(1=>'<b>pokladnou!</b>',2=>'převodem',3=>'složenkou',4=>'věcný');
-  $msg= '';
-  $n= 0;
-  $qry= "SELECT id_dar,dar.id_clen as clen,castka,castka_kdy,umrti,zpusob,
-        CONCAT(prijmeni,' ',jmeno,', ',obec) as jm,zpusob FROM dar
-        LEFT JOIN clen ON clen.id_clen=dar.id_clen
-        WHERE YEAR(castka_kdy)=$rok AND left(dar.deleted,1)!='D'
-          AND umrti!='0000-00-00' AND umrti!='1968-08-21' AND dar.castka_kdy>umrti
-        ORDER BY castka_kdy";
-  $res= pdo_qry($qry);
-  while ( $res && $d= pdo_fetch_object($res) ) {
-    $n++;
-    $datum= sql_date1($d->castka_kdy);
-    $umrti= sql_date1($d->umrti);
-    $msg.= "<dt>dar <b>{$d->id_dar}</b> ze $datum {$d->castka} Kč {$map_zpusob[$d->zpusob]} </dt>";
-    $msg.= "<dd>daroval člen <b>{$d->clen}</b> {$d->jm} po své smrti dne $umrti</dd>";
-  }
-  $html.= $msg=='' ? 'Vše ok' : "<h3>Máme celkem $n takových případů:</h3><dl>$msg</dl>";
-  return $html;
-}
+//function klu_vyvoj_add(&$kam,$rok) {
+//  $rok= $rok+0;
+//  $letos= date('Y');
+//  if ( $rok ) {
+//    if ( $rok>=1997 && $rok<=$letos) {
+//      if ( !isset($kam[$rok]) ) $kam[$rok]= 0;
+//      $kam[$rok]++;
+//    }
+//  }
+//  else
+//    $kam[0]++;
+//}
+//# -------------------------------------------------------------------------------------- klu_spor_vs
+//# kontrola zda jsou dárci v době darování mezi živými
+//function klu_spor_vs($roky_zpet) {
+//  $rok= date('Y')-$roky_zpet;
+//  $str= map_cis('stredisko','hodnota');
+//  $html= '';
+//  $n= 0;
+//  $qry=  "SELECT id_dar,stredisko,varsym,zkratka,ikona,castka
+//          FROM dar
+//          LEFT JOIN _cis ON varsym=data AND druh='varsym'
+//          WHERE stredisko!=ikona AND year(castka_kdy)=$rok
+//          ORDER BY varsym";
+//  $res= pdo_qry($qry);
+//  while ( $res && $d= pdo_fetch_object($res) ) {
+//    $n++;
+//    $str_vs= $d->ikona ? " je určen středisku <b>{$str[$d->ikona]}</b>" : 'nemá uvedeného středisko';
+//    $str_dar= $d->stredisko ? "byl připsán <b>{$str[$d->stredisko]}</b>" : 'nemá uvedeného příjemce';
+//    $msg.= "<br>varsym <b>{$d->varsym}</b>  $str_vs ";
+//    $msg.= "  ale dar <b>{$d->id_dar}</b> ({$d->castka} Kč) $str_dar";
+//  }
+//  $html.= $msg=='' ? 'Vše ok' : "<h3>Máme celkem $n takových případů:</h3><dl>$msg</dl>";
+//  return $html;
+//}
+//# -------------------------------------------------------------------------------- klu_dar_smazaneho
+//# kontrola zda jsou dary nejsou od smazaných dárců
+//function klu_dar_smazaneho($roky_zpet) {
+//  $rok= date('Y')-$roky_zpet;
+//  $html= '';
+//  $n= 0;
+//  $qry=  "SELECT c.id_clen,c.jmeno,c.prijmeni,c.deleted,id_dar,castka,castka_kdy
+//          FROM dar AS d
+//          JOIN clen AS c USING (id_clen)
+//          WHERE LEFT(d.deleted,1)!='D' AND LEFT(c.deleted,1)='D'
+//            AND YEAR(castka_kdy)=$rok
+//          ORDER BY c.prijmeni";
+//  $res= pdo_qry($qry);
+//  while ( $res && $d= pdo_fetch_object($res) ) {
+//    $n++;
+//    $msg.= "<br>dar ".klub_ukaz_dar($d->id_dar)." ({$d->castka} Kč ze dne {$d->castka_kdy})  ";
+//    $msg.= "  je připsán smazanému dárci ".klub_ukaz_clena($d->id_clen);
+//    $msg.= "  (<b>{$d->jmeno} {$d->prijmeni}</b>) ";
+//  }
+//  $note= "Kliknutím na číslo daru resp. číslo dárce se zobrazí příslušná karta
+//          <b>Kontakty</b> resp. <b>Dary</b>.
+//          <br>Pozor: na kartě <b>Kontakty</b> je vhodné zvolit <i>všichni</i> a <i> smazaní</i>";
+//  $html.= $msg=='' ? 'Vše ok' : "<h3>Máme celkem $n takových případů:</h3>$note<dl>$msg</dl>";
+//  return $html;
+//}
+//# ----------------------------------------------------------------------------------- klu_dar_prevod
+//# kontrola rovnosti PREVOD.clen==DAR[PREVOD.dar].id_clen
+//function klu_dar_prevod($roky_zpet,$update=0) {
+//  $rok= date('Y')-$roky_zpet;
+//  $html= '';
+//  $n= $opraveno= 0;
+//  $qry=  "SELECT p.id_prevod,ident,clen,
+//                 d.id_dar,d.castka,castka_kdy,d.deleted AS d_deleted,
+//                 dc.id_clen,dc.jmeno,dc.prijmeni,dc.deleted AS dc_deleted,
+//                 pc.deleted AS pc_deleted
+//          FROM prevod AS p
+//          JOIN dar AS d ON d.id_dar=p.dar
+//          JOIN clen AS dc ON dc.id_clen=d.id_clen
+//          JOIN clen AS pc ON pc.id_clen=p.clen
+//          WHERE YEAR(castka_kdy)=$rok AND p.dar!=0 AND d.id_clen!=p.clen
+//          ORDER BY dc.prijmeni";
+//  $res= pdo_qry($qry);
+//  while ( $res && $d= pdo_fetch_object($res) ) {
+//    $n++;
+//    $oprava= "";
+//    if ( $update ) {
+//      // korekce PREVOD.clen= DAR[PREVOD.dar].id_clen
+//      $qu= "UPDATE prevod SET clen={$d->id_clen} WHERE id_prevod={$d->id_prevod}";
+//      $ru= pdo_qry($qu);
+//      $oprava= pdo_affected_rows() ? " OPRAVENO" : "";
+//      $opraveno+= $oprava ? 1 : 0;
+//    }
+//    $ddel= trim($d->d_deleted) ? "SMAZANÝ " : '';
+//    $dcdel= trim($d->dc_deleted) ? " SMAZANÝ" : '';
+//    $pcdel= trim($d->pc_deleted) ? " SMAZANÝ" : '';
+//    $msg.= "<br>{$ddel}dar ".klub_ukaz_dar($d->id_dar)
+//        ." ({$d->castka} Kč ze dne {$d->castka_kdy}, převod {$d->ident}/dárce ".klub_ukaz_clena($d->clen)
+//        ."$pcdel) dárce je ".klub_ukaz_clena($d->id_clen)
+//        ."  (<b>{$d->jmeno} {$d->prijmeni}</b>$dcdel) $oprava";
+//  }
+//  $note= "Kliknutím na číslo daru resp. číslo dárce se zobrazí příslušná karta
+//          <b>Kontakty</b> resp. <b>Dary</b>.
+//          <br>Pozor: na kartě <b>Kontakty</b> je vhodné zvolit <i>všichni</i> a <i> smazaní</i>";
+//  $html.= $msg=='' ? 'Vše ok' : "<h3>Máme celkem $n takových případů:</h3>$note<dl>$msg</dl>";
+//  return $html;
+//}
+//# ---------------------------------------------------------------------------------- klu_mrtvi_darci
+//# kontrola zda jsou dárci v době darování mezi živými
+//function klu_mrtvi_darci($rok) {
+//  $html= '';
+//  $map_zpusob= array(1=>'<b>pokladnou!</b>',2=>'převodem',3=>'složenkou',4=>'věcný');
+//  $msg= '';
+//  $n= 0;
+//  $qry= "SELECT id_dar,dar.id_clen as clen,castka,castka_kdy,umrti,zpusob,
+//        CONCAT(prijmeni,' ',jmeno,', ',obec) as jm,zpusob FROM dar
+//        LEFT JOIN clen ON clen.id_clen=dar.id_clen
+//        WHERE YEAR(castka_kdy)=$rok AND left(dar.deleted,1)!='D'
+//          AND umrti!='0000-00-00' AND umrti!='1968-08-21' AND dar.castka_kdy>umrti
+//        ORDER BY castka_kdy";
+//  $res= pdo_qry($qry);
+//  while ( $res && $d= pdo_fetch_object($res) ) {
+//    $n++;
+//    $datum= sql_date1($d->castka_kdy);
+//    $umrti= sql_date1($d->umrti);
+//    $msg.= "<dt>dar <b>{$d->id_dar}</b> ze $datum {$d->castka} Kč {$map_zpusob[$d->zpusob]} </dt>";
+//    $msg.= "<dd>daroval člen <b>{$d->clen}</b> {$d->jm} po své smrti dne $umrti</dd>";
+//  }
+//  $html.= $msg=='' ? 'Vše ok' : "<h3>Máme celkem $n takových případů:</h3><dl>$msg</dl>";
+//  return $html;
+//}
 /** ************************************************************************************==> OSLOVENÍ */
-# ------------------------------------------------------------------------------------- klu_osl_zrus
-# rozskok na informační funkce
-function klu_osl_zrus($akeys) {
-  $keys= implode(',',$akeys);
-  $qry= "DELETE FROM osloveni WHERE FIND_IN_SET(id_clen,'$keys')";
-  $res= pdo_qry($qry);
-  $n= pdo_affected_rows();
-  return "Bylo zrušeno $n navržených oslovení";
-}
+//# ------------------------------------------------------------------------------------- klu_osl_zrus
+//# rozskok na informační funkce
+//function klu_osl_zrus($akeys) {
+//  $keys= implode(',',$akeys);
+//  $qry= "DELETE FROM osloveni WHERE FIND_IN_SET(id_clen,'$keys')";
+//  $res= pdo_qry($qry);
+//  $n= pdo_affected_rows();
+//  return "Bylo zrušeno $n navržených oslovení";
+//}
 /** =========================================================================================> MAPKY */
 //# ---------------------------------------------------------------------------------------- klu_mapky
 //# zabrazení v okresech

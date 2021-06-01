@@ -1,26 +1,7 @@
-#pragma switch
-# Systém CK - panel Klub.Kontakty
-# (c) 2010 Martin Šmídek <martin@smidek.eu>
+# Aplikace Polička - menu Osoby, firmy
+# (c) 2021 Martin Šmídek <martin@smidek.eu>
+
 # ======================================================================================= klu - Klub
-//var cond_strediska: text                // seznam viditelných středisek
-//var info_strediska: text                // seznam viditelných středisek pro patičku
-//var moje_stredisko: text                // středisko nastavené při vytvoření kontaktu, daru
-//var info_stredisko: text                // středisko pro patičku
-//proc onstart () {
-//  cond_strediska.set(ask('sql_query',conc(
-//      "SELECT GROUP_CONCAT(data) as strediska,GROUP_CONCAT(zkratka SEPARATOR ',') as info FROM _cis",
-//      "  WHERE druh='stredisko' AND (FIND_IN_SET('",sys('user','abbr'),"',ikona)
-//           OR FIND_IN_SET('*",sys('user','abbr'),"',ikona))")));
-//  info_strediska.set(cond_strediska.get('info'));
-//  cond_strediska.set(cond_strediska.get('strediska'));
-//  moje_stredisko.set(ask('sql_query',conc(
-//      "SELECT data,zkratka FROM _cis",
-//      "  WHERE druh='stredisko' AND FIND_IN_SET('*",sys('user','abbr'),"',ikona)")));
-//  info_stredisko.set(if(moje_stredisko.get,moje_stredisko.get('zkratka'),0));
-//  moje_stredisko.set(if(moje_stredisko.get,moje_stredisko.get('data'),0));
-//  info_strediska.set(replace(info_strediska.get,info_stredisko.get,conc('*',info_stredisko.get)));
-//  javascript(conc("Ezer.sys.user.note=' / ",info_strediska.get,"';Ezer.App.bar_clock();"),1);
-//}
 proc warning1() { warning('Před touto operací je zapotřebí inicializovat kartu Klub|Kontakty'); return(0); }
 # ========================================================================================> KONTAKTY
 panel cle {type:'plain', title:"[fa-home] Kontakty", _sys:'*',  include:'onload'
@@ -30,50 +11,15 @@ panel cle {type:'plain', title:"[fa-home] Kontakty", _sys:'*',  include:'onload'
   proc curr_clen(m) { return(warning1); }
   func zpet_clen() {}
 }
-//# ============================================================================================> DARY
-//panel dry {type:'plain', title:"[fa-gift] Dary", _sys:'*',  skill:'hdd', include:'onload'
-//#   use C_ukoly: form klu._ukoly// [580,329,,]
-//  proc show_dar(id) { return(warning1); }
-//  proc show_balicek(x,kolik) { return(warning1); }
-//}
 # =========================================================================================> PŘEVODY
 panel pre {type:'plain', title:"[fa-bank] Převody", _sys:'*',  skill:'hdp', include:'onclick' }
-//# ========================================================================================> SLOŽENKY
-//panel slo {type:'plain', title:"Složenky", _sys:'*',  skill:'hds', include:'onclick' }
 # ========================================================================================> KONTROLY
 panel kon  {type:'right', title:"[fa-info-circle] Informace", _sys:'*',
   menu leve {type:'left', active:*
     menu cisla {title:'Statistika',type:'group', _sys:'*'
-      item pocet {title:'počet kontaktů'        ,par:°{a:'klu_inf_stat'} }
-      item       {title:'vývoj obdarování'      ,par:°{a:'klu_inf_vyvoj', p:'2014'} }
+      item pocet {title:'počet kontaktů'        ,par:{fce:'stat'} }
+      item       {title:'vývoj obdarování'      ,par:{fce:'vyvoj', p:'2014'} }
     }
-//    menu mapy {title:'Mapky',type:'group', _sys:'*'
-//      item {title:'Rozložení letošních dárců'   ,par:°{s:'klu_mapky',c:'darci',p:'0'} }
-//      item {title:'Rozložení loňských dárců'    ,par:°{s:'klu_mapky',c:'darci',p:'1'} }
-//      item {title:'Rozložení dárců 2010-2019'   ,par:°{s:'klu_mapky',c:'dekada',p:'2010'} }
-//      item {title:'Rozložení dárců 2000-2009'   ,par:°{s:'klu_mapky',c:'dekada',p:'2000'} }
-//      item {title:'Rozložení dárců 1990-1999'   ,par:°{s:'klu_mapky',c:'dekada',p:'1990'} }
-//    }
-//    menu {title:'Kontrola darů',type:'group', _sys:'*'
-//      item {title:'středisko a VS se liší / letos',par:°{s:'klu_spor_vs',r:'0'} }
-//      item {title:'středisko a VS se liší / loni', par:°{s:'klu_spor_vs',r:'1'} }
-//      item {title:'dary smazaných dárců / letos',  par:°{s:'klu_dar_smazaneho',r:'0'} }
-//      item {title:'dary smazaných dárců / loni',   par:°{s:'klu_dar_smazaneho',r:'1'} }
-//      item {title:'dárci darů převodem / letos',   par:°{s:'klu_dar_prevod',r:'0'} }
-//      item {title:'dárci darů převodem / loni',    par:°{s:'klu_dar_prevod',r:'1'} }
-//    }
-//    menu {title:'Opravy darů',type:'group', _sys:'*', skill:'a'
-//      item {title:'dárci darů převodem / letos',   par:°{s:'klu_dar_prevod',r:'0',upd:'1'} }
-//      item {title:'dárci darů převodem / loni',     par:°{s:'klu_dar_prevod',r:'1',upd:'1'} }
-//    }
-//    menu {title:'Kontrola bankovních výpisů',type:'group', _sys:'*', skill:'hdp'
-//      item {title:'souvislost řad výpisů / letos',par:°{s:'bank_rady',dr:'0'} }
-//      item {title:'souvislost řad výpisů / loni', par:°{s:'bank_rady',dr:'-1'} }
-//    }
-//#     menu {title:'Kontrola kontaktů',type:'group', _sys:'*'
-//#       item {title:'dary ze záhrobí 2011'        ,par:°{s:'klu_mrtvi_darci',r:'2011'} }
-//#       item {title:'dary ze záhrobí 2010'        ,par:°{s:'klu_mrtvi_darci',r:'2010'} }
-//#     }
     proc onclick(i){
       rp.fill(conc(i.owner.title,' - ',i.title),' ');
       panel.property(°{height:'*',min_height:8000});
@@ -82,8 +28,6 @@ panel kon  {type:'right', title:"[fa-info-circle] Informace", _sys:'*',
   }
   use rp: form right [12,4,,]
 }
-//# ========================================================================================> OSLOVENÍ
-//panel osl  {type:'plain', title:"Oslovení", _sys:'*', include:'onclick', skill:'m|m' }
 //# ===========================================================================================> ÚKOLY
 panel uko  {type:'right', title:"[fa-cutlery] Úkoly", _sys:'*', include:'onload', skill:'hdu|hdu',
   proc ukol_show() { return(warning1); }

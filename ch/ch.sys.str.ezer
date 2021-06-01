@@ -22,9 +22,9 @@ form _kategorie [,,380,250] {css:'ae_parm'
   browse seznam [9,27,200,200] {qry_rows:1, rows:rows
     show cid            { data:_cis.id_cis, format:'s' }
     show druh           { data:_cis.druh, format:'s' }
-    show dat   [,, 30,] { title:'id', data:_cis.data, format:'qs+r' }
+    show dat   [,, 30,] { title:'id', data:_cis.data, format:'qsr' }
     show       [,, 50,] { title:'zkratka', data:_cis.zkratka, format:'qs' }
-    show nazev [,,250,] { title:'název', data:_cis.hodnota, format:'qst' }
+    show nazev [,,250,] { title:'název', data:_cis.hodnota, format:'qs+t' }
   }
   label [6,6,267,17] { title:'<b>Seznam kategorií kontaktů</b>' },
   button [18,top_cmd,,] {type:'submit', title:'Upravit', skill:'hnse|hnse'
@@ -98,9 +98,9 @@ form _strediska [,,380,250] {css:'ae_parm'
   browse seznam [9,27,200,200] {qry_rows:1, rows:rows
     show cid            { data:_cis.id_cis, format:'s' }
     show druh           { data:_cis.druh, format:'s' }
-    show dat   [,, 30,] { title:'id', data:_cis.data, format:'qs+r' }
+    show dat   [,, 30,] { title:'id', data:_cis.data, format:'qsr' }
     show       [,, 50,] { title:'zkratka', data:_cis.zkratka, format:'qs' }
-    show nazev [,,250,] { title:'název', data:_cis.hodnota, format:'qst' }
+    show nazev [,,250,] { title:'název', data:_cis.hodnota, format:'qs+t' }
   }
   label [6,6,267,17] { title:'<b>Seznam středisek</b>' },
   button [18,top_cmd,,] {type:'submit', title:'Upravit', skill:'hnse|hnse'
@@ -173,9 +173,9 @@ form _ucty [,,380,250] {css:'ae_parm'
   browse seznam [9,27,200,200] {qry_rows:1, rows:rows
     show cid            { data:_cis.id_cis, format:'s' }
     show druh           { data:_cis.druh, format:'s' }
-    show dat   [,,30,]  { title:'id', data:_cis.data, format:'qs+r',
+    show dat   [,,30,]  { title:'id', data:_cis.data, format:'qsr',
                           help:'interní číslo účtu' },
-    show zkrat [,, 20,] { title:'zkratka', data:_cis.zkratka, format:'qs',
+    show zkrat [,, 20,] { title:'zkratka', data:_cis.zkratka, format:'qs+',
                           help:'jednopísmenná zkratka použitá jako první písmeno ve výpisech' },
     show nazev [,,160,] { title:'název', data:_cis.hodnota, format:'qst',
                           help:'výztižný název účtu' },

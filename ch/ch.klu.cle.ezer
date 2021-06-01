@@ -1,5 +1,5 @@
-# Systém CK - panel Klub.Kontakty
-# (c) 2010 Martin Šmídek <martin@smidek.eu>
+# Aplikace Polička - panel Kontakty
+# (c) 2021 Martin Šmídek <martin@smidek.eu>
 
 # ========================================================================================> KONTAKTY
 
@@ -67,8 +67,6 @@ form _cleni [,,660,334+17] {
     func onclick() {cond.Refresh()}
   }
   var _cond= 1 // hodnota cond po substituci kdo+kým
-//  select cond [64,9,170,] { type:'map', map_pipe:cis_vyber.hodnota,
-//      options:cis_vyber.zkratka, format:'t', help:'výběr|základní výběr definovaný v číselníku'
   select cond [64,9,170,] { format:'t', help:'výběr|základní výběr definovaný v číselníku'
     func onchanged() { 
       _cond= php.klub_vyber('cond',cond.key());
@@ -165,13 +163,10 @@ form _cleni [,,660,334+17] {
     show email    [,, 0,] { title:'email',     data:c.email,      format:'q$s' }
     show potvrz   [,, 0,] { title:'potvrzení', data:c.potvrzeni,  format:'q#s',
       map_pipe:cis_k_potvrzeni.zkratka }
-//    show stredisko[,, 0,] { title:'středisko', data:c.stredisko,
-//      map_pipe:cis_darce.hodnota, format:'q#s' },
     show kategorie[,, 0,] { title:'kategorie', data:c.kategorie, format:'q#s'
       map_pipe:cis_kategorie.zkratka}
     proc onclick() {
       zdroj.width;     zdroj.width(0);     ucet.width(90);
-//    | stredisko.width; stredisko.width(0); ucet.width(90);
     | ucet.width;      ucet.width(0);      kategorie.width(90);
     | kategorie.width; kategorie.width(0); rodcis.width(90);
     | rodcis.width;    rodcis.width(0);    titul.width(90);
@@ -500,59 +495,9 @@ form _clen_butt [,,400,35] {
     }
     else {
       C_cleni._cleni_vyber(C_clen.insert());
-//      C_clen.load();
-//      if (!C_cleni.cleni.browse_seek(`id_clen=${C_clen.key()}`)) {
-//        C_cleni.cleni.znacka();
-//        warning("kontakt byl vytvořen ale za podmínky '",C_cleni.cond.get(1),"' nelze zobrazit");
-//      };
     }
     C_cleni.cleni.browse_focus()
   }
-//  proc _clen_uloz (bez) {
-//    // bez => bez kontroly integrity (např. při mazání)
-//    var osl: object
-//    var integrity: object
-//    form.enable(1,'br'); form.enable(0,'be|bc');
-//    C_clen.same; warning('nebyla provedena žádná změna'); C_cleni._cleni_focus
-//  | { bez
-//    | integrity.set(ask('klub_check',C_clen.id.get,'',C_clen.darce.get));
-//      integrity.ok.get };
-//    C_clen.kdo.set(sys('user','id_user')); C_clen.kdo.change;
-//    C_clen.kdy.set(now_sql(1)); C_clen.kdy.change;
-//    { C_clen.same
-//    | C_clen.key;
-//      // je-li potřeba, oprav oslovení
-//      [ not(eq(C_clen.vyjimka.key,1));
-//        or(C_clen.osoba.changed,C_clen.titul.changed,C_clen.jmeno.changed,C_clen.prijmeni.changed);
-//        osl.set(ask('osl_insert',C_clen.osoba.key,
-//          C_clen.titul.get,C_clen.jmeno.get,C_clen.prijmeni.get));
-//        C_clen.rod.key(osl.rod.get); C_clen.rod.change(1);
-//        C_clen.osloveni.key(osl.osloveni.get); C_clen.osloveni.change(1);
-//        C_clen.prijmeni5p.set(osl.prijmeni5p.get); C_clen.prijmeni5p.change(1);
-//      ];
-//      C_clen.save; 
-//      C_clen.clen_lock('off');
-//      C_clen.load; C_cleni.cleni.browse_seek; C_cleni.cleni.znacka
-//    | // pokud není nastavena výjimka v oslovení, vytvoř je
-//      [ not(eq(C_clen.vyjimka.key,1));
-//        osl.set(ask('osl_insert',C_clen.osoba.key,
-//          C_clen.titul.get,C_clen.jmeno.get,C_clen.prijmeni.get));
-//        C_clen.rod.key(osl.rod.get); C_clen.rod.change(1);
-//        C_clen.osloveni.key(osl.osloveni.get); C_clen.osloveni.change(1);
-//        C_clen.prijmeni5p.set(osl.prijmeni5p.get); C_clen.prijmeni5p.change(1);
-//      ];
-//      C_clen.insert;
-//      C_clen.load;
-//      { C_cleni.cleni.browse_seek(conc('id_clen=',C_clen.key));
-//        C_cleni.cleni.znacka
-//      | bez
-//      | warning("kontakt byl vytvořen ale za podmínky '",C_cleni.cond.get(1),"' nelze zobrazit")
-//      };
-//    | warning('POZOR: chyba při ukládání člena')
-//    };
-//    C_cleni.cleni.browse_focus
-//  | warning(integrity.msg.get)
-//  }
   # Zpět
   button zpet_clena [65,9,,] { tag:'bc', title:'Zpět', skill:'hdce|hdce'
     help:'zruší červené orámování a vrátí původní obsah'
@@ -563,16 +508,10 @@ form _clen_butt [,,400,35] {
     help:'naplní položky základními hodnotami pro fyzickou osobu, vlastní vytvoření se provede uložením změn'
     func onclick () { var elem:ezer
       C_cleni.cond_os= 1; C_cleni.show_os_fy(0);
-        C_clen.init(1);
-        C_clen.display(1,'o');
-        C_clen.display(0,'f');
-//        C_clen.if_osoba.display(osoba&&has_f?1:0);
-//        C_clen.if_firma.display(firma&&has_o?1:0);      
+      C_clen.init(1);
+      C_clen.display(1,'o'); C_clen.display(0,'f');
       C_clen.osoba.key(1); C_clen.osoba.change(); 
       for (elem of C_clen.tagged('O')) { elem.change(); }
-//      C_clen.osoba.change(); 
-//      C_clen.jmeno.change(); C_clen.prijmeni.change();
-//      C_clen.ulice.change(); C_clen.psc.change(); C_clen.obec.change(); 
       _form_state('bc','be|br'); C_clen.focus();
   }}
   button [221,9,,] { tag:'be', title:'Nová firma', skill:'hdce|hdce'
@@ -580,61 +519,20 @@ form _clen_butt [,,400,35] {
     func onclick () { var ret:object, elem:ezer
       C_cleni.cond_fy= 1; C_cleni.show_os_fy(0);
       C_clen.init(1);
-        C_clen.display(0,'o');
-        C_clen.display(1,'f');
+      C_clen.display(0,'o'); C_clen.display(1,'f');
       C_clen.osoba.key(0); C_clen.osoba.change(); 
       for (elem of C_clen.tagged('F')) { elem.change(); }
-//      C_clen.osoba.change(); 
-//      C_clen.firma.change(); C_clen.ico.change();
-//      C_clen.ulice.change(); C_clen.psc.change(); C_clen.obec.change(); 
       C_clen.ico= prompt2("Zadejte IČ firmy, údaje se doplní samy");
       if (C_clen.ico) {
         ret= php.klub_firma_ico(C_clen.ico);
         if (ret.ok) { 
           copy_by_name(ret,C_clen);
           for (elem of C_clen.tagged('F')) { elem.change(); }
-//          C_clen.osoba.change();
-//          C_clen.firma.change();
-//          C_clen.ico.change();
-//          C_clen.ulice.change();
-//          C_clen.obec.change();
-//          C_clen.psc.change();
         }
         else warning(ret.err)
       }
       _form_state('bc','be|br'); C_clen.focus();
   }}
-
-//  button vytvor_clena [121,9,,] { tag:'be', title:'Nový kontakt', skill:'hdce|hdce'
-//    help:'naplní položky základními hodnotami, vlastní vytvoření se provede uložením změn'
-//    proc onclick () { _clen_novy } }
-//  proc _clen_novy () {
-//    C_clen.init(1);
-//    C_clen.osoba.change; C_clen.jmeno.change; C_clen.prijmeni.change;
-//    C_clen.ulice.change; C_clen.psc.change; C_clen.obec.change; //C_clen.historie.change;
-////    [ moje_stredisko.get; C_clen.stredisko.key(moje_stredisko.get); C_clen.stredisko.change; ];
-//    _form_state('bc','be|br'); C_clen.focus }
-//  button vytvor_ico [210,9,,] { tag:'be', title:'Nový kontakt/IČ', skill:'hdce|hdce'
-//    help:'naplní položky základními hodnotami, vlastní vytvoření se provede uložením změn'
-//    proc onclick () { clear; _clen_ico } }
-//  proc _clen_ico () { var ico:number, ret:object
-//    clear; C_clen.init(1); 
-//    C_cleni.cond_fy.set(1); C_cleni.cond_fy.onchange;
-//    ico.set(prompt2("Zadejte IČO firmy",'')); echo(ico);
-//    ret.set(ask('klub_firma_ico',ico));
-//    { ret.ok; 
-//      C_clen.init(1);
-//      copy_by_name(ret,C_clen);
-//      C_clen.osoba.change;
-//      C_clen.firma.change;
-//      C_clen.ico.change;
-//      C_clen.ulice.change;
-//      C_clen.obec.change;
-//      C_clen.psc.change;
-//    | alert(ret.err)
-//    }
-//#     _form_state('bc','be|br'); C_clen.focus
-//  }
   # Smazat
   button zrus_clena [336,9,,] { tag:'br', skill:'hdcd|hdcd', title:'Smazat',
     help:'smaže kontakt po předchozím dotazu (je vhodné napsat předtím do historie důvod)'
@@ -645,15 +543,6 @@ form _clen_butt [,,400,35] {
       if (msg) alert(msg)
       else C_cleni._cleni_vyber(0);
     }
-//      C_clen.del.set(conc('D ',sys('user','abbr'),' ',now)); C_clen.del.change;
-//      _clen_uloz(1)
-//    | echo('kontakt zůstává jak byl') } }
-//    proc onclick () {
-//      confirm('opravdu smazat kontakt č.',C_clen.id.get,' ',
-//        C_clen.jmeno.get,' ',C_clen.prijmeni.get,'?');
-//      C_clen.del.set(conc('D ',sys('user','abbr'),' ',now)); C_clen.del.change;
-//      _clen_uloz(1)
-//    | echo('kontakt zůstává jak byl') } 
   }
   # Obnovit
   button obnov_clena [336,9,,] { tag:'br', skill:'hdcd|hdcd', title:'Obnovit',
@@ -665,12 +554,6 @@ form _clen_butt [,,400,35] {
       C_clen_butt._clen_uloz(0)
     }
   }
-//    proc onclick () {
-//      confirm('opravdu obnovit kontakt č.',C_clen.id.get,' ',
-//        C_clen.jmeno.get,' ',C_clen.prijmeni.get,'?');
-//      C_clen.del.set(' '); C_clen.del.change;
-//      _clen_uloz(0)
-//    | echo('kontakt zůstává jak byl') } }
   # procedury
   proc _clen_load (id) {
     C_clen.load(id); _form_state('br|be','bc'); }
@@ -925,6 +808,7 @@ form _dar [,,390,240] {
   view d: table dar
   field id_clen { data:d.id_clen }
   field zpusob  { data:d.zpusob, value:'1' }  // 1:pokladnou, 2:bankou, 3:složenkou, 4:věcný
+  field typ  { data:d.typ, value:'9' }  // 8/9:přiřazený 
   field del { data:d.deleted }
   // ovládání zobrazení ikony dopisu: 0:otevřená, 1:žádná, 2:zavřená
   field dik_typ { expr:"CASE WHEN  d.diky_kdy='0000-00-00' THEN 0 WHEN d.diky_txt='' THEN 1 ELSE 2 END" }
@@ -985,7 +869,6 @@ form _dar [,,390,240] {
       stav= dar_uloz();
       echo('C_dar stav=',stav);
       //_dar_uloz: 0 - beze změny, 1 - uložení změny, 2 - vytvoření nového
-      // s případnou úpravou příslušnosti ke středisku
       switch (stav) {
       case 1:
         C_dary.dary.browse_row(); C_dary._dary_suma();
@@ -1051,25 +934,24 @@ form _dar [,,390,240] {
   # ==> .. nový dar
   button vytvor_dar [121,229,,] {tag:'be', title:'Nový', skill:'hdde|hdde',
       help:'naplní položky základními hodnotami pro nový dar, vlastní vytvoření se provede uložením změn' 
-    proc onclick() {
-      form.dar_novy(C_cleni.cleni.browse_key); 
+    func onclick() {
+      form.init(2); autoswitch(0);
+      id_clen= C_cleni.cleni.browse_key(); id_clen.change(); 
+      dar_dne= now(); dar_dne.change();
+      _form_state('bc','be|br'); form.focus()
     }
-  }
-  proc dar_novy (clen) {
-    form.init(2); id_clen.set(clen); id_clen.change; autoswitch(0);
-//    [ moje_stredisko.get; stred.key(moje_stredisko.get); stred.change ];
-    _form_state('bc','be|br'); form.focus
   }
   # ==> . přepsat dar na jiného
   button prepis_dar [233,229,,] {tag:'br', title:'Přepsat', skill:'hddd|hddd',
     help:'přepíše dar na jiného dárce'
-    proc onclick () {
-      var novy_darce: number
-      var stary_darce: number
-      novy_darce.set(prompt('zadej členské číslo správného dárce')); novy_darce.get;
-      confirm('opravdu přepsat dar ',castka.get,' na ',ask('klub_clen_udaje',novy_darce.get),'?');
-      stary_darce.set(id_clen.get); id_clen.set(novy_darce.get); id_clen.change; form.save;
-    | echo('dar zůstává jak byl') } 
+    func onclick () { var novy_darce: number, stary_darce: number
+      novy_darce= prompt2('zadej členské číslo správného dárce'); 
+      if (novy_darce && confirm('opravdu přepsat dar ',castka,
+          ' na ',php.klub_clen_udaje(novy_darce),'?')) {
+        stary_darce= id_clen; id_clen= novy_darce; id_clen.change(); 
+        form.save(); C_dary._dary_load()
+      }
+    }
   }
   # ==> . smazat dar
   button zrus_dar [328,229,,] {tag:'br', title:'Smazat', skill:'hddd|hddd',

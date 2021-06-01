@@ -57,10 +57,10 @@
   // PHP moduly aplikace Ark
   $app_php= array(
 //    "ck/ck.dop.php", ?
-    "ch/ch.dop.jed.php",
     "ch/ch.$.php",
     "ch/ch.klu.php",
     "ch/ch.klu.pre.php",
+    "ch/ch.dop.php",
     "ch/ch.eko.php",
     "ch/ch_pdf.php",
     "ch/ch_tcpdf.php"

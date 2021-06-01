@@ -79,6 +79,8 @@ div.MenuGroup3 li.m { color:orange !important; text-shadow: 1px 1px 2px black; }
   background-color:$b_work; z-index:0; border-radius:5px; }
 .ae_parm        {
   background-color:$b_parm; border:1px solid #f5f5f5; z-index:0; border-radius:5px;  }
+.parm2          { 
+  background-color:#2c8931;; border:1px solid #f5f5f5; border-radius:5px; z-index:1;}
 /* barvení řádků browse */
 .fis_red        { background-color:#933; }
 .kas_1          { background-color:#ff6 !important; }

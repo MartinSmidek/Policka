@@ -17,6 +17,7 @@ menu ch { type:'main', active:*
   tabs klu { title:"[fa-users] Osoby, [fa-industry] firmy", skill:'hd', _sys:'klu',  include:'onload', active:* 
     panel cle { type:'plain'
       func refresh_vyber() { }
+      func curr_clen(mode) {}
     }
   }
   tabs eko {title:"[fa-line-chart] Ekonomika", skill:'he', _sys:'eko',  include:'onclick', active:*  }
@@ -438,7 +439,7 @@ table osloveni { key_id:'id_clen'
 map cis_k_osloveni:     table _cis { where:"druh='k_osloveni'", order:'poradi', key_id:'data'}
 //map cis_varsym:         table _cis { where:"druh='varsym'", order:'data', key_id:'data'}
 map cis_deleni:         table _cis { where:"druh='deleni'", order:'poradi', key_id:'data'}
-map cis_stredisko:      table _cis { where:"druh='stredisko'", order:'poradi', key_id:'data'}
+map cis_stredisko:      table _cis { where:"druh='stredisko'", order:'hodnota', key_id:'data'}
 map cis_darce:          table _cis { where:"druh='darce'", order:'poradi', key_id:'data'}
 map cis_k_ucet:         table _cis { where:"druh='b_ucty'", order:'data', key_id:'data'}
 map cis_u_stavy:        table _cis { where:"druh='u_stavy'", order:'data', key_id:'data'}
