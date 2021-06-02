@@ -5,7 +5,7 @@ var dopis_id: text
 proc onstart () { dopis_id.set(0) }
 # ================================================================================> DOPISY A ŠABLONY
 # editace vzorů zasílaných dopisů a jejich hlaviček
-panel vzo {type:'right', title:"[fa-paperclip] Vzory/šablony", _sys:'*'
+panel vzo {type:'right', title:"[fa-paperclip] Vzory/šablony", _sys:'*', skill:'xx'
   use ii: form right [12,4,,]
   var cast_sablony: text
   var cast_dopis: text
@@ -133,8 +133,8 @@ panel EDITOR [0,0,645,520] { title:' Úprava textu dopisu', type:'popup', css:'d
   }
   # ------------------------------------------------------------------------------ _dopis
   form _dopis [10,10,600,460] {
-    label [0,12,60,20] { title:'Aktuální:' }
-    check nazev [50,10,50,20] { data:dopis.aktualni },
+//    label [0,12,60,20] { title:'Aktuální:' }
+//    check nazev [50,10,50,20] { data:dopis.aktualni },
     button  [540,9,,] { title:'Uložit', help:'ukončit editor a uložit změny'
       proc onclick() { form.save; panel.hide(1); }}
     button  [600,9,,] { title:'Zpět', help:'ukončit editor bez uložení změn'
@@ -200,7 +200,7 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
       show id_dopis { data:etd.id_dopis }
       show datum    [,,70,] { title:'datum', data:etd.datum, format:'rs-' }
       show predmet [,,145,] { title:'předmět', data:etd.nazev, format:'sq' }
-      show komu    [,,110,] { title:'komu' , data:etd.komu, format:'sq#', map_pipe:map_komu.zkratka }
+      show komu    [,,110,] { title:'komu' , data:etd.adresati, format:'sq#', map_pipe:map_komu.zkratka }
       show pocet    [,,30,] { title:'#', data:etd.pocet, format:'rs', help:"počet vygenerovaných PDF" }
       proc onrowclick () { refresh }
       proc refresh() { var ret:object
@@ -218,7 +218,7 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
     field datum [L+10,20,90,] { type:'date', title:'^datum odeslání', data:dopis.datum,
       format:'r', help:'datum|datum dopisu' }
     select komu  [L+110,20,214,] { title:'^výběr adresátů', type:'map', options:map_komu.zkratka,
-      data:dopis.komu, help:'komu|skupina adresátů' }
+      data:dopis.adresati, help:'komu|skupina adresátů' }
     field predmet [L+10,59,313,] { title:'^název dopisu', data:dopis.nazev,
       help:'předmět|předmět dopisu' },
     # text dopisu
