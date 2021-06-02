@@ -380,6 +380,34 @@ table ucet {
   text jmeno { help:'jméno účtu' },
   text nazev { help:'náš název účtu' },
 }
+table dopis { key_id:'id_dopis'
+  number id_dopis { key:'primary' },
+  text druh { help:'druh|P-dopis PDF, M-dopis mailem, V-vzor' }
+  date datum { help:'datum|vročení dopisu', sql_pipe:'sql_date1' },
+  number adresati // #adresati
+  number kategorie // pokud adresati=podle kategorie
+  text nazev
+  text prilohy // pouze pro maily
+  text obsah { help:'obsah|text dopisu' },
+  text var_list { help:'seznam proměnných'}
+  number pocet // pro druh=P počítaná položka po volbě adresátů
+}
+table dopis_cast { key_id:'id_dopis_cast'
+  number id_dopis_cast { key:'primary' },
+  text name
+  text umisteni
+  text typ
+  number l
+  number t
+  number w
+  number h
+  number ln
+  text align
+  number fsize
+  text fattr
+  text bord
+  text obsah
+}
 table _cis { key_id:'id_cis'
   number id_cis { key:'primary' },
   text druh,
@@ -445,3 +473,4 @@ map cis_k_ucet:         table _cis { where:"druh='b_ucty'", order:'data', key_id
 map cis_u_stavy:        table _cis { where:"druh='u_stavy'", order:'data', key_id:'data'}
 //map cis_k_zprava_jak:   table _cis { where:"druh='k_zprava_jak'", order:'data', key_id:'data'}
 map cis_kategorie:      table _cis { where:"druh='kategorie'", order:'data', key_id:'data'}
+map map_komu:           table _cis {where:"druh='adresati'", order:'hodnota', key_id:'data'}

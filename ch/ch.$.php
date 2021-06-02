@@ -25,7 +25,7 @@ function ch_import($par) { trace();
   global $ezer_path_root;
   $csv= "$ezer_path_root/doc/{$par->file}.csv";
   $data= array();
-  $msg= ch_csv2array($csv,$data,$par->max?:999999,';','CP1250');
+  $msg= ch_csv2array($csv,$data,$par->max?:999999,'CP1250');
 //  display($msg);                                              
 //  debug($data,'darci.csv');
   // zrušíme staré záznamy
@@ -188,7 +188,7 @@ function ch_import($par) { trace();
 # ------------------------------------------------------------------------------------- ch csv2array
 # načtení CSV-souboru do asociativního pole, při chybě navrací chybovou zprávu
 # obsahuje speciální kód pro soubory kódované UTF-16LE
-function ch_csv2array($fpath,&$data,$max=0,$del=';',$encoding='UTF-8') { trace();
+function ch_csv2array($fpath,&$data,$max=0,$encoding='UTF-8') { trace();
   $msg= '';
   $f= $encoding=='UTF-16LE' ? fopen_utf8($fpath, "r") : fopen($fpath, "r");
   if ( !$f ) { $msg.= "soubor $fpath nelze otevřít"; goto end; }
@@ -200,6 +200,9 @@ function ch_csv2array($fpath,&$data,$max=0,$del=';',$encoding='UTF-8') { trace()
     else 
       $s= mb_convert_encoding($s, "UTF-8", $encoding);
   }
+  // diskuse oddělovače
+  $del= strstr($s,';') ? ';' : (strstr($s,',') ? ',' : '');
+  if ( !$del ) { $msg.= "v souboru $fpath jsou nestandardní oddělovače"; goto end; }
   $head= str_getcsv($s,$del);
   $n= 0;
   while (($s= fgets($f, 5000)) !== false) {

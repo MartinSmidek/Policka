@@ -828,32 +828,30 @@ form _dar [,,390,240] {
       help:"Vytvoření a tisk poděkování za dar"
     proc onclick() {
       Tisk.dop.set(ask('dop_gener_new','diky',id_clen.get,iddar.get,pot_dne.get,pot_dne.changed));
-      { Tisk.modal(0,0,this.help); _dopis_uloz('diky')
+      { Tisk.modal(44,10,this.help); _dopis_uloz('diky')
       | echo('ne')
   } } }
   label dik_close [110,71,16,15] { tag:'d', title:"<img src='ch/img/letter_closed.png'>", format:''
       help:"Oprava dříve vygenerovaného textu poděkování za dar a jeho opakovaný tisk"
     proc onclick() {
       Tisk.dop.set(ask('dop_gener_load','diky',iddar.get));
-      { Tisk.modal(0,0,this.help); _dopis_uloz('diky')
+      { Tisk.modal(44,10,this.help); _dopis_uloz('diky')
       | echo('ne')
   } } }
   // potvrzení
   field pot_dne [241,71,87,16]  { title:'^potvrzeného', type:'date', data:d.potvrz_kdy, format:'RUr' }
   label pot_open [222,71,16,15] { tag:'d', title:"<img src='ch/img/letter_open.png'>", format:''
       help:"Vytvoření a tisk potvrzení o přijetí daru"
-    proc onclick() {
-      Tisk.dop.set(ask('dop_gener_new','potvrz',id_clen.get,iddar.get,pot_dne.get,pot_dne.changed));
-      { Tisk.modal(0,0,this.help); _dopis_uloz('potvrz')
-      | echo('ne')
-  } } }
+    func onclick() {
+      Tisk.dop= php.dop_gener_new('potvrz',id_clen,iddar,pot_dne,pot_dne.changed());
+      if (Tisk.modal(44,10,this.help)) _dopis_uloz('potvrz');
+  } }
   label pot_close [222,71,16,15] { tag:'d', title:"<img src='ch/img/letter_closed.png'>", format:''
       help:"Oprava dříve vygenerovaného textu potvrzení a jeho opakovaný tisk"
-    proc onclick() {
-      Tisk.dop.set(ask('dop_gener_load','potvrz',iddar.get));
-      { Tisk.modal(0,0,this.help); _dopis_uloz('potvrz')
-      | echo('ne')
-  } } }
+    func onclick() {
+      Tisk.dop= php.dop_gener_load('potvrz',iddar);
+      if (Tisk.modal(44,10,this.help)) _dopis_uloz('potvrz');
+  } }
   # -----------------------------------------------==> . položky podle způsobu 
   select nucet  [15,152,188,]   { tag:'n', type:'map', title:'^náš účet', data:d.nas_ucet, 
     options:cis_k_ucet.hodnota, format:'n' },

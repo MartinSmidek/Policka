@@ -159,26 +159,43 @@ function ch_bank_load_ucty () {
 function ch_ban_load($file) {  trace();
   global $ezer_path_root;
   $y= (object)array('err'=>'','msg'=>'ok',idv=>0);
+  // rozlišení banky 0800/0600 podle jména souboru
+  $banka= preg_match("~(\d+)_0800_(\d\d\d\d_\d\d_\d\d)_(\d\d\d\d_\d\d_\d\d)\.csv~",$file) 
+      ? '0800' : '0600';
   // načti vlastní účty
   $nase_ucty= array(); // účet -> ID
   $res= pdo_qry("SELECT data,ikona FROM _cis WHERE druh='b_ucty' AND ikona!='' ");
   while ( $res && list($idu,$u_b)= pdo_fetch_row($res) ) {
-    list($u,$b)= explode('/',$u_b);
-    if ($b!='0800') { $y->err= "import je možný (zatím) pouze z ČSAS"; goto end; }
-    $nase_ucty[$u]= $idu;
+    $nase_ucty[$u_b]= $idu;
   }
-  debug($nase_ucty);
+  debug($nase_ucty,'$nase_ucty');
+  // načtení hlavičky a převodů do pole
   $csv= "$ezer_path_root/banka/$file";
   $data= array();
-  ch_csv2array($csv,$data,0,',','UTF-16LE');
-  // ověření existence základních položek
-  $flds= array(
+  ch_csv2array($csv,$data,0, $banka=='0800' ? 'UTF-16LE' : 'CP1250');
+  // definice importovaných sloupců
+  $flds_0800= array(
       "Datum zaúčtování"  => array(0,'d','castka_kdy'),
       "Název protiúčtu"   => array(0,'n','ucet_popis'),
       "Protiúčet"         => array(0,'u','ucet'),
       "Částka"            => array(0,'c','castka'),
       "Měna"              => array(0,'m')
     );
+  $flds_0600= array(
+      "Odesláno"  => array(0,'d','castka_kdy'),
+      "Částka"            => array(0,'c','castka'),
+      "Měna"              => array(0,'m'),
+      "Název protiúčtu"   => array(0,'n','ucet_popis'),
+      "Číslo protiúčtu"   => array(0,'u1','ucet'),
+      "Banka protiúčtu"   => array(0,'u2','ucet'),
+      "Variabilní Symbol" => array(0,'vs','vsym'),
+      "Zpráva pro příjemce" => array(0,'p0','zprava'),
+      "Popis 1"           => array(0,'p1','zprava'),
+//      "Popis 2"           => array(0,'p2','zprava'),
+//      "Popis 3"           => array(0,'p3','zprava')
+    );
+  $flds= $banka=='0800' ? $flds_0800 : $flds_0600;
+  $od= '9999-99-99'; $do= '0000-00-00';
   foreach ($data as $i=>$rec) {
     // v prvním průchodu proveď kotroly a založ záznam pro výpis
     if ($i==0) {
@@ -190,34 +207,65 @@ function ch_ban_load($file) {  trace();
         if (!$desc[0]) { $y->err= "ve výpisu chybí povinné pole '$fld'"; goto end; }
       }
       // zkontroluj název souboru: účet_0800_yyyy_mm_dd_yyyy_mm_dd.csv
-      $m= null;
-      if (!preg_match("~(\d+)_0800_(\d\d\d\d_\d\d_\d\d)_(\d\d\d\d_\d\d_\d\d)\.csv~",$file,$m)) { 
-        $y->err= "vložený soubor nemá standardní pojmenování:<br> 'účet-0800_od_do.csv', 
-          <br>kde od a do jsou datumy ve tvaru rrr-mm-dd"; goto end; }
-          debug($m);
-      // vytvoř výpis
-      $idu= isset($nase_ucty[$m[1]]) ? $nase_ucty[$m[1]] : 0;
-      if (!$idu) { $y->err= "'$m[1]' není mezi účty zapsanými v Nastavení"; goto end; }
-      $od= str_replace('_','-',$m[2]);
-      $do= str_replace('_','-',$m[3]);
-      query("INSERT INTO vypis SET soubor='$file', nas_ucet=$idu, datum_od='$od', datum_do='$do' ");
+      if ($banka=='0800') {
+        $m= null;
+        if (!preg_match("~(\d+)_0800_(\d\d\d\d_\d\d_\d\d)_(\d\d\d\d_\d\d_\d\d)\.csv~",$file,$m)) { 
+          $y->err= "vložený soubor nemá standardní pojmenování:<br> 'účet-0800_od_do.csv', 
+            <br>kde od a do jsou datumy ve tvaru rrr-mm-dd"; goto end; }
+            debug($m);
+        // vytvoř výpis
+        $ucet= "$m[1]/0800";
+        $idu= isset($nase_ucty[$ucet]) ? $nase_ucty[$ucet] : 0;
+        if (!$idu) { $y->err= "'$m[1]' není mezi účty zapsanými v Nastavení pro 0800"; goto end; }
+        $sod= str_replace('_','-',$m[2]);
+        $sdo= str_replace('_','-',$m[3]);
+        query("INSERT INTO vypis SET soubor='$file', nas_ucet=$idu, soubor_od='$sod', soubor_do='$sdo' ");
+      }
+      elseif ($banka=='0600') {
+        debug($rec,'1');
+        // pro Monetu doplníme data po zpracování
+        $ucet= $rec['Číslo účtu'];
+        $idu= isset($nase_ucty[$ucet]) ? $nase_ucty[$ucet] : 0;
+        if (!$idu) { $y->err= "'$ucet' není mezi účty zapsanými v Nastavení pro 0600"; goto end; }
+        query("INSERT INTO vypis SET soubor='$file', nas_ucet=$idu ");
+      }
       $y->idv= pdo_insert_id();
     }
     // vložení záznamu
-    $set= ''; $castka= 0; $ucet= $popis= '';
+    $set= ''; $castka= 0; $ucet= $popis= $pozn= $zprava= '';
     foreach ($rec as $fld=>$val) {
       list(,$fmt,$f)= $flds[$fld];
       switch ($fmt) {
-        case 'd': $set.= ", $f='".sql_date($val,1)."'"; break;
-        case 'n': $popis= $val; 
-                  $set.= ", $f='$val'"; break;
-        case 'u': $ucet= $val; 
-                  $set.= ", $f='$val'"; break;
+        // společné
+        case 'd': $datum= sql_date($val,1); 
+                  $od= strnatcmp($datum,$od)<0 ? $datum : $od; 
+                  $do= strnatcmp($datum,$do)>0 ? $datum : $do; 
+                  $set.= ", $f='$datum'"; break;
         case 'c': $castka= preg_replace(array("/\s/u","/,/u"),array('','.'),$val);
                   $set.= ", $f=$castka"; break;
         case 'm': if ($val=='CZK') break;
                   $y->err= "nekorunové platby nejsou implementovány"; goto end;
+        case 'n': $popis= $val; 
+                  $set.= ", $f='$val'"; break;
+        // 0800
+        case 'u': $ucet= $val; 
+                  $set.= ", $f='$val'"; break;
+        // 0600
+        case 'vs': $set.= ", $f='$val'"; break;
+        case 'u1': $ucet= $val; break;
+        case 'u2': $ucet.= "/$val"; 
+                   $set.= ", ucet='$ucet'"; break;
+        case 'p0': $zprava= $val; break;
+        case 'p1': $pozn.= " $val"; break;
+        case 'p2': $pozn.= " $val"; break;
+        case 'p3': $pozn.= " $val"; break;
       }
+    }
+    // dokončení převodu pro Moneta
+    if ($banka=='0600') {
+      $pozn= strtr($pozn,array('OKAMŽITÁ ÚHRADA'=>'','PŘEVOD PROSTŘEDKŮ'=>'',$popis=>''));
+      $pozn= trim("$zprava $pozn");
+      if ($pozn) $set.= ", zprava='$pozn'"; 
     }
     // určení typu a způsobu
     $typ= $castka<=0 ? 1 : ($ucet=='160987123/0300' && $popis=='CESKA POSTA, S.P.' ? 8 : 5);
@@ -236,12 +284,16 @@ function ch_ban_load($file) {  trace();
       $idc= $idc ?: 0;
       $typ= $idc ? 7 : 5;
     }
-    // vložení záznamu
-    $qry= "INSERT INTO dar SET id_vypis=$y->idv, id_clen=$idc, nas_ucet=$idu, 
-        typ= $typ, zpusob=$zpusob $set ";
-    display($qry);
-    query($qry);
+    // vložení záznamu - pokud jde o příjem
+    if ($castka>0) {
+      $qry= "INSERT INTO dar SET id_vypis=$y->idv, id_clen=$idc, nas_ucet=$idu, 
+          typ= $typ, zpusob=$zpusob $set ";
+//      display($qry);
+      query($qry);
+    }
   }
+  // doplnění dat 
+  query("UPDATE vypis SET datum_od='$od', datum_do='$do' WHERE id_vypis=$y->idv ");
 end:
   return $y;
 }

@@ -67,7 +67,7 @@ panel vzo {type:'right', title:"[fa-paperclip] Vzory/šablony", _sys:'*'
   # formulář pro levostranné menu s tlačítkem OPRAVIT a spinerem
   form right [,,*,600] {
     button opravit [-24,4,,] { title:'Upravit', style:'display:none;zIndex:2'
-      proc onclick() { Editor.Edit(dopis_id.get); ii.nadpis('',Editor.d.html.get) }
+      proc onclick() { EDITOR.Edit(dopis_id.get); ii.nadpis('',EDITOR.d.html.get) }
     }
     label head [0,0,*,50] { title:'' }
     label note [0,50,*,500] { title:'' }
@@ -121,9 +121,9 @@ panel vzo {type:'right', title:"[fa-paperclip] Vzory/šablony", _sys:'*'
     }
   },
 }
-# =======================================================================================> Editor
+# ==========================================================================================> EDITOr
 # oprava textu, stavu v popup menu
-panel Editor [0,0,645,520] { title:' Úprava textu dopisu', type:'popup', css:'dialog'
+panel EDITOR [0,0,645,520] { title:' Úprava textu dopisu', type:'popup', css:'dialog'
   var dopis_id: number
   use d: form _dopis [0,0,,],
   proc Edit(id_dopis) { d.load(id_dopis); panel.modal(50,50);
@@ -142,15 +142,6 @@ panel Editor [0,0,645,520] { title:' Úprava textu dopisu', type:'popup', css:'d
     edit html [0,40,655,480] {type:'html', data:dopis.obsah, par:°{toolbar:'EzerLetter'} },
   }
 }
-# =======================================================================================> POTVRZENÍ
-# rozesílání dávek potvrzení II
-//panel pot {type:'right', title:"Potvrzení", _sys:'*', include:'onclick', skill:'hkp' }
-# =========================================================================================> EXPORTY
-# exporty adres
-//panel sql {type:'right', title:"Exporty", _sys:'*', include:'onclick', skill:'hks' }
-# ======================================================================================> PODĚKOVÁNÍ
-# rozesílání dávek poděkování dle VS
-# panel pot {type:'right', title:"Poděkování", _sys:'*', include:'onclick', skill:'hkp' }
 # ==========================================================================================> DOPISY
 panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
   var virgin=1, last_item:object
@@ -158,38 +149,23 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
   use dopisy: form _dopisy [12,50,,]
   proc onfirstfocus() { virgin.get; virgin.set(0); dopisy.Start; onfocus }
   proc onfocus() { var ret:object
-//    sign.set('O');
-//    ret.set(ask('od_op','posledni'));
-//    posledni.set(ret.roccis);
   }
   menu m {type:'left', active:*, format:'f+'
     menu {title:'Dopisy', type:'group'
       item {title:'[fa-file-text-o] vytváření a editace dopisů'
         proc onclick (i) {
-//          vydani.display(0);
           dopisy.display(1);
           info.fill("Seznam rozeslaných i připravovaných dopisů"," ");
         }
       }
-      item   {title:'[fa-envelope-o] adresy dlužníků',        par:°{komu:'dluh'}}
-      item   {title:'[fa-envelope-o] adresy odběratelů',      par:°{komu:'odber'}}
-      item   {title:'[fa-envelope-o] poznámky u odběratelů',  par:°{komu:'poznamky'}}
-      proc onclick (i) {
-        clear;
-//        vydani.display(0); 
-        dopisy.display(0);
-        info.fill(replace_fa(i.title)," ");
-//        info.append(ask('od_adr_gen',i.par.komu));
+      item   {title:'[fa-envelope-o] tisk adresních štítků'
+        proc onclick (i) {
+          clear;
+          dopisy.display(0);
+          info.fill(replace_fa(i.title)," ");
+        }
       }
     }
-//    proc onclick(i) {
-//      clear; virgin.set(0); last_item.set(i);
-//      vydani.display(1);
-//      dopisy.display(0);
-//      info.fill(replace_fa(conc(i.owner.title,' - ',i.title)),' ');
-//      panel.display(eq(i.par.typ,'v'),'vyd');
-//      panel.call(i.par.proc,i.par.op,i.par.arg);
-//    }
   }
   # --------------------------------------------------------------------------------------==> DOPISY
   var et_prazdy: number
@@ -229,14 +205,14 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
       proc onrowclick () { refresh }
       proc refresh() { var ret:object
         clear; form_state('n|s','u|z');
-        ret.set(ask('dop_vars',id_dopis.get));
+        ret.set(ask('dop_show_vars',id_dopis.get));
         vars.set(ret.html);
         form.load(id_dopis.get);
         obsah.fill(predmet.get,txt.get);
       }
     }
     const L=395
-    label  [L+0,0,333,98] { css:'work' }
+    label  [L+0,0,449,98] { css:'work' }
 //    field sign { data:dopis.sign }
     field txt { data:dopis.obsah }
     field datum [L+10,20,90,] { type:'date', title:'^datum odeslání', data:dopis.datum,
@@ -246,13 +222,13 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
     field predmet [L+10,59,313,] { title:'^název dopisu', data:dopis.nazev,
       help:'předmět|předmět dopisu' },
     # text dopisu
-    label obsah [0,208,535,400] {
+    label obsah [0,208,626,400] {
       proc fill(nadpis,telo) {
         obsah.set(conc("<div style='padding:0 10px;border:1px solid green'><h3 class='work'>",
           nadpis,"</h3>",telo,'</div>'));
     }}
     # proměnné
-    label vars [548,208,180,400] { title:'seznam proměnných',
+    label vars [643,208,180,400] { title:'seznam proměnných',
       style:'padding:0 10px;border:1px solid green;overflow:auto;z-index:3' }
     label  [L+0,112,200,78] { css:'parm' }
     #--------------------------------------==> .. ulož/zpět
@@ -277,17 +253,17 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
     #--------------------------------------==> .. edit
     button oprav [L+113,118,,] { tag:'s', title:'Opravit text', help:'opravit text dopisu',
       func onclick () {
-        Editor.Edit(texty.id_dopis); texty.refresh()
+        EDITOR.Edit(texty.id_dopis); texty.refresh()
       }
     }
     #--------------------------------------==> .. test
-    label [L+211,148,68,36] { css:'parm2' }
-    button test [L+220,157,,] { tag:'s', title:'Ukázka',
+    label [L+322,148,68,36] { css:'parm2' }
+    button test [L+331,157,,] { tag:'s', title:'Ukázka',
       help:'vyzkoušet na nastavené osobě či firmě na kartě Kontakty'
       func onclick () { var idc:number, ret:object
         clear();
         idc= klu.cle.curr_clen(1);
-        ret= php.dop_vars(texty.id_dopis); vars= ret.html;
+        ret= php.dop_show_vars(texty.id_dopis); vars= ret.html;
         ret= php.dop_ukazka(texty.id_dopis,idc);
         obsah.fill(`ukázka dopisu '${predmet}' pro ${idc}, PDF ke stažení je ${ret.ref}`,ret.html);
       }
@@ -303,8 +279,8 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
       }
     }
     #--------------------------------------==> .. new/del
-    label  [L+213,110,120,32] { css:'parm' }
-    button novy [L+221,116,,] { tag:'n', title:'Nový', help:'vytvořit nový dopis',
+    label  [L+324,110,120,32] { css:'parm' }
+    button novy [L+332,116,,] { tag:'n', title:'Nový', help:'vytvořit nový dopis',
       proc onclick () {
         Init;
 //        sign.set('O'); sign.change; 
@@ -314,7 +290,7 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
         komu.init; komu.change;
       }
     }
-    button smaz [L+270,116,,] { tag:'s', title:'Smazat', help:'smazat dopis',
+    button smaz [L+381,116,,] { tag:'s', title:'Smazat', help:'smazat dopis',
       proc onclick () {
         confirm(conc("Opravdu smazat dopis '",texty.predmet.get,"'?"));
         ask('xx_mai_smaz',texty.id_dopis.get);
@@ -324,73 +300,73 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
   }
 }
 # =========================================================================================> TABULKY
-table davka { key_id:'id_davka'
-  number id_davka { key:'primary' },
-  text   stav
-  text   druh	                  // o=obdobi, r=rok, p1,p2=pololeti
-  text   pro                      // ''=potvrzení a bulletin, 'F'=firmy
-  text   nazev                    // automaticky tvořený název
-  number id_dopis { help:'potvrzeni|dopis použitý jako potvrzující' },
-  date   datum_od { sql_pipe:'sql_date1' }
-  date   datum_nw { sql_pipe:'sql_date1' }      // datum pro firmy uvozující "čerstvé dary"
-  date   datum_do { sql_pipe:'sql_date1' }
-  number let_zpet                 // poslat bulletin starým dárcům
-  number mailem                   // použít i mailovou rozesílku bulletinu
-//  number vanocni                  // varianta pro rozesílku vánočního bulletinu
-  text   resume
-}
-table dopis { key_id:'id_dopis'
-  number id_dopis { key:'primary' },
-  number id_davka { help:'dávka|číslo rozesílání dávky dopisů' },
-  text nazev
-  text odesilatel
-  text prilohy
-  text druh { help:'druh|D-dopis, S-samolepka,legitimace, N-nesamostatná složka' },
-  text typ { help:'typ|značka dopisu' },
-  number nw
-  number nh
-  number komu     // pouze pro maily
-  number pocet    // pouze pro maily
-  text report { help:'vzor|identifikátor reportu' },
-  number aktualni { help:'aktualni|text dopisu je připraven k tisku' },
-  date datum { help:'datum|vročení dopisu', sql_pipe:'sql_date1' },
-  text obsah { help:'obsah|text dopisu' },
-  text var_list { help:'seznam proměnných'}
-  text post_vars { help:'seznam proměnných počítaných po generování'}
-  text nest_list { help:'seznam složek (druh=N)'}
-  text add_list
-}
-table dopis_cast { key_id:'id_dopis_cast'
-  number id_dopis_cast { key:'primary' },
-  text name
-  text umisteni
-  text typ
-  number l
-  number t
-  number w
-  number h
-  number ln
-  text align
-  number fsize
-  text fattr
-  text bord
-  text obsah
-}
-table mail { key_id:'id_mail'
-  number id_mail { key:'primary' },
-  number id_dopis { help:'mail|index mailu' }, // nepoužívá se pro dopisy s druh!='@'
-  number id_davka
-  number id_znacka                             // nepoužívá se pro dopisy s druh=='@'
-  number id_clen
-  text znacka
-  text email
-  number stav
-  text msg
-  text body
-  text prilohy
-}
-# ============================================================================================> MAPY
-map map_k_zpusob: table _cis { where:"druh='k_zpusob'", order:'poradi', key_id:'data'}
-map map_k_ucet:   table _cis { where:"druh='b_ucty'", order:'poradi', key_id:'data'}
-map map_dr_typ:   table _cis { where:"druh='dr_typ'", order:'poradi', key_id:'data' }
-map map_komu:     table _cis {where:"druh='od_dopis_komu'", order:'poradi', key_id:'data'}
+//table davka { key_id:'id_davka'
+//  number id_davka { key:'primary' },
+//  text   stav
+//  text   druh	                  // o=obdobi, r=rok, p1,p2=pololeti
+//  text   pro                      // ''=potvrzení a bulletin, 'F'=firmy
+//  text   nazev                    // automaticky tvořený název
+//  number id_dopis { help:'potvrzeni|dopis použitý jako potvrzující' },
+//  date   datum_od { sql_pipe:'sql_date1' }
+//  date   datum_nw { sql_pipe:'sql_date1' }      // datum pro firmy uvozující "čerstvé dary"
+//  date   datum_do { sql_pipe:'sql_date1' }
+//  number let_zpet                 // poslat bulletin starým dárcům
+//  number mailem                   // použít i mailovou rozesílku bulletinu
+////  number vanocni                  // varianta pro rozesílku vánočního bulletinu
+//  text   resume
+//}
+//table dopis { key_id:'id_dopis'
+//  number id_dopis { key:'primary' },
+//  number id_davka { help:'dávka|číslo rozesílání dávky dopisů' },
+//  text nazev
+//  text odesilatel
+//  text prilohy
+//  text druh { help:'druh|D-dopis, S-samolepka,legitimace, N-nesamostatná složka' },
+//  text typ { help:'typ|značka dopisu' },
+//  number nw
+//  number nh
+//  number komu     // pouze pro maily
+//  number pocet    // pouze pro maily
+//  text report { help:'vzor|identifikátor reportu' },
+//  number aktualni { help:'aktualni|text dopisu je připraven k tisku' },
+//  date datum { help:'datum|vročení dopisu', sql_pipe:'sql_date1' },
+//  text obsah { help:'obsah|text dopisu' },
+//  text var_list { help:'seznam proměnných'}
+//  text post_vars { help:'seznam proměnných počítaných po generování'}
+//  text nest_list { help:'seznam složek (druh=N)'}
+//  text add_list
+//}
+//table dopis_cast { key_id:'id_dopis_cast'
+//  number id_dopis_cast { key:'primary' },
+//  text name
+//  text umisteni
+//  text typ
+//  number l
+//  number t
+//  number w
+//  number h
+//  number ln
+//  text align
+//  number fsize
+//  text fattr
+//  text bord
+//  text obsah
+//}
+//table mail { key_id:'id_mail'
+//  number id_mail { key:'primary' },
+//  number id_dopis { help:'mail|index mailu' }, // nepoužívá se pro dopisy s druh!='@'
+//  number id_davka
+//  number id_znacka                             // nepoužívá se pro dopisy s druh=='@'
+//  number id_clen
+//  text znacka
+//  text email
+//  number stav
+//  text msg
+//  text body
+//  text prilohy
+//}
+//# ============================================================================================> MAPY
+//map map_k_zpusob: table _cis { where:"druh='k_zpusob'", order:'poradi', key_id:'data'}
+//map map_k_ucet:   table _cis { where:"druh='b_ucty'", order:'poradi', key_id:'data'}
+//map map_dr_typ:   table _cis { where:"druh='dr_typ'", order:'poradi', key_id:'data' }
+//map map_komu:     table _cis {where:"druh='od_dopis_komu'", order:'poradi', key_id:'data'}
