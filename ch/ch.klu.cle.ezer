@@ -302,7 +302,7 @@ form _clen [,,399,251] {
   field titul    [80,68,47,]   {tag:'o,O', title:'osoba', data:clen.titul },
   field prijmeni [137,68,106,] {tag:'o,O', data:clen.prijmeni, format:'F' },
   field jmeno    [251,68,100,] {tag:'o,O', data:clen.jmeno, format:'F' },
-  field titul_za [360,68,27,]   {tag:'o', data:clen.titul_za },
+  field titul_za [360,68,27,]   {tag:'o,O', data:clen.titul_za },
   # ==> . každý kontakt
   select osoba   [80,22,61,] { tag:'k', type:'map', data:clen.osoba,options:cis_k_osoba.hodnota, format:"td" }
   select kategorie [209,22,185,] { tag:'k', type:'map+', data:clen.kategorie, title:'kategorie',
@@ -310,7 +310,7 @@ form _clen [,,399,251] {
   field ulice    [80, 91,111,] { tag:'k,O,F', title:'adresa', data:clen.ulice, format:'' },
   field psc      [200,91,40,]  { tag:'k,O,F', data:clen.psc, format:'r', sql_pipe:'psc' },
   field obec     [250,91,101,] { tag:'k,O,F', data:clen.obec, format:'F' },
-  field stat     [359,91,28,]  { tag:'k', data:clen.stat },
+  field stat     [359,91,28,]  { tag:'k,O,F', data:clen.stat },
   field ulice2   [80, 114,111,] { tag:'k', title:'adresa pošt.', data:clen.ulice2 },
   field psc2     [200,114,40,]  { tag:'k', data:clen.psc2, format:'r', sql_pipe:'psc' },
   field obec2    [250,114,101,] { tag:'k', data:clen.obec2, format:'F' },

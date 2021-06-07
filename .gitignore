@@ -14,3 +14,5 @@
 /ch/old
 *.bak
 /wiki/orig
+*.bak
+/ch/*.bak
