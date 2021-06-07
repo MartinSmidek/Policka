@@ -460,17 +460,17 @@ form _ukoly [,,400,524] {
   }
   # ---------------------------==> . tlačítka a jejich obsluha - nezobrazuje se v Dary
   # jsou dostupné pouze, pokud je formulář vnořen do ch.cle (pak je dostupný C_clen)
-  label [0,454,399,24] { tag:'b', css:'ae_parm', format:'n' }
+  label [94,446,218,37] { tag:'b', css:'ae_parm', format:'n' }
   proc _form_state(on,off) {
     form.enable(1,on); form.enable(0,off);
   }
   # Uložit změněný úkol
-  button uloz_ukol [9,456,,] { tag:'bc', type:'submit', title:'Uložit úkol', format:'n'
+  button uloz_ukol [103,456,,] { tag:'bc', type:'submit', title:'Uložit úkol', format:'n'
     help:'provede uložení změněných (červeně orámovaných) položek'
     proc onclick() { _ukol_uloz(); _form_state('be','bc|br') }
   }
   # Zpět
-  button zpet_ukol [93,456,,] { tag:'bc', title:'Zpět', format:'n'
+  button zpet_ukol [187,456,,] { tag:'bc', title:'Zpět', format:'n'
     help:'zruší červené orámování a vrátí původní obsah'
     proc onclick () {
       ukoly.browse_count; form.load(ukoly.browse_key); _form_state('be','bc|br')
@@ -478,7 +478,7 @@ form _ukoly [,,400,524] {
     }
   }
   # Nový úkol
-  button vytvor_ukol [143,456,,] { tag:'be', title:'Nový úkol', format:'n'
+  button vytvor_ukol [237,456,,] { tag:'be', title:'Nový úkol', format:'n'
     help:'naplní položky základními hodnotami, vlastní vytvoření se provede uložením změn'
     proc onclick () { _ukol_novy; _form_state('bc','be|br') }
   }
