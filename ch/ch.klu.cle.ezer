@@ -199,11 +199,8 @@ form _cleni [,,660,334+17] {
         C_clen_butt._clen_load(id_clen);
         if (has_skill('hdd')) C_dary._dary_load();
         zmena= `<small>poslední změna: ${kdn} ${kdy}</small>`;
-        C_ukoly._ukoly_load(id_clen);
-        C_clen.display(osoba==1,'o');
-        C_clen.display(osoba==0,'f');
-        C_clen.if_osoba.display(osoba&&has_f?1:0);
-        C_clen.if_firma.display(firma&&has_o?1:0);
+//        C_ukoly._ukoly_load(id_clen);
+        C_clen.Show(C_clen.zalozka);
       }
       else {
         C_clen.init(); C_dary.suma= '';  C_dary.dary.browse_init();  C_dar.init()
@@ -218,8 +215,28 @@ form _cleni [,,660,334+17] {
 }
 # ------------------------------------------------------------------------------------------==> Člen
 form _clen [,,399,251] {
-  proc onstart () { gt(plus.get,1); form.display(1,'n') }
+  var zalozka:ezer
+  func onstart () { zalozka= &kon; form.display(1,'n') }
   func onload () { drop_show(); msg_del.display(substr(del,0,1)=='D'?1:0); }
+  func Show(_zalozka:ezer) {
+    zalozka= &_zalozka;
+    switch (_zalozka._id) {
+      case 'kon': tags('z|k|n|h|o|f','d|u',1,0); break;
+      case 'doc': tags('d|O|F','u|z|o|f|h|n|k',1,0); break;
+      case 'ukl': tags('u|O|F','d|z|o|f|h|n|k',0,1); break;
+    }
+    if (osoba.key()) {
+      C_clen.display(0,'f|F');
+      C_clen.display(1,'O');
+      C_clen.if_osoba.display(C_cleni.cleni.has_f?1:0);
+    }
+    else {
+      C_clen.display(0,'o|O');
+      C_clen.display(1,'F');
+      C_clen.if_firma.display(C_cleni.cleni.has_o?1:0);
+    }
+    _zalozka.set_css('ae_butt_on','ae_butt_off'); 
+  }
   # ---------------------------==> . ochrana editace více uživateli
   func onchanged () { clen_lock('on'); _onchanged() }
   proc _onchanged () { C_clen_butt._form_state('bc','be|br') }
@@ -233,20 +250,24 @@ form _clen [,,399,251] {
     }
   }
   # ------------------------==> . záložky
-  proc tags(a,on,off,butt,ukoly,zpravy) {
+  func tags(on,off,butt,ukoly) {
     form.set_css('ae_butt_off','ae_butt_on','p');
-    a.set_css('ae_butt_on','ae_butt_off');
     form.display(1,on); form.display(0,off);
-    [ panel.part('C_clen_butt'); panel.part('C_clen_butt').display(butt) ];
-    [ panel.part('C_ukoly'); panel.part('C_ukoly').display(ukoly); panel.call('C_ukoly.u_show') ];
-    [ panel.part('C_zpravy'); panel.part('C_zpravy').display(zpravy); panel.call('C_zpravy.c_show') ]
+    C_clen_butt.display(butt);
+    C_ukoly.display(ukoly);
+    if (ukoly) {
+      C_ukoly._ukoly_load(id);
+      C_ukoly.u_show();
+    }
+//    [ panel.part('C_clen_butt'); panel.part('C_clen_butt').display(butt) ];
+//    [ panel.part('C_ukoly'); panel.part('C_ukoly').display(ukoly); panel.call('C_ukoly.u_show') ];
   }
   label kon [10,0,100,20] {tag:'p', title:'<b>Kontakt</b>', format:'c', css:'ae_butt_on'
-    proc onclick() { tags(this,cconc(gt(plus.get,1),'z|k|n|h|o','z|k|h|o'),'d|x|y|u',1,0,0); }}
+    func onclick() { Show(&kon); }}
   label doc [133,0,79,20] {tag:'p', title:'<b>Dokumenty</b>', format:'c', _sys:'doc'
-    proc onclick() { tags(this,'d','u|z|o|h|n|k|x|y',1,0,0); }}
+    func onclick() { Show(&doc); }}
   label ukl [240,0,69,20] {tag:'p', title:'<b>Úkoly</b>', format:'c', skill:'hdu|hdu', _sys:'uko'
-    proc onclick() { tags(this,'u','d|z|o|h|n|k|x|y',0,1,0); }}
+    func onclick() { Show(&ukl); }}
   label [0,16,399,560] {css:'ae_work'}
   # ------------------------==> . kontextové_menu
   menu { type:'context'
@@ -261,7 +282,7 @@ form _clen [,,399,251] {
       if (osoba) if_firma.onclick() else if_osoba.onclick();
     }}
   }
-  # ==> .. společné položky, které se zobrazují vždy
+  // ==> .. společné položky, které se zobrazují vždy
   label [7,21,50,15] { tag:'k', title:'<h1>Kontakt</h1>' },
   label msg_del [174,24,75,15] { title:'je smazaný!', css:'chyba', format:'n' },
   field id       [349,0,40,]   { data:clen.id_clen, format:'or' }
@@ -272,13 +293,13 @@ form _clen [,,399,251] {
     func onclick() { ROLE.Osoby(id,firma); }}
   field firma    [80,45,201,] {tag:'f,F', title:'firma', data:clen.firma, format:'F' }
   field ico      [314,45,74,] {tag:'f,F', title:'IČ', data:clen.ico, format:'r' },
-  field info     [80,68,308,] {tag:'f', title:'info.', data:clen.firma_info, format:'F' }
+  field info     [80,68,308,] {tag:'f,F', title:'info.', data:clen.firma_info, format:'F' }
   // ==> . jen osoba
   label [16,71,15,15] { tag:'o', title:'<i class="fa fa-industry fa-green"></i>' 
     func onclick() { if_osoba.onclick(); }}
   button if_osoba [10,68,,] { tag:'o', title:'[fa-industry]' 
     func onclick() { ROLE.Firmy(id,`${prijmeni} ${jmeno}`); }}
-  field titul    [80,68,47,]   {tag:'o', title:'osoba', data:clen.titul },
+  field titul    [80,68,47,]   {tag:'o,O', title:'osoba', data:clen.titul },
   field prijmeni [137,68,106,] {tag:'o,O', data:clen.prijmeni, format:'F' },
   field jmeno    [251,68,100,] {tag:'o,O', data:clen.jmeno, format:'F' },
   field titul_za [360,68,27,]   {tag:'o', data:clen.titul_za },
@@ -321,7 +342,7 @@ form _clen [,,399,251] {
   chat historie [9,hist+25,378,100] {tag:'h', data:clen.historie, divide:70, format:'n' }
 
   # ==> .. oslovení - tag=o, top=oslo
-  label [10,oslo,50,15]   {tag:'o', title:'<h1>Oslovení</h1>', format:'n' },
+  label [10,oslo,50,15]   {tag:'o', title:'<h1>Oslovení</h1>', format:'n' }
   select vyjimka [250,oslo+42,140,17] {tag:'o', type:'map', data:clen.vyjimka,
       options:cis_k_vyjimka.zkratka, format:'n', value:'0' },
   select rod [112,oslo+18,67,17] {tag:'o', type:'map', data:clen.rod,
@@ -341,12 +362,35 @@ form _clen [,,399,251] {
     if (drop.isdir(id)) 
       drop.lsdir(id,'S:') 
   }
-  label [10,99,214,16] {tag:'d', title:'soubory uložené ke kontaktu', format:'n'}
-  label drop [10,119,380,400] {tag:'d', type:'drop', format:'n'
-    func onstart() { drop.init('/dokumenty/','S:')  } // docs/dokumenty/id_clen
-    func ondrop(f:object) { } // změna jména
-    func onload(f:object) { } // po dokončení přenosu
+  label [10,127,214,16] {tag:'d', title:'soubory uložené ke kontaktu', format:'n'}
+  label drop [10,147,380,400] {tag:'d', type:'drop', format:'n'
+    // změna jména
+    func ondrop(f:object) { 
+      drop.init(`/dokumenty/${id}/`,'S:');
+      return f.name;
+    } 
+    // po dokončení přenosu
+    func onload(f:object) { 
+      drop.lsdir('.','S:'); 
+    } 
     func onerror(e:object) { warning(e.msg); return(1) } 
+    // ==> .. drop menu
+    func onmenu(op,name,ref) { var name2:text
+      switch (op) {
+      case 'remove': 
+        php.drop_unlink(`/dokumenty/${id}/`,name,'S:'); drop_show();
+        break;
+      case 'rename':
+        name2= prompt2("zadej nové jméno pro ",name); 
+        if (name2) {
+          php.drop_rename(`/dokumenty/${id}/`,name,name2,'S:'); drop_show();
+        };
+        break;
+      case 'remove-all': 
+        php.drop_unlink(`/dokumenty/${id}/`,'*','S:'); drop_show(); 
+        break;
+      }
+    }
   }
   
   # ==> .. úkoly - tag=u -- viz form _ukoly
@@ -365,13 +409,13 @@ form _ukoly [,,400,524] {
   # ---------------------------==> . popisky
   label [7,2,200,20] { tag:'u', title:'<h1>Plán práce pro kontakt</h1>', format:'n' }
   # ---------------------------==> . legenda
-  label [6,95,43,10] { tag:'u', title:'zahájeno', format:'nc', help:'práce je započata', css:'lege yellow'}
-  label [53,95,37,10] { tag:'u', title:'diskuse', format:'nc', help:'něco je třeba upřesnit', css:'lege diskuse'}
-  label [94,95,32,10] { tag:'u', title:'dokončeno', format:'nc', help:'hotovo', css:'lege green'}
-  label [131,95,41,10] { tag:'u', title:'odloženo', format:'nc', help:'požadavek je odložen', css:'lege blue'}
-  label [178,95,37,10] { tag:'u', title:'zrušeno', format:'nc', help:'požadavek je zrušen', css:'lege grey'}
+  label [6,110,43,10] { tag:'u', title:'zahájeno', format:'nc', help:'práce je započata', css:'lege yellow'}
+  label [53,110,37,10] { tag:'u', title:'diskuse', format:'nc', help:'něco je třeba upřesnit', css:'lege diskuse'}
+  label [94,110,32,10] { tag:'u', title:'dokončeno', format:'nc', help:'hotovo', css:'lege green'}
+  label [131,110,41,10] { tag:'u', title:'odloženo', format:'nc', help:'požadavek je odložen', css:'lege blue'}
+  label [178,110,37,10] { tag:'u', title:'zrušeno', format:'nc', help:'požadavek je zrušen', css:'lege grey'}
   # --------------------------- ==> . seznam úkolů
-  browse ukoly [5,108,180,160] { tag:'u', rows:14, format:'n'
+  browse ukoly [5,123,180,160] { tag:'u', rows:14, format:'n'
     css_rows:'barva,1:yellow,3:green,4:blue,5:grey'
     show id_ukol { data:u.id_ukol }
     show je_diskuse { data:u.je_diskuse }
@@ -396,16 +440,16 @@ form _ukoly [,,400,524] {
   field u_od { data:u.cas_od }
   field stav { data:u.stav }
   # --------------------------- zobrazené položky
-  select u_komu [246,95,92,] { tag:'u', title:'pro', type:'map0', options:user.surname, data:u.kdo_pro
+  select u_komu [246,110,92,] { tag:'u', title:'pro', type:'map0', options:user.surname, data:u.kdo_pro
     format:'n', help:'výběr realizátora'
     proc onchanged () {
       echo('vybráno:',this.get,',',this.key);
   } }
-  edit u_popis [225,117,162,195] { tag:'u', data:u.popis, format:'n' }
-  field u_do [307,327,80,] { tag:'u', title:'termín', type:'date', data:u.cas_do, format:'Rnr'  }
-  field [307,350,80,] { tag:'u', title:'dokončeno', type:'date', data:u.cas_ok, format:'Rnr'  }
+  edit u_popis [225,132,162,232] { tag:'u', data:u.popis, format:'n' }
+  field u_do [307,379,80,] { tag:'u', title:'termín', type:'date', data:u.cas_do, format:'Rnr'  }
+  field [307,402,80,] { tag:'u', title:'dokončeno', type:'date', data:u.cas_ok, format:'Rnr'  }
   # ---------------------------==> . skok na kartu Úkoly
-  label [346,95,43,] { tag:'u', title:"&rArr;úkoly", css:'href', format:'n',
+  label [346,110,43,] { tag:'u', title:"&rArr;úkoly", css:'href', format:'n',
     help:"kliknutí zobrazí kartu Úkoly s aktuálním úkolem"
     proc onclick() { href(conc('klu.uko.ukol_show/',id_ukol.get,'/',u_kdo.get,'/',u_komu.key)) }
   }
@@ -416,12 +460,12 @@ form _ukoly [,,400,524] {
     form.enable(1,on); form.enable(0,off);
   }
   # Uložit změněný úkol
-  button uloz_ukol [9,404,,] { tag:'bc', type:'submit', title:'Uložit úkol', format:'n'
+  button uloz_ukol [9,456,,] { tag:'bc', type:'submit', title:'Uložit úkol', format:'n'
     help:'provede uložení změněných (červeně orámovaných) položek'
     proc onclick() { _ukol_uloz(); _form_state('be','bc|br') }
   }
   # Zpět
-  button zpet_ukol [93,404,,] { tag:'bc', title:'Zpět', format:'n'
+  button zpet_ukol [93,456,,] { tag:'bc', title:'Zpět', format:'n'
     help:'zruší červené orámování a vrátí původní obsah'
     proc onclick () {
       ukoly.browse_count; form.load(ukoly.browse_key); _form_state('be','bc|br')
@@ -429,7 +473,7 @@ form _ukoly [,,400,524] {
     }
   }
   # Nový úkol
-  button vytvor_ukol [143,404,,] { tag:'be', title:'Nový úkol', format:'n'
+  button vytvor_ukol [143,456,,] { tag:'be', title:'Nový úkol', format:'n'
     help:'naplní položky základními hodnotami, vlastní vytvoření se provede uložením změn'
     proc onclick () { _ukol_novy; _form_state('bc','be|br') }
   }

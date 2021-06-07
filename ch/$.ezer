@@ -7,7 +7,7 @@
 var modul_state:object
 
 menu ch { type:'main', active:*
-  const plus = 2, //0,                       // rozšíření karet - jednotkou je výška řádku browse
+  const //plus = 2, //0,                       // rozšíření karet - jednotkou je výška řádku browse
         klu_cle_cleni = 13,
         klu_cle_dary = 334,
         klu_kom_rows = 4,
