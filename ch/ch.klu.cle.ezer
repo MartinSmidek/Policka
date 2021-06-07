@@ -409,14 +409,19 @@ form _ukoly [,,400,524] {
   # ---------------------------==> . popisky
   label [7,2,200,20] { tag:'u', title:'<h1>Plán práce pro kontakt</h1>', format:'n' }
   # ---------------------------==> . legenda
-  label [6,110,43,10] { tag:'u', title:'zahájeno', format:'nc', help:'práce je započata', css:'lege yellow'}
-  label [53,110,37,10] { tag:'u', title:'diskuse', format:'nc', help:'něco je třeba upřesnit', css:'lege diskuse'}
-  label [94,110,32,10] { tag:'u', title:'dokončeno', format:'nc', help:'hotovo', css:'lege green'}
-  label [131,110,41,10] { tag:'u', title:'odloženo', format:'nc', help:'požadavek je odložen', css:'lege blue'}
-  label [178,110,37,10] { tag:'u', title:'zrušeno', format:'nc', help:'požadavek je zrušen', css:'lege grey'}
+  label [6,110,43,10] { tag:'u', title:'zahájeno', format:'nc', help:'práce je započata', 
+      css:'lege zluty'}
+  label [53,110,37,10] { tag:'u', title:'diskuse', format:'nc', help:'něco je třeba upřesnit', 
+      css:'lege diskuse'}
+  label [94,110,32,10] { tag:'u', title:'dokončeno', format:'nc', help:'hotovo', 
+      css:'lege zeleny'}
+  label [131,110,41,10] { tag:'u', title:'odloženo', format:'nc', help:'požadavek je odložen', 
+      css:'lege pre_7'}
+  label [178,110,37,10] { tag:'u', title:'zrušeno', format:'nc', help:'požadavek je zrušen', 
+      css:'lege nasedly'}
   # --------------------------- ==> . seznam úkolů
   browse ukoly [5,123,180,160] { tag:'u', rows:14, format:'n'
-    css_rows:'barva,1:yellow,3:green,4:blue,5:grey'
+    css_rows:'barva,1:zluty,3:zeleny,4:pre_7,5:nasedly'
     show id_ukol { data:u.id_ukol }
     show je_diskuse { data:u.je_diskuse }
     show barva { expr:"CASE
@@ -455,7 +460,7 @@ form _ukoly [,,400,524] {
   }
   # ---------------------------==> . tlačítka a jejich obsluha - nezobrazuje se v Dary
   # jsou dostupné pouze, pokud je formulář vnořen do ch.cle (pak je dostupný C_clen)
-  label [0,378,399,52] { tag:'b', css:'ae_work', format:'n' }
+  label [0,454,399,24] { tag:'b', css:'ae_parm', format:'n' }
   proc _form_state(on,off) {
     form.enable(1,on); form.enable(0,off);
   }

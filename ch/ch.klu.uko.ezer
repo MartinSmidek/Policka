@@ -120,11 +120,11 @@ form _ukoly [,,400,50] {
   label [L_ukol+5,T_ukol+205,,] { title:'termín'  }
   label [L_ukol+154,T_ukol+205,,] { title:'dokončeno'  }
   # --------------------------- legenda
-  label [0,T_lege+0,63,] {title:'zahájeno', format:'c', help:'práce je započata', css:'yellow'}
+  label [0,T_lege+0,63,] {title:'zahájeno', format:'c', help:'práce je započata', css:'zluty'}
   label [71,T_lege+0,53,] {title:'diskuse', format:'c', help:'něco je třeba upřesnit', css:'diskuse'}
-  label [132,T_lege+0,60,] {title:'dokončeno', format:'c', help:'hotovo', css:'green'}
-  label [341,T_lege+0,52,] {title:'odloženo', format:'c', help:'požadavek je odložen', css:'blue'}
-  label [400,T_lege+0,45,] {title:'zrušeno', format:'c', help:'požadavek je zrušen', css:'grey'}
+  label [132,T_lege+0,60,] {title:'dokončeno', format:'c', help:'hotovo', css:'zeleny'}
+  label [341,T_lege+0,52,] {title:'odloženo', format:'c', help:'požadavek je odložen', css:'pre_7'}
+  label [400,T_lege+0,45,] {title:'zrušeno', format:'c', help:'požadavek je zrušen', css:'nasedly'}
   # --------------------------- tlačítka a změna stavu
   proc _form_state(on,off) {
     form.enable(1,on); form.enable(0,off);
