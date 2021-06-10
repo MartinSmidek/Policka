@@ -69,6 +69,9 @@
   // PDF knihovny
   require_once('tcpdf/tcpdf.php');
 
+  // stará verze json
+  require_once("ezer3.1/server/licensed/JSON_Ezer.php");
+
   // je to aplikace se startem v rootu
   chdir($_SESSION[$ezer_root]['abs_root']);
   require_once("{$EZER->version}/ezer_ajax.php");

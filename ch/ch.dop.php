@@ -1,5 +1,83 @@
 <?php # Aplikace Polička, (c) 2021 Martin Smidek <martin@smidek.eu>
 
+/** =======================================================================================> ŠABLONY */
+# ------------------------------------------------------------------------------------- dop sab_mail
+# přečtení běžného dopisu daného typu
+function dop_sab_mail($typ) { trace();
+  $d= null;
+  try {
+    $d= pdo_object("SELECT id_dopis,obsah FROM dopis WHERE typ='$typ' AND id_davka=0 ");
+  }
+  catch (Exception $e) { display($e); fce_error("dop_sab_mail: mail '$typ' nebyl nalezen"); }
+  return $d;
+}
+# ------------------------------------------------------------------------------------- dop sab_text
+# přečtení běžného dopisu daného typu
+function dop_sab_text($dopis) { trace();
+  $d= null;
+  try {
+    $qry= "SELECT id_dopis,obsah FROM dopis WHERE vzor='$dopis' ";
+    $res= pdo_qry($qry,1,null,1);
+    $d= pdo_fetch_object($res);
+  }
+  catch (Exception $e) { display($e); fce_error("dop_sab_text: průběžný dopis '$dopis' nebyl nalezen"); }
+  return $d;
+}
+# ------------------------------------------------------------------------------------- dop sab_cast
+# přečtení části šablony
+function dop_sab_cast($druh,$cast) { trace();
+  $d= null;
+  try {
+    $qry= "SELECT id_dopis_cast,obsah FROM dopis_cast WHERE druh='$druh' AND name='$cast' ";
+    $res= pdo_qry($qry,1,null,1);
+    $d= pdo_fetch_object($res);
+  }
+  catch (Exception $e) { display($e); fce_error("dop_sab_cast: část '$cast' sablony nebyla nalezena"); }
+  return $d;
+}
+# ----------------------------------------------------------------------------------- dop sab_nahled
+# ukázka šablony
+function dop_sab_nahled($k3) { trace();
+  global $ezer_path_docs;
+  $html= '';
+  $fname= "sablona.pdf";
+  $f_abs= "$ezer_path_docs/$fname";
+  $f_rel= "docs/$fname";
+  try {
+    switch ( $k3 ) {
+    case 'nahled_h':                                    // dopisy hromadně
+      $html= tc_sablona($f_abs,'rozesilani','D');       // bude použito i dopis_cast.pro='rozesilani'
+      $date= @filemtime($f_abs);
+      $href= "<a target='dopis' href='$f_rel'>$fname</a>";
+      $html.= "Byl vygenerován PDF soubor: $href (verze ze ".date('d.m.Y H:i',$date).")";
+      $html.= "<br><br>Jméno vyřizujícícho pracovníka je součástí definice rozesílání.";
+      break;
+    case 'nahled_j':                                    // dopisy jednotivě
+      $html= tc_sablona($f_abs,'','D');                 // jen části bez označení v dopis_cast.pro
+      $date= @filemtime($f_abs);
+      $href= "<a target='dopis' href='$f_rel'>$fname</a>";
+      $html.= "Byl vygenerován PDF soubor: $href (verze ze ".date('d.m.Y H:i',$date).")";
+      $html.= "<br><br>Jako jméno vyřizujícícho pracovníka je vždy použito jméno přihlášeného uživatele,"
+        ." ve tvaru uvedeném v osobním nastavení. Pro změnu osobního nastavení požádejte prosím administrátora webu.";
+      break;
+    case 'nahled_N':                                    // potvrzení
+      $html= tc_sablona($f_abs,'rozesilani','N');       // bude použito i dopis_cast.pro='rozesilani'
+      $date= @filemtime($f_abs);
+      $href= "<a target='dopis' href='$f_rel'>$fname</a>";
+      $html.= "Byl vygenerován PDF soubor: $href (verze ze ".date('d.m.Y H:i',$date).")";
+      break;
+    case 'nahled_R':                                    // potvrzení
+      $html= tc_sablona($f_abs,'rozesilani','R');       // bude použito i dopis_cast.pro='rozesilani'
+      $date= @filemtime($f_abs);
+      $href= "<a target='dopis' href='$f_rel'>$fname</a>";
+      $html.= "Byl vygenerován PDF soubor: $href (verze ze ".date('d.m.Y H:i',$date).")";
+      break;
+    }
+  }
+  catch (Exception $e) { $html= $e->getMessage(); }
+  return $html;
+}
+
 # ======================================================================================> JEDNOTLIVÉ
 # ----------------------------------------------------------------------------------- dop gener_load
 # ASK
@@ -117,9 +195,9 @@ function dop_gener_text($typ,$id_clen,$ids_dar,$dne=null) { trace();
          $typ=='zadost'  ? 'Zv' : (
          $typ=='smlouva' ? 'Sv' : (
          $typ=='potvrz'  ? 'Pv' : '??')))
-        : 'Pf';
+        : 'dar1';
       // nalezení dopisu
-      $qry= "SELECT * FROM dopis WHERE typ='$dopis_typ' AND id_davka=$id_davka ";
+      $qry= "SELECT * FROM dopis WHERE vzor='$dopis_typ' ";
       $res= pdo_qry($qry,1,null,1);
       $d= pdo_fetch_object($res);
       $dopis_druh= $d->druh;
@@ -318,7 +396,7 @@ function dop_pdf_id($dopis,$vars,$pars,$id_clen,$ids_dar,$dne,$pro,$vyrizuje,&$l
   // přidání obsahu a data odeslani
   $text= (object)array();
   // definice částí hlavičky pro dopis
-  if ( $dopis->druh=='D' || $dopis->druh=='P' ) {
+  if ( $dopis->druh=='V' || $dopis->druh=='P' ) {
     $text->adresa= $dopis->druh=='D'
       ? "{$pars->jmeno_postovni}<br>{$pars->adresa_postovni}"
       : "{$pars->jmeno_darce}<br>{$pars->adresa_clena}";       // pro potvrzení
@@ -430,6 +508,91 @@ function clen_data($c,$part) {
   }
 //                                                 display("clen_data({$c->id_clen},$part)=$html");
   return $html;
+}
+
+
+
+# ==========================================================================================> ŠTÍTKY
+# --------------------------------------------------------------------------------- dop gener_stitky
+# ASK
+# vytvoření souboru se štítky
+# $c - kontext vytvořený funkcí dop_subst
+function dop_gener_stitky($komu,$kat,$report) { 
+  $ret= (object)array(pdf=>'',msg=>'');
+  // generování podle komu+kat
+  $idcs= $err_idcs= array();
+  switch ($komu) {
+    case 1: // --------------------- podle kategorie
+      $rc= pdo_qry("SELECT id_clen,psc,psc2 FROM clen 
+        WHERE deleted='' AND FIND_IN_SET($kat,kategorie)");
+      while ($rc && (list($idc,$psc,$psc2)=pdo_fetch_row($rc))) {
+        if (trim($psc)||trim($psc2)) 
+          $idcs[]= $idc;
+        else
+          $err_idcs[]= $idc;
+      }
+      break;
+  }
+  // generování štítků, pokud jsou
+  $ok= count($idcs);
+  if ($ok) {
+    // generování způsobilých štítků
+    $fname= "stitky_".date('ymd_Hi').".pdf";
+    $pdf= dop_rep_stitky($fname,$idcs,$report);
+    $ret->pdf= "<b>adresní štítky: </b> $pdf";
+  }
+  // vytvoření zprávy
+  $stitku= kolik_1_2_5($ok,'Byl vytvořen $ štítek,Byly vytvořeny $ štítky,Bylo vytvořeno $ štítků');
+  $ret->msg= "$stitku";
+  $ko= count($err_idcs);
+  if ($ko) {
+  $stitku= kolik_1_2_5($ko,'štítek vytvořen nebyl,štítky vytvořeny nebyly,štítků vytvořeno nebylo');
+    $ret->msg.= ", ale $stitku - v adrese chybí PSČ. 
+      <br><br>Týká se to:";
+    foreach ($err_idcs as $idc) {
+      list($osoba,$prijmeni,$jmeno,$firma)= 
+          select('osoba,prijmeni,jmeno,firma','clen',"id_clen=$idc");
+      $ret->msg.= "<br>kontaktu č.$idc: ".($osoba ? "$prijmeni $jmeno" : "$firma");
+    }
+  }
+  return $ret;
+}
+# ----------------------------------------------------------------------------------- dop rep_stitky
+# tisk adresních štítků pro seznam členů (přes TCPDF)
+# struktura pole $adresy
+#   array(-$idc,$osloveni,$titul,$jmeno,$prijmeni,$organizace,$ulice,$obec,$psc,$kusy,$konto)
+
+# $report_json obsahuje: jmeno_postovni, adresa_postovni, cislo
+function dop_rep_stitky($fname,$idcs,$report_json,$ramecek=0) { trace();
+  global $ezer_path_docs, $json;
+  // rozbalení reportu
+  if ( !isset($json) ) $json= new Services_JSON_Ezer();  
+  $report= $json->decode($report_json);
+//  /**/                                               debug($report,"report $report_json");
+  $texty= array();
+  // projdi kontakty
+  foreach ($idcs as $i=>$idc) {
+    list($osoba,$ulice,$psc,$obec,$ulice2,$psc2,$obec2,
+        $titul,$jmeno,$prijmeni,$titul_za,$firma,$firma_info)= 
+      select('osoba,ulice,psc,obec,ulice2,psc2,obec2,
+        titul,jmeno,prijmeni,titul_za,firma,firma_info','clen',"id_clen=$idc");
+    if ($osoba) { // fyzická osoba
+      $adresa= trim("$titul $jmeno $prijmeni $titul_za");
+    }
+    else { // firma
+      $adresa= trim("$firma<br>$firma_info");
+    }
+    // na normální nebo poštovní adresu
+    $adresa.= $psc2 ? "<br>$ulice2<br>$psc2 $obec2" : "<br>$ulice<br>$psc $obec";
+    $texty[$i]= (object)array(adresa=>$adresa);
+    if ($ramecek ) $texty[$i]->stitek= ' ';
+  }
+//  /**/                                           debug($texty,"pdf_rep_stitky");
+  // předání k tisku
+  $fpath= "$ezer_path_docs/$fname";
+  tc_report($report,$texty,$fpath);
+  $ref= "<a href='docs/$fname' target='pdf'>$fname</a>";
+  return $ref;
 }
 
 
@@ -558,67 +721,64 @@ function dop_compute($vars,$dopis,$idc) {  trace();
 # provede substituce pro dané odběratele
 function dop_vsem($idd) {  trace();
   global $ezer_path_docs;
-  global $odber_ids;  // pro komunikaci s od_adr_gen
+  $ret= (object)array(pdf=>'',msg=>'');
   $ref= $err= '';
-  $vars= dop_vars($idd);
+  $vars= dop_show_vars($idd);
   $dopis= select('*','dopis',"id_dopis=$idd");
-  $cislo= (object)array();
   $ids= "";
-//  xx_posledni($cislo,'O');
-//                                                         debug($cislo,"číslo");
-//  $cenik= od_posta_cenik($cislo->id_casopis);
   // zahájení a získání seznamu ID pro obeslání
-  tc_html_open();
-  switch ($dopis->komu) {
-  case 1: // dlužníci
-//    $ids= od_op('dluznici')->dluh_maly; 
-    $name= 'dluznici'; 
-    break;
-  case 2: // budoucí dlužníci -- dostanou se do dluhu před koncem roku
-//    od_adr_gen('odber');
-//    // $odber_ids[]= (object)array('idc'=>$idc,'konto'=>$konto,'rocni'=>$celkem_rok);
-//    $del= '';
-//    foreach ($odber_ids as $x) {
-//      if ( $x->konto < $x->rocni ) {
-//        $ids.= $del.$x->idc;
-//        $del= ',';
-//      }
-//    }
-    $name= 'dluznici_za_rok'; 
-    break;
-  case 3: // všichni odběratelé
-//    od_adr_gen('odber');
-//    // $odber_ids[]= (object)array('idc'=>$idc,'konto'=>$konto,'rocni'=>$celkem_rok);
-//    $del= '';
-//    foreach ($odber_ids as $x) {
-//      $ids.= $del.$x->idc;
-//      $del= ',';
-//    }
-    $name= 'odberatele'; 
-    break;
-  default: $err= "Dopis má chybný výběr adresátů"; goto end;
+  $idcs= $err_idcs= array();
+  switch ($dopis->adresati) {
+    case 1: // --------------------- podle kategorie
+      $rc= pdo_qry("SELECT id_clen,psc,psc2 FROM clen 
+        WHERE deleted='' AND FIND_IN_SET({$dopis->kategorie},kategorie)");
+      while ($rc && (list($idc,$psc,$psc2)=pdo_fetch_row($rc))) {
+        if (trim($psc)||trim($psc2)) 
+          $idcs[]= $idc;
+        else
+          $err_idcs[]= $idc;
+      }
+      break;
+    default: $err= "Dopis má chybný výběr adresátů"; goto end;
   }
-  // projití vygenerovaných
-  //$ids= '-8081,-5548';
-  foreach ( explode(',',$ids) as $idc) {
-    $pairs= dop_compute($vars->use,$dopis,$idc);
-    if ( isset($pairs['warning']) ) fce_warning($pairs['warning']);
-//                                                         debug($pairs);
-    // pokud dopis obsahuje proměnné, personifikuj obsah
-    $html= $dopis->obsah;
-    if ( $vars ) {
-      $html= strtr($html,$pairs);
+  // zápis počtu k dopisu
+  $ok= count($idcs);
+  query("UPDATE dopis SET pocet=$ok WHERE id_dopis=$idd");
+  // generování dopisů, pokud jsou
+  if ($ok) {
+    // generování způsobilých dopisů
+    tc_html_open();
+    foreach ($idcs as $idc) {
+      $pairs= dop_compute($vars->use,$dopis,$idc);
+      // pokud dopis obsahuje proměnné, personifikuj obsah
+      $html= $dopis->obsah;
+      if ( $vars ) {
+        $html= strtr($html,$pairs);
+      }
+      tc_html_write($html,'');
     }
-    tc_html_write($html,'');
+    // generování PDF a předání odkazu
+    $fname= "dopis_{$idd}_".date('ymd_Hi').".pdf";
+    $f_abs= "$ezer_path_docs/$fname";
+    $f_rel= "docs/$fname";
+    tc_html_close($f_abs);
+    $ref= "<a target='dopis' href='$f_rel'>zde</a>";
+    $ret->pdf= "Vygenerované dopisy jsou ke stažení $ref";
   }
-  // generování PDF a předání odkazu
-  $sablona= null;
-  $fname= -$idc."_{$name}_".date('ymd_Hi').".pdf";
-  $f_abs= "$ezer_path_docs/$fname";
-  $f_rel= "docs/$fname";
-  tc_html_close($f_abs);
-  $ref= "<a target='dopis' href='$f_rel'>zde</a>";
-  $msg= "Vygenerované dopisy jsou ke stažení $ref";
+  // vytvoření zprávy
+  $dopisu= kolik_1_2_5($ok,'Byl vytvořen $ dopis,Byly vytvořeny $ dopisy,Bylo vytvořeno $ dopisů');
+  $ret->msg= "$dopisu";
+  $ko= count($err_idcs);
+  if ($ko) {
+  $dopisu= kolik_1_2_5($ko,'dopis vytvořen nebyl,dopisy vytvořeny nebyly,dopisů vytvořeno nebylo');
+    $ret->msg.= ", ale $dopisu - v adrese chybí PSČ. 
+      <br><br>Týká se to:";
+    foreach ($err_idcs as $idc) {
+      list($osoba,$prijmeni,$jmeno,$firma)= 
+          select('osoba,prijmeni,jmeno,firma','clen',"id_clen=$idc");
+      $ret->msg.= "<br>kontaktu č.$idc: ".($osoba ? "$prijmeni $jmeno" : "$firma");
+    }
+  }
 end:
-  return (object)array('msg'=>$msg,'err'=>$err);
+  return $ret;
 }

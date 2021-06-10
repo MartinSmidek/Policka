@@ -472,5 +472,5 @@ map cis_darce:          table _cis { where:"druh='darce'", order:'poradi', key_i
 map cis_k_ucet:         table _cis { where:"druh='b_ucty'", order:'data', key_id:'data'}
 map cis_u_stavy:        table _cis { where:"druh='u_stavy'", order:'data', key_id:'data'}
 //map cis_k_zprava_jak:   table _cis { where:"druh='k_zprava_jak'", order:'data', key_id:'data'}
-map cis_kategorie:      table _cis { where:"druh='kategorie'", order:'data', key_id:'data'}
-map map_komu:           table _cis {where:"druh='adresati'", order:'hodnota', key_id:'data'}
+map cis_kategorie:      table _cis { where:"druh='kategorie'", order:'zkratka', key_id:'data'}
+map cis_adresati:       table _cis {where:"druh='adresati'", order:'hodnota', key_id:'data'}
