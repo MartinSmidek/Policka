@@ -5,27 +5,22 @@ var dopis_id: text
 proc onstart () { dopis_id.set(0) }
 # ================================================================================> DOPISY A ŠABLONY
 # editace vzorů zasílaných dopisů a jejich hlaviček
-panel vzo {type:'right', title:"[fa-paperclip] Vzory/šablony", _sys:'*'
+panel vzo {type:'right', title:"[fa-paperclip] Vzory / šablony", _sys:'*'
   use ii: form right [12,4,,]
   var cast_sablony: text
   var cast_dopis: object
   menu {type:'left', format:'f+'
     menu {title:'Vzory dopisů', type:'group'
-      item {title:'Potvrzení finančního daru'   ,par:°{s:'texty',c:'dar1'} }
-//      item {title:' ... hromadné za období'     ,par:°{s:'texty',c:'Pfo'} }
-//      item {title:' ... hromadné za rok'        ,par:°{s:'texty',c:'Pfr'} }
-//      item {title:'Potvrzení věcného daru'      ,par:°{s:'texty',c:'Pv'} }
-//      item {title:'Žádost o věcný dar'          ,par:°{s:'texty',c:'Zv'} }
-//      item {title:'Vzor darovací smlouvy'       ,par:°{s:'texty',c:'Sv'} }
+      item {title:'Potvrzení finančního daru'   ,par:{vzor:'dar1'} }
       func onclick (i:ezer) {
         ii.opravit.display(1); S_sablona.hide();
-        cast_dopis= php.dop_sab_text(i.par.c);
+        cast_dopis= php.dop_sab_text(i.par.vzor);
         dopis_id= cast_dopis.id_dopis;
         ii.nadpis(i.title,cast_dopis.obsah);
       }
     }
 //    menu {title:'Vzory mailů', type:'group'
-//      item {title:'Rozesílání Zpravodajů'        ,par:°{typ:'bulletiny'} }
+//      item {title:'Rozesílání Zpravodajů'        ,par:{typ:'bulletiny'} }
 //      proc onclick (i) {
 //        ii.opravit.display(1); S_sablona.hide;
 //        cast_dopis.set(ask('dop_sab_mail',i.par.typ));
@@ -34,32 +29,29 @@ panel vzo {type:'right', title:"[fa-paperclip] Vzory/šablony", _sys:'*'
 //      }
 //    }
     menu {title:'Části šablony dopisů', type:'group', _sys:'sab'
-#       item {title:'hlavička - logo'             ,par:°{s:'D',c:'logo'} }
-#       item {title:'hlavička - motto'            ,par:°{s:'D',c:'motto'} }
-#       item {title:'kontakt'                     ,par:°{s:'D',c:'kontakt'} }
-      item {title:'vyřizuje'                    ,par:°{s:'D',c:'vyrizuje'} }
-      item {title:'telefon'                     ,par:°{s:'D',c:'telefon'} }
-      item {title:'datum'                       ,par:°{s:'D',c:'odeslano'} }
-      item {title:'věc'                         ,par:°{s:'D',c:'hlavicka'} }
-#       item {title:'adresa'                      ,par:°{s:'D',c:'ramecek'} }
-      item {title:'adresa'                      ,par:°{s:'D',c:'adresa'} }
-      item {title:'adresa - IČ'                 ,par:°{s:'D',c:'ico'} }
-#       item {title:'text - členské číslo'        ,par:°{s:'D',c:'clen'} }
-#     //item {title:'text - přílohy'              ,par:°{s:'D',c:'plus'} }
-      item {title:'text - dopis D'              ,par:°{s:'D',c:'text'} }
-#       item {title:'patička - spojení'           ,par:°{s:'D',c:'paticka'} }
-      proc onclick (i) {
+//    item {title:'hlavička - logo'             ,par:{druh:'D',name:'logo'} }
+//    item {title:'hlavička - motto'            ,par:{druh:'D',name:'motto'} }
+//    item {title:'kontakt'                     ,par:{druh:'D',name:'kontakt'} }
+      item {title:'vyřizuje'                    ,par:{druh:'D',name:'vyrizuje'} }
+      item {title:'telefon'                     ,par:{druh:'D',name:'telefon'} }
+      item {title:'datum'                       ,par:{druh:'D',name:'odeslano'} }
+      item {title:'věc'                         ,par:{druh:'D',name:'hlavicka'} }
+      item {title:'adresa'                      ,par:{druh:'D',name:'ramecek'} }
+//    item {title:'adresa'                      ,par:{druh:'D',name:'adresa'} }
+      item {title:'text - dopis D'              ,par:{druh:'D',name:'text'} }
+//    item {title:'patička - spojení'           ,par:{druh:'D',name:'paticka'} }
+      func onclick (i:ezer) {
         ii.opravit.display(0);
-        cast_sablony.set(ask('dop_sab_cast',i.par.s,i.par.c));
+        cast_sablony= php.dop_sab_cast(i.par.druh,i.par.name);
         ii.nadpis(i.title,' ');
         S_sablona.popup(0,90);
       }
     }
     menu {title:'Ukázkové tisky šablon', type:'group', _sys:'sab'
-      item {title:'šablona Charita'              ,par:°{s:'nahled',c:'nahled_j'} }
-      proc onclick (i) {
-        ii.opravit.display(0); S_sablona.hide;
-        ii.nadpis(i.title,ask('dop_sab_nahled',i.par.c))
+      item {title:'šablona Charita'              ,par:{druh:'D'} }
+      func onclick (i:ezer) {
+        ii.opravit.display(0); S_sablona.hide();
+        ii.nadpis(i.title,php.dop_sab_nahled(i.par.druh))
       }
     }
   }
@@ -139,7 +131,7 @@ panel EDITOR [0,0,645,520] { title:' Úprava textu dopisu', type:'popup', css:'d
       proc onclick() { form.save; panel.hide(1); }}
     button  [600,9,,] { title:'Zpět', help:'ukončit editor bez uložení změn'
       proc onclick() { panel.hide(0); }}
-    edit html [0,40,655,480] {type:'html', data:dopis.obsah, par:°{toolbar:'EzerLetter'} },
+    edit html [0,40,655,480] {type:'html', data:dopis.obsah, par:{toolbar:'EzerLetter'} },
   }
 }
 # ==========================================================================================> DOPISY

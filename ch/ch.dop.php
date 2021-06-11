@@ -37,44 +37,18 @@ function dop_sab_cast($druh,$cast) { trace();
 }
 # ----------------------------------------------------------------------------------- dop sab_nahled
 # ukázka šablony
-function dop_sab_nahled($k3) { trace();
+function dop_sab_nahled($druh) { trace();
   global $ezer_path_docs;
   $html= '';
   $fname= "sablona.pdf";
   $f_abs= "$ezer_path_docs/$fname";
   $f_rel= "docs/$fname";
-  try {
-    switch ( $k3 ) {
-    case 'nahled_h':                                    // dopisy hromadně
-      $html= tc_sablona($f_abs,'rozesilani','D');       // bude použito i dopis_cast.pro='rozesilani'
-      $date= @filemtime($f_abs);
-      $href= "<a target='dopis' href='$f_rel'>$fname</a>";
-      $html.= "Byl vygenerován PDF soubor: $href (verze ze ".date('d.m.Y H:i',$date).")";
-      $html.= "<br><br>Jméno vyřizujícícho pracovníka je součástí definice rozesílání.";
-      break;
-    case 'nahled_j':                                    // dopisy jednotivě
-      $html= tc_sablona($f_abs,'','D');                 // jen části bez označení v dopis_cast.pro
-      $date= @filemtime($f_abs);
-      $href= "<a target='dopis' href='$f_rel'>$fname</a>";
-      $html.= "Byl vygenerován PDF soubor: $href (verze ze ".date('d.m.Y H:i',$date).")";
-      $html.= "<br><br>Jako jméno vyřizujícícho pracovníka je vždy použito jméno přihlášeného uživatele,"
-        ." ve tvaru uvedeném v osobním nastavení. Pro změnu osobního nastavení požádejte prosím administrátora webu.";
-      break;
-    case 'nahled_N':                                    // potvrzení
-      $html= tc_sablona($f_abs,'rozesilani','N');       // bude použito i dopis_cast.pro='rozesilani'
-      $date= @filemtime($f_abs);
-      $href= "<a target='dopis' href='$f_rel'>$fname</a>";
-      $html.= "Byl vygenerován PDF soubor: $href (verze ze ".date('d.m.Y H:i',$date).")";
-      break;
-    case 'nahled_R':                                    // potvrzení
-      $html= tc_sablona($f_abs,'rozesilani','R');       // bude použito i dopis_cast.pro='rozesilani'
-      $date= @filemtime($f_abs);
-      $href= "<a target='dopis' href='$f_rel'>$fname</a>";
-      $html.= "Byl vygenerován PDF soubor: $href (verze ze ".date('d.m.Y H:i',$date).")";
-      break;
-    }
-  }
-  catch (Exception $e) { $html= $e->getMessage(); }
+  $html= tc_sablona($f_abs,'',$druh);                 // jen části bez označení v dopis_cast.pro
+  $date= @filemtime($f_abs);
+  $href= "<a target='dopis' href='$f_rel'>$fname</a>";
+  $html.= "Byl vygenerován PDF soubor: $href (verze ze ".date('d.m.Y H:i',$date).")";
+  $html.= "<br><br>Jako jméno vyřizujícícho pracovníka je vždy použito jméno přihlášeného uživatele,"
+    ." ve tvaru uvedeném v osobním nastavení. Pro změnu osobního nastavení požádejte prosím administrátora webu.";
   return $html;
 }
 
@@ -445,7 +419,7 @@ function clen_data($c,$part) {
   global $dop_rozesilani;
   switch ( $part ) {
   case 'adresa1':               // adresa na jeden řádek
-    $psc= substr($c->psc,0,3).' '.substr($c->psc,3,2);
+    $psc= psc($c->psc);
     $del= $c->ulice ? ', ' : '';
     $html= mb_substr($c->ulice,0,2,'UTF-8')=='č.'
       ? "$psc {$c->obec} {$c->ulice}"
@@ -453,11 +427,11 @@ function clen_data($c,$part) {
     break;
   case 'adresa2':               // adresa na dva řádky až tři řádky
     if ( $c->psc2 ) {
-      $psc2= substr($c->psc2,0,3).' '.substr($c->psc2,3,2);
+      $psc2= psc($c->psc2);
       $html= "{$c->ulice2}<br/><b>$psc2</b>  {$c->obec2}" . ($c->stat2 ? "<br/>    {$c->stat2}" : "");
     }
     else {
-      $psc= substr($c->psc,0,3).' '.substr($c->psc,3,2);
+      $psc= psc($c->psc);
       $html= "{$c->ulice}<br/><b>$psc</b>  {$c->obec}" . ($c->stat ? "<br/>        {$c->stat}" : "");
     }
     break;
