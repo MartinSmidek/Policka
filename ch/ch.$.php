@@ -1,14 +1,8 @@
 <?php
-# projekt CK
-# 2010 Martin Smidek <martin@smidek.eu>
+# Aplikace Polička
+# 2021 Martin Smidek <martin@smidek.eu>
 #
 /** =======================================================================================> TABLES */
-# zobrazované tabulky >* je označuje klíč, >tab ozančuje klíč jiné tabulky
-$app_tables= (object)array(
-  'clen'   => "id_clen>*,firma,jmeno,prijmeni",
-  'dar'    => "id_dar>*,id_clen>clen,zpusob,ucet,stredisko,castka_kdy",
-  '_' => 'sys.dat,struc' // cesta k funkci tab_append
-);
 # -------------------------------------------------------------------------------------- ch truncate
 # inicializace db
 function ch_truncate() { trace();

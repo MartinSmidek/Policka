@@ -1,5 +1,5 @@
-# Systém FiS
-# (c) 2008-2010 Martin Šmídek <martin@smidek.eu>
+# Aplikace Polička
+# (c) 2021 Martin Šmídek <martin@smidek.eu>
 
 # modul_state.xxx obsahuje o každém tabs tyto informace (to je konvence, ne automatismus)
 #   .loaded  -- tabs bylo zavedeno
@@ -26,72 +26,24 @@ menu ch { type:'main', active:*
     //panel oso {type:'right', title:'Osobní nastavení', _sys:'*', include:'onclick' }
     panel oso {type:'right', title:'[fa-user] Osobní nastavení', _sys:'*', include:'onclick,ezer2.pers' }
     # ===================================================================================== DATABÁZE
-    panel dat {type:'right', title:'[fa-database] Struktura dat'
-      func tab_append(tab,cond,mode) {
-        clear();
-        if (mode==1)
-          info.append(php.tab_append_using(tab,cond));
-        elseif (mode==2)
-          info.append(php.tab_append(tab,`TRUE`));
-        else // mode==0
-          info.append(php.tab_append(tab,cond));
-      }
-      use info: form right [12,4,,] {
-        select tab [-253,5,150,] {tag:'t', title:'tabulka', format:'t'}
-        field idt [-152,5,70,] {tag:'t', title:'klíč', format:'t'}
-        button [-82,5,,] {tag:'t', title:'zobraz'
-          func onclick() {
-            clear(); form.note= conc(form.note,php.tab_append(tab,`*='${idt}'`)); // * bude primary_key
-        }}
-        button [-22,5,,] {tag:'t', title:'vymaž'
-          func onclick() { form.note= '';
-        }}
-      }
-      menu {type:'left', active:*
-        menu  {title:'Struktura dat aplikace', type:'group'
-          item {title:'[fa-object-group] Přehled struktury dat'
-            proc onclick (i) {
-              info.display(0,'t');
-              info.fill(replace_fa(conc(i.owner.title,' - ',i.title)),"<br>
-                Zjednodušené schema databáze<br><br>
-                <img src='ch/img/schema_db_2021.png' />
-              ");
-            }
-          }
-          item {title:'[fa-question] zobrazení záznamů'
-            func onclick (i:ezer) {
-              clear(); info.display(1,'t');
-              info.fill(replace_fa(i.title),'');
-              if (!info.tab) {
-                info.tab.selects(php.tab_selects());
-                info.tab.key(1);
-              }
-            }
-          }
-          item {title:'[fa-database] tabulka CLEN'        par:°{tab:'clen'} }
-          item {title:'[fa-database] tabulka DAR'         par:°{tab:'dar'} }
-          item {title:'[fa-database] tabulka VYPIS'       par:°{tab:'vypis'} }
-          item {title:'[fa-database] tabulka ROLE'        par:°{tab:'role'} }
-          item {title:'[fa-database] tabulka OSLOVENI'    par:°{tab:'osloveni'} }
-          item {title:'[fa-database] tabulka DOPIS'       par:°{tab:'dopis'} }
-          item {title:'[fa-database] tabulka DOPIS_CAST'  par:°{tab:'dopis_cast'} }
-          item {title:'[fa-database] tabulka MAIL'        par:°{tab:'mail'} }
-          proc onclick (i) {
-            clear; info.display(0,'t');
-            info.fill(replace_fa(conc(i.owner.title,' - ',i.title)),
-                ask('i_doc_table_struct',i.par.tab,0,'struc'));
-          }
-        }
-        menu  {title:'Struktura dat Ezer', type:'group'
-          item {title:'[fa-database] tabulka _cis'        par:°{tab:'_cis'} }
-          proc onclick (i) {
-            clear; info.display(0,'t');
-            info.fill(replace_fa(conc(i.owner.title,' - ',i.title)),
-                ask('i_doc_table_struct',i.par.tab,1,'struc'));
-          }
-        }
-      }
-    }
+    panel dat {type:'right', title:'[fa-database] Databáze', _sys:'*', include:'onload,ezer3.db', skill:'a'
+      par:{
+        infos: [
+          {title:'[fa-object-group] Schema databáze',
+           html: "Schema databáze<br><br><img src='ch/img/schema_db_2021.png'>"}
+        ],
+        tables: {
+          clen:   "id_clen>*,firma,jmeno,prijmeni",
+          role:   "id_role>*,id_osoba>clen,id_firma>clen,popis,priorita",
+          ukol:   "id_ukol>*,id_clen>clen,kdo_od>clen,kdo_pro>clen,popis",
+          dar:    "id_dar>*,id_clen>clen,zpusob,ucet,stredisko,castka_kdy",
+          vypis:  "id_vypis>*,nas_ucet,datum_od,datum_do,soubor_od,soubor_do,soubor",
+          dopis:  "id_dopis>*,druh,vzor,datum,adresati,kategorie,nazev",
+          dopis_cast: "id_dopis_cast>*,druh,name",
+          mail:  "id_mail>*,id_dopis>dopis,id_clen>osoba"
+        },
+        css: 'struc' // styl tabulek
+    }}
     # ===================================================================================== APLIKACE
     panel APPL {type:'right', title:'[fa-download] Git/DB', _sys:'str', skill:'m'
       menu m {type:'left', format:'f+'

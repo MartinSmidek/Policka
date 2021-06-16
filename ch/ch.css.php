@@ -135,7 +135,7 @@ table.roze      { border-collapse:collapse; }
 .roze th        { border:1px solid #777; text-align:right; background-color:#aaa; }
 
 /* = = = = = = = = = = = = = = = = = = = = = = struktura dat */
-table.struc     { border-collapse:collapse; /*font-size:8pt;*/ max-width:calc(100% - 15px); 
+table.struc     { border-collapse:collapse; /*font-size:8pt;*/ max-width:calc(100% - 35px); 
                   width:unset !important}
 .struc td       { border:1px solid #777; background-color:#fff; padding:0 3px;}
 .struc th       { border:1px solid #777; background-color:$b_work; }
