@@ -32,14 +32,15 @@ panel vzo {type:'right', title:"[fa-paperclip] Vzory / šablony", _sys:'*'
 //    item {title:'hlavička - logo'             ,par:{druh:'D',name:'logo'} }
 //    item {title:'hlavička - motto'            ,par:{druh:'D',name:'motto'} }
 //    item {title:'kontakt'                     ,par:{druh:'D',name:'kontakt'} }
+      item {title:'hlavička'                    ,par:{druh:'D',name:'hlavicka'} }
       item {title:'vyřizuje'                    ,par:{druh:'D',name:'vyrizuje'} }
       item {title:'telefon'                     ,par:{druh:'D',name:'telefon'} }
       item {title:'datum'                       ,par:{druh:'D',name:'odeslano'} }
       item {title:'věc'                         ,par:{druh:'D',name:'hlavicka'} }
-      item {title:'adresa'                      ,par:{druh:'D',name:'ramecek'} }
-//    item {title:'adresa'                      ,par:{druh:'D',name:'adresa'} }
-      item {title:'text - dopis D'              ,par:{druh:'D',name:'text'} }
-//    item {title:'patička - spojení'           ,par:{druh:'D',name:'paticka'} }
+      item {title:'rámeček'                     ,par:{druh:'D',name:'ramecek'} }
+      item {title:'adresa'                      ,par:{druh:'D',name:'adresa'} }
+      item {title:'text dopisu'                 ,par:{druh:'D',name:'text'} }
+      item {title:'patička'                     ,par:{druh:'D',name:'paticka'} }
       func onclick (i:ezer) {
         ii.opravit.display(0);
         cast_sablony= php.dop_sab_cast(i.par.druh,i.par.name);
@@ -76,7 +77,7 @@ panel vzo {type:'right', title:"[fa-paperclip] Vzory / šablony", _sys:'*'
   }
   # -----------------------------------------------------------------------------------==> S_sablona
   # popup
-  panel S_sablona [0,0,645,520] { title:' Úprava šablony dopisu',
+  panel S_sablona [0,0,*,*] { title:' Úprava šablony dopisu',
     use cast: form _cast [0,0,,],
     proc onfocus () {
       cast.load(cast_sablony.get('id_dopis_cast'));

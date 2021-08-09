@@ -390,7 +390,9 @@ function eko_mesic_dary($export,$od,$do,$vecne,$VS='') { trace();
   $n= 0;
   while ( $res && $d= pdo_fetch_object($res) ) {
     if ( trim($d->_err)!=='' ) {
-      $err.= "dar č. ".klub_ukaz_dar($d->id_dar)." má ";
+//      $err.= "dar č. ".klub_ukaz_dar($d->id_dar)." má ";
+      $kdy= sql_date1($d->castka_kdy);
+      $err.= "dar č. $d->id_dar ze dne $kdy má ";
       $err.= is_numeric($d->_err) ? "neexistujícího":"smazaného";
       $err.= " dárce č. ".klub_ukaz_clena($d->id_clen)."<br>";
     }
@@ -400,6 +402,11 @@ function eko_mesic_dary($export,$od,$do,$vecne,$VS='') { trace();
         switch ($f) {
         case 'castka_kdy':
           $tab[$n][$f]= sql_date1($d->$f);
+          break;
+        case 'psc':
+          $psc= str_replace(' ','',$d->$f);
+          $psc= $psc ? substr($psc,0,3).' '.substr($psc,3) : '';
+          $tab[$n][$f]= $psc;
           break;
         case 'zpusob':
           $tab[$n][$f]= $map_zpusob[$d->$f];

@@ -284,7 +284,7 @@ form _clen [,,399,251] {
   }
   // ==> .. společné položky, které se zobrazují vždy
   label [7,21,50,15] { tag:'k', title:'<h1>Kontakt</h1>' },
-  label msg_del [174,24,75,15] { title:'je smazaný!', css:'chyba', format:'n' },
+  label msg_del [4,39,75,15] { title:'je smazaný!', css:'chyba', format:'n' },
   field id       [349,0,40,]   { data:clen.id_clen, format:'or' }
   // ==> . jen firma
   label [16,48,15,15] { tag:'f', title:'<i class="fa fa-users fa-green"></i>' 

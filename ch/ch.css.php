@@ -105,7 +105,7 @@ div.MenuGroup3 li.m { color:orange !important; text-shadow: 1px 1px 2px black; }
 /* */
 .aktivni        { background-color:#ffeed6 !important; border:1px solid #ffeed6 !important; }
 .pasivni        { background-color:#f5f5f5 !important; border:1px solid #f5f5f5 !important; }
-.chyba          { color:#700; font-weight:bold; background-color:yellow; }
+.chyba          { color:#700; font-weight:bold; background-color:yellow; z-index:3; }
 /* grafy */
 .graphs         { background-color:#fff !important; left:10px; }
 .graph          { margin-bottom:20px; }

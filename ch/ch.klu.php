@@ -84,11 +84,11 @@ function klub_select_cleny($ids_clen,$caption,$barva='') {
   return "<b><a $style href='ezer://klu.cle.select_cleny/$ids_clen'>$caption</a></b>";
 }
 # ------------------------------------------------------------------------------------ klub ukaz_dar
-# zobrazí odkaz na dar
-function klub_ukaz_dar($id_dar,$barva='') {
-  $style= $barva ? "style='color:$barva'" : '';
-  return "<b><a $style href='ezer://klu.dry.show_dar/$id_dar'>$id_dar</a></b>";
-}
+//# zobrazí odkaz na dar
+//function klub_ukaz_dar($id_dar,$barva='') {
+//  $style= $barva ? "style='color:$barva'" : '';
+//  return "<b><a $style href='ezer://klu.dry.show_dar/$id_dar'>$id_dar</a></b>";
+//}
 # --------------------------------------------------------------------------------- klub role_pripni
 # připne osobu k firmě 
 function klub_role_pripni($idf,$ido) {
@@ -111,8 +111,14 @@ function klub_clen_delete($idc) {
   global $USER;
   $msg= '';
   $n= select('COUNT(*)','role',"id_firma=$idc OR id_osoba=$idc");
-  if ($n) {
-    $msg= "před smazáním je třeba od tohoto kontaktu odepnout $n připnutí";
+  $m= select('COUNT(*)','dar',"id_clen=$idc AND deleted='' ");
+  if ($n||$m) {
+    if ($n) {
+      $msg= "před smazáním je třeba od tohoto kontaktu odepnout $n připnutí";
+    }
+    elseif ($m) {
+      $msg= "před smazáním osoby je třeba smazat nebo přepsat jejích $m darů";
+    }
   }
   else {
     $D= "D {$USER->abbr} ".date('j.n.Y');
