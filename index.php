@@ -29,11 +29,11 @@
 
   // upozornění na testovací verzi
   $demo= '';
-  $click= "jQuery('#DEMO').fadeOut(500);";
-  $dstyle= "left:0; top:0; position:fixed; transform:rotate(320deg) translate(-128px,-20px); "
-      . "width:500px;height:100px;background:orange; color:white; font-weight: bolder; "
-      . "text-align: center; font-size: 38px; line-height: 44px; z-index: 16; opacity: .5;";
-  $demo= "<div id='DEMO' onmouseover=\"$click\" style='$dstyle'>testovací data<br>funkce bez záruky</div>";
+//  $click= "jQuery('#DEMO').fadeOut(500);";
+//  $dstyle= "left:0; top:0; position:fixed; transform:rotate(320deg) translate(-128px,-20px); "
+//      . "width:500px;height:100px;background:orange; color:white; font-weight: bolder; "
+//      . "text-align: center; font-size: 38px; line-height: 44px; z-index: 16; opacity: .5;";
+//  $demo= "<div id='DEMO' onmouseover=\"$click\" style='$dstyle'>testovací data<br>funkce bez záruky</div>";
 
   $favicon= array(
       "ch_local.png",

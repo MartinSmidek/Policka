@@ -328,7 +328,7 @@ form _clen [,,399,251] {
   check [9,zasi+19,100,17] { tag:'z', title:'jen mailem', data:clen.jen_mail }
   check [9,zasi+38,100,17] { tag:'z', title:'nic neposílat', data:clen.neposilat }
   select potvrzeni [212,zasi+21,99,] { tag:'z', type:'map', data:clen.potvrzeni,
-    title:'daň.potvrzení:', options:cis_k_potvrzeni.hodnota, value:'0'
+    title:'daň.potvrzení:', options:cis_k_potvrzeni.hodnota, value:'2'
   }
   label [10,zasi,170,15]  { tag:'z', title:'<h1>Zasílání potvrzení</h1>' }
 
