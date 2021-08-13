@@ -545,6 +545,8 @@ form _clen_butt [,,400,35] {
     else {
       C_cleni._cleni_vyber(C_clen.insert());
     }
+    // doplnění ascii jména a příjmení
+    php.ch_remake_ascii_fields(C_clen.key());
     C_cleni.cleni.browse_focus()
   }
   # Zpět

@@ -59,23 +59,49 @@ function ch_ban_zmena($idd,$typ_new,$idc_new='*') {  trace();
 end:
   return $y;
 }
-# -----------------------------------------------------------------------------------==> ch ban_load
+# -------------------------------------------------------------------------------==> ch search_popis
 # viz https://php.vrana.cz/vyhledani-textu-bez-diakritiky.php
 function ch_search_popis($popis) {
   $popis= utf2ascii($popis,' .');
   $popis= strtr($popis,array(
-      'mgr.'=>'', 'mudr.'=>'', 'mvdr.'=>'', 'rndr.'=>'', 'ing.'=>'', 'bc.'=>'', 
-      '_'=>''));
+      'mgr'=>'', 'mudr'=>'', 'mvdr'=>'', 'rndr'=>'', 'ing'=>'', 'bc'=>'', 
+      '_'=>'','.'=>''));
   $popis= trim($popis);
   $cond1= "CONCAT(ascii_prijmeni,' ',ascii_jmeno) LIKE '%$popis%'";
   $cond2= "CONCAT(ascii_jmeno,' ',ascii_prijmeni) LIKE '%$popis%'";
-//  $cond1= "REPLACE(REPLACE(REPLACE(REPLACE(CONCAT(prijmeni,' ',jmeno),
-//    'č','c'),'ř','r'),'š','s'),'ž','z') LIKE '%$popis%'";
-//  $cond2= "REPLACE(REPLACE(REPLACE(REPLACE(CONCAT(jmeno,' ',prijmeni),
-//    'č','c'),'ř','r'),'š','s'),'ž','z') LIKE '%$popis%'";
   return "($cond1 OR $cond2)";
 }
+# ------------------------------------------------------------------------==> ch remake_ascii_fields
+# zajistí korektní nastavení ascii-položek
+function ch_remake_ascii_fields($given_idc=0) {
+  $only_one= $given_idc ? "AND id_clen=$given_idc" : '';
+  $rc= pdo_qry("SELECT id_clen,prijmeni,ascii_prijmeni,jmeno,ascii_jmeno 
+    FROM clen WHERE deleted='' $only_one");
+  while ($rc && (list($idc,$p,$ap,$j,$aj)=pdo_fetch_row($rc))) {
+    $oap= trim(utf2ascii($p,' .'));
+    if ($oap!=$ap) query("UPDATE clen SET ascii_prijmeni='$oap' WHERE id_clen=$idc");
+    $oaj= trim(utf2ascii($j,' .'));
+    if ($oaj!=$aj) query("UPDATE clen SET ascii_jmeno='$oaj' WHERE id_clen=$idc");
+  }
+}
 # ===========================================================================================> BANKA
+# --------------------------------------------------------------------------------- ch bank kontrola
+# kotrola řad
+function ch_bank_kontrola ($cis_ucet,$rok) {
+  list($zkratka,$nazev,$ucet)= select('zkratka,hodnota,ikona','_cis',
+      "druh='b_ucty' AND data='$cis_ucet' ");
+  $html= "<div style='font-weight:bold;padding:3px;border-bottom:1px solid black'>
+    Účet $zkratka: $ucet - $nazev</div>";
+  // projdeme výpisy
+  $rv= pdo_query("
+    SELECT soubor_od,soubor_do FROM vypis 
+    WHERE YEAR(datum_od)='$rok' AND nas_ucet='$cis_ucet'
+    ORDER BY datum_od  ");
+  while ($rv && (list($soubor_od,$soubor_do)=pdo_fetch_row($rv))) {
+    $html.= "<br>$soubor_od $soubor_do";
+  }
+  return $html;
+}
 # -------------------------------------------------------------------------------- ch bank_join_dary
 # spáruj dary výpisu 
 function ch_bank_join_dary ($idv) {
@@ -159,20 +185,6 @@ function ch_bank_load_ucty () {
 function ch_ban_load($file) {  trace();
   global $ezer_path_root;
   $y= (object)array('err'=>'','msg'=>'ok',idv=>0);
-  // rozlišení banky 0800/0600 podle jména souboru
-  $banka= preg_match("~(\d+)_0800_(\d\d\d\d_\d\d_\d\d)_(\d\d\d\d_\d\d_\d\d)\.csv~",$file) 
-      ? '0800' : '0600';
-  // načti vlastní účty
-  $nase_ucty= array(); // účet -> ID
-  $res= pdo_qry("SELECT data,ikona FROM _cis WHERE druh='b_ucty' AND ikona!='' ");
-  while ( $res && list($idu,$u_b)= pdo_fetch_row($res) ) {
-    $nase_ucty[$u_b]= $idu;
-  }
-  debug($nase_ucty,'$nase_ucty');
-  // načtení hlavičky a převodů do pole
-  $csv= "$ezer_path_root/banka/$file";
-  $data= array();
-  ch_csv2array($csv,$data,0, $banka=='0800' ? 'UTF-16LE' : 'CP1250');
   // definice importovaných sloupců
   $flds_0800= array(
       "Datum zaúčtování"  => array(0,'d','castka_kdy'),
@@ -182,7 +194,8 @@ function ch_ban_load($file) {  trace();
       "Měna"              => array(0,'m')
     );
   $flds_0600= array(
-      "Odesláno"  => array(0,'d','castka_kdy'),
+      "Číslo účtu"        => array(0),
+      "Odesláno"          => array(0,'d','castka_kdy'),
       "Částka"            => array(0,'c','castka'),
       "Měna"              => array(0,'m'),
       "Název protiúčtu"   => array(0,'n','ucet_popis'),
@@ -194,6 +207,31 @@ function ch_ban_load($file) {  trace();
 //      "Popis 2"           => array(0,'p2','zprava'),
 //      "Popis 3"           => array(0,'p3','zprava')
     );
+  // načti vlastní účty
+  $nase_ucty= array(); // účet -> ID
+  $res= pdo_qry("SELECT data,ikona FROM _cis WHERE druh='b_ucty' AND ikona!='' ");
+  while ( $res && list($idu,$u_b)= pdo_fetch_row($res) ) {
+    $nase_ucty[$u_b]= $idu;
+  }
+  debug($nase_ucty,'$nase_ucty');
+  // rozlišení banky 0800/0600 podle jména souboru
+  $m= null;
+  $ok= preg_match("~(\d+)_(0800|0600)_(\d\d\d\d_\d\d_\d\d)_(\d\d\d\d_\d\d_\d\d)\.csv~",$file,$m);
+  if (!$ok) {
+    $y->err= "vložený soubor nemá standardní pojmenování:<br> 'účet-banka_od_do.csv', 
+      <br>kde od a do jsou datumy ve tvaru rrrr-mm-dd"; 
+    goto end;
+  }
+  $banka= $m[2];
+  $ucet= "$m[1]/$banka";
+  $idu= isset($nase_ucty[$ucet]) ? $nase_ucty[$ucet] : 0;
+  if (!$idu) { $y->err= "'$ucet' není mezi účty zapsanými v Nastavení"; goto end; }
+  $sod= str_replace('_','-',$m[3]);
+  $sdo= str_replace('_','-',$m[4]);
+  // načtení hlavičky a převodů do pole
+  $csv= "$ezer_path_root/banka/$file";
+  $data= array();
+  ch_csv2array($csv,$data,0, $banka=='0800' ? 'UTF-16LE' : 'CP1250');
   $flds= $banka=='0800' ? $flds_0800 : $flds_0600;
   $od= '9999-99-99'; $do= '0000-00-00';
   foreach ($data as $i=>$rec) {
@@ -206,29 +244,16 @@ function ch_ban_load($file) {  trace();
       foreach ($flds as $fld=>$desc) {
         if (!$desc[0]) { $y->err= "ve výpisu chybí povinné pole '$fld'"; goto end; }
       }
-      // zkontroluj název souboru: účet_0800_yyyy_mm_dd_yyyy_mm_dd.csv
-      if ($banka=='0800') {
-        $m= null;
-        if (!preg_match("~(\d+)_0800_(\d\d\d\d_\d\d_\d\d)_(\d\d\d\d_\d\d_\d\d)\.csv~",$file,$m)) { 
-          $y->err= "vložený soubor nemá standardní pojmenování:<br> 'účet-0800_od_do.csv', 
-            <br>kde od a do jsou datumy ve tvaru rrr-mm-dd"; goto end; }
-            debug($m);
-        // vytvoř výpis
-        $ucet= "$m[1]/0800";
-        $idu= isset($nase_ucty[$ucet]) ? $nase_ucty[$ucet] : 0;
-        if (!$idu) { $y->err= "'$m[1]' není mezi účty zapsanými v Nastavení pro 0800"; goto end; }
-        $sod= str_replace('_','-',$m[2]);
-        $sdo= str_replace('_','-',$m[3]);
-        query("INSERT INTO vypis SET soubor='$file', nas_ucet=$idu, soubor_od='$sod', soubor_do='$sdo' ");
+      continue;
+    }
+    if ($i==1) {
+      // vložení výpisu po kontrole Čísla_účtu pro Monetu
+      if ($banka=='0600' && $rec["Číslo účtu"]!=$ucet) {
+        $y->err= "číslo účtu v názvu souboru v nesouhlasí s číslem účtu uvnitř souboru"; 
+        goto end;
       }
-      elseif ($banka=='0600') {
-        debug($rec,'1');
-        // pro Monetu doplníme data po zpracování
-        $ucet= $rec['Číslo účtu'];
-        $idu= isset($nase_ucty[$ucet]) ? $nase_ucty[$ucet] : 0;
-        if (!$idu) { $y->err= "'$ucet' není mezi účty zapsanými v Nastavení pro 0600"; goto end; }
-        query("INSERT INTO vypis SET soubor='$file', nas_ucet=$idu ");
-      }
+      // pokud je vše v pořádku vlož výpis
+      query("INSERT INTO vypis SET soubor='$file', nas_ucet=$idu, soubor_od='$sod', soubor_do='$sdo' ");
       $y->idv= pdo_insert_id();
     }
     // vložení záznamu

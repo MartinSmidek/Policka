@@ -84,7 +84,7 @@ form _p_vypisy [,,1070,309] { css:'work'
 //        help:'datum nejstarší platby v souboru'}
 //    show [,,65,] { title:'do', expr:"MAX(vp.castka_kdy)", sql_pipe:'sql_date1', format:'rsq=' 
 //        help:'datum nejnovější platby v souboru'}
-    show soubor [,,120,] { title:'soubor', data:vv.soubor, format:'rt' 
+    show soubor [,,120,] { title:'soubor', data:vv.soubor, format:'t' 
         help:'název importovaného souboru'}
     func onrowclick () {
       p._prevody.browse_load(`id_vypis=${v._vypisy.id_vypis}`);
@@ -110,7 +110,7 @@ form _p_prevody [,,774,262] {
   }
   browse _prevody [0,29,300,100] {buf_rows:500, rows:13, qry_rows:1,
       css_rows:'typ,5:pre_5,6:pre_6,7:pre_7,8:pre_8,9:pre_9'
-    show id_dar [,,55,] { title:'ID platby', data:p.id_dar, format:'r' }
+    show id_dar [,,55,] { title:'ID platby', data:p.id_dar, format:'rs+' }
     show popis [,,151,] { title:'popis účtu', data:p.ucet_popis, format:'tq*' }
     show zprava [,,110,] { title:'zpráva', data:p.zprava, format:'tq*' }
     show idc [,,50,] { title:'člen', data:p.id_clen, format:'rq=' 
@@ -135,6 +135,10 @@ form _p_prevody [,,774,262] {
     }
     # -------------------------------------==> . kontextové menu
     menu { type:'context'
+      item { title:'ukázat dárce'
+        func onclick () { 
+          if (idc) cle.show_clen(idc); 
+      }}
       item { title:'ukázat změny platebních údajů'
         func onclick () { 
           track.back_show('dar',_prevody.browse_key()) 
@@ -157,9 +161,10 @@ form _drop [,,392,161] { css:'work'
   #==> . vložení výpisů
   var  dfold='/banka'      // podsložka bez koncového / se nastavuje dynamicky
   label [10,7,371,] {title:'místo pro vložení výpisu - přesvědčte se prosím, že název souboru 
-    <br>má tvar "číslo účtu-0800_datum-od_datum-do.csv"'
+    <br>má tvar "číslo účtu-banka_od_do.csv" kde banka je 0600 nebo 0800 
+    <br>a <u>od</u> a <u>do</u> jsou datumy ve tvaru rrrr-mm-dd'
   }
-  label drop [10,46,370,105] { type:'drop'
+  label drop [10,54,370,98] { type:'drop'
     func start() {
       drop.init('/banka','U:'); 
     }
@@ -250,10 +255,10 @@ form _p_rok [,,155,74] { css:'parm'
 # --------------------------------------------------==> PŘÍKAZY
 form _cmd [,,897,62] { css:'work'
 # ----------------------------------------==> . rychle
-  label ram [367,16,321,31] { css:'pasivni' }
+  label ram [394,16,321,31] { css:'pasivni' }
   var rychle: number
   var done:number
-  button rychle_start [379,23,,] { help:'projdi daný výpis a připisuj platby', title:"[fa-play] Rychle"
+  button rychle_start [406,23,,] { help:'projdi daný výpis a připisuj platby', title:"[fa-play] Rychle"
     proc onclick () {
       done.set(1);
       rychle.set(1);
@@ -269,7 +274,7 @@ form _cmd [,,897,62] { css:'work'
     p._prevody.raise('onrowclick',p._prevody.id_dar.get)
   | p_rychle_off
   }
-  button rychle_ano [450,23,,] { title:'[fa-plus] Ano, další', format:'d',
+  button rychle_ano [477,23,,] { title:'[fa-plus] Ano, další', format:'d',
     help:'zapiš platbu odsouhlasenému kontaktu a běž dál'
     proc onclick () { var idd:number
       [ c.key; zmena_typu(9,c.key) ];
@@ -279,11 +284,11 @@ form _cmd [,,897,62] { css:'work'
     eq(p._prevody.typ.get,5,7); p._prevody.idc.get
   | p._prevody.browse_next; p_rychle_skip
   }
-  button rychle_ne [536,23,,] { title:'[fa-minus] Ne, další', format:'d', help:'běž dál'
+  button rychle_ne [563,23,,] { title:'[fa-minus] Ne, další', format:'d', help:'běž dál'
     proc onclick () {
       p_rychle_next
   }}
-  button rychle_konec [616,23,,] { title:'[fa-stop] Konec', format:'d', help:'ukonči procházení'
+  button rychle_konec [643,23,,] { title:'[fa-stop] Konec', format:'d', help:'ukonči procházení'
     proc onclick () {
 //      p_rychle_off
   }}
@@ -305,17 +310,23 @@ form _cmd [,,897,62] { css:'work'
       if (idc) c.load(idc);
   }}
   # ==> . < kontakty
-  button kontakt_set [188,9,,] { title:'kontakt [fa-arrow-left] plátce'
+  button kontakt_set [152,9,,] { title:'kontakt [fa-arrow-left] plátce'
     help:'nastaví kartu Kontakty podle účtu plátce'
     func onclick() {
       cle.show_clen(p._prevody.idc)
   }}
   # ==> . > kontakty
-  button kontakt_get [188,35,,] { title:'kontakt [fa-arrow-right] plátce'
+  button kontakt_get [152,35,,] { title:'kontakt [fa-arrow-right] plátce'
     help:'vymění plátce za osobu nastavenou v Kontakty'
     func onclick () { var idc:number
       idc= cle.curr_clen(1);
       if (idc) c.load(idc);
+  }}
+  # ==> . > kontroly výpisů
+  button [265,9,,] { title:'[fa-info-circle] kontrola výpisů'
+    help:'kontroly řad výpisů'
+    func onclick () { 
+      pop_kontrola.Ukaz();
   }}
   # ==> . nedar
   button nedar [751,8,,] { format:'',
@@ -330,6 +341,25 @@ form _cmd [,,897,62] { css:'work'
     func onclick () { 
       zmena_typu(5,0); c.init()
     }
+  }
+}
+# ========================================================================================> KONTROLA
+panel pop_kontrola [,,780,400] { title:'Kontrola souvislosti výpisů', type:'popup', css:'dialog'
+  func Ukaz() {
+    pk.Ukaz_data();
+    panel.modal(186,100);
+  }
+  use pk: form {
+    func Ukaz_data() {
+      info= php.ch_bank_kontrola(ucet.key(),rok);
+    }
+    select ucet [40,0,250,] { type:'map', title:'účet', options:cis_b_ucty.hodnota, format:'t'
+      func onchanged() { Ukaz_data(); }
+    }
+    field rok [350,0,40,] {title:'rok', value:'2021', format:'rt'
+      func onchanged() { Ukaz_data(); }
+    }
+    label info [10,30,760,350] { style:'background:white' }
   }
 }
 # =========================================================================================> HLEDÁNÍ

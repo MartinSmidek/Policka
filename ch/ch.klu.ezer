@@ -41,6 +41,7 @@ map cis_k_potvrzeni:    table _cis  { where:"druh='k_potvrzeni'", order:'poradi'
 map cis_podminky2:      table _cis  { where:"druh='vyber_daru' and left(zkratka,1)!='-'", order:'poradi'}
 map cis_k_vyjimka:      table _cis  { where:"druh='k_vyjimka'", order:'poradi', key_id:'data'}
 map cis_k_rod:          table _cis  { where:"druh='k_rod'", order:'poradi', key_id:'data'}
+map cis_b_ucty:         table _cis  { where:"druh='b_ucty'", order:'poradi', key_id:'data'}
 map user:               table _user { where:'1', order:'surname'}
 map user2:              table _user { where:"skills!=''", order:'surname'}
 
