@@ -231,6 +231,10 @@ function dop_vars($id_clen,$ids_dar,$vars,$typ) { //trace();
   foreach ($vars as $var) if ( $var ) {
     $var= trim($var);
     switch ( $var ) {
+    // obecné údaje 
+    case 'dne':                              // aktuální datum
+      $val->$var= date('d. n. Y');
+      break;
     // údaje z kontaktu
     case 'osloveni':                          // kontext: {osloveni}!
       if ( $c->osloveni!=0 && $c->prijmeni5p!='' )
