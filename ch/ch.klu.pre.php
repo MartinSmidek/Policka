@@ -195,7 +195,7 @@ function ch_ban_load($file) {  trace();
     );
   $flds_0600= array(
       "Číslo účtu"        => array(0),
-      "Odesláno"          => array(0,'d','castka_kdy'),
+      "Splatnost"         => array(0,'d','castka_kdy'),
       "Částka"            => array(0,'c','castka'),
       "Měna"              => array(0,'m'),
       "Název protiúčtu"   => array(0,'n','ucet_popis'),
@@ -223,9 +223,9 @@ function ch_ban_load($file) {  trace();
     goto end;
   }
   $banka= $m[2];
-  $ucet= "$m[1]/$banka";
-  $idu= isset($nase_ucty[$ucet]) ? $nase_ucty[$ucet] : 0;
-  if (!$idu) { $y->err= "'$ucet' není mezi účty zapsanými v Nastavení"; goto end; }
+  $nas_ucet= "$m[1]/$banka";
+  $idu= isset($nase_ucty[$nas_ucet]) ? $nase_ucty[$nas_ucet] : 0;
+  if (!$idu) { $y->err= "'$nas_ucet' není mezi účty zapsanými v Nastavení"; goto end; }
   $sod= str_replace('_','-',$m[3]);
   $sdo= str_replace('_','-',$m[4]);
   // načtení hlavičky a převodů do pole
@@ -249,8 +249,9 @@ function ch_ban_load($file) {  trace();
     }
     if ($banka=='0600') {
       // kontrola čísla_účtu pro Monetu
-      if ($rec["Číslo účtu"]!=$ucet) {
-        $y->err= "na řádku $i je převod na účet {$rec["Číslo účtu"]} což nesouhlasí s účtem výpisu"; 
+      if ($rec["Číslo účtu"]!=$nas_ucet) {
+        $y->err= "na řádku $i je převod na účet {$rec["Číslo účtu"]} 
+          což nesouhlasí s účtem výpisu $nas_ucet"; 
         goto end;
       }
     }
