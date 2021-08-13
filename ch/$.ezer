@@ -47,28 +47,28 @@ menu ch { type:'main', active:*
     # ===================================================================================== APLIKACE
     panel APPL {type:'right', title:'[fa-download] Git/DB', _sys:'str', skill:'m'
       menu m {type:'left', format:'f+'
-        menu  {title:'Primární import dat', type:'group', skill:'m'
-          item {title:'[fa-upload] TRUNCATE clen, role, dar, vypis'
-            func onclick (i:ezer) {
-              clear(); info.display(0,'t');
-              info.fill(replace_fa(i.title),php.ch_truncate());
-            }
-          }
-          item {title:'[fa-upload] celý soubor darci.csv'    par:°{file:'darci',max:0} }
-          item {title:'[fa-upload] ... jen 3 záznamy'        par:°{file:'darci',max:3} }
-          item {title:'[fa-upload] ... jen 1 záznam'         par:°{file:'darci',max:1} }
-          item {title:'[fa-upload] celý soubor firmy.csv'    par:°{file:'firmy',max:0} }
-          item {title:'[fa-upload] ... jen 3 záznamy'        par:°{file:'firmy',max:3} }
-          item {title:'[fa-upload] ... jen 1 záznam'         par:°{file:'firmy',max:1} }
-          item {title:'[fa-upload] celý soubor firmy2.csv'   par:°{file:'firmy2',max:0} }
-          item {title:'[fa-upload] ... jen 3 záznamy'        par:°{file:'firmy2',max:3} }
-          item {title:'[fa-upload] ... jen 1 záznam'         par:°{file:'firmy2',max:1} }
-          func onclick (i:ezer) {
-            clear(); info.display(0,'t');
-            info.fill(replace_fa(i.title),' čekej ...');
-            info.fill('',php.ch_import(i.par));
-          }
-        }
+//        menu  {title:'Primární import dat', type:'group', skill:'m'
+//          item {title:'[fa-upload] TRUNCATE clen, role, dar, vypis'
+//            func onclick (i:ezer) {
+//              clear(); info.display(0,'t');
+//              info.fill(replace_fa(i.title),php.ch_truncate());
+//            }
+//          }
+//          item {title:'[fa-upload] celý soubor darci.csv'    par:°{file:'darci',max:0} }
+//          item {title:'[fa-upload] ... jen 3 záznamy'        par:°{file:'darci',max:3} }
+//          item {title:'[fa-upload] ... jen 1 záznam'         par:°{file:'darci',max:1} }
+//          item {title:'[fa-upload] celý soubor firmy.csv'    par:°{file:'firmy',max:0} }
+//          item {title:'[fa-upload] ... jen 3 záznamy'        par:°{file:'firmy',max:3} }
+//          item {title:'[fa-upload] ... jen 1 záznam'         par:°{file:'firmy',max:1} }
+//          item {title:'[fa-upload] celý soubor firmy2.csv'   par:°{file:'firmy2',max:0} }
+//          item {title:'[fa-upload] ... jen 3 záznamy'        par:°{file:'firmy2',max:3} }
+//          item {title:'[fa-upload] ... jen 1 záznam'         par:°{file:'firmy2',max:1} }
+//          func onclick (i:ezer) {
+//            clear(); info.display(0,'t');
+//            info.fill(replace_fa(i.title),' čekej ...');
+//            info.fill('',php.ch_import(i.par));
+//          }
+//        }
         menu { title:'Backup databáze',type:'group',skill:'m'
           item { title:"[fa-question] přehled záloh"                par:°{typ:'download'}}
           item { title:"[fa-upload] zálohuj teď"                    par:°{typ:'special'}}

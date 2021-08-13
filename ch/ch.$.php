@@ -3,6 +3,7 @@
 # 2021 Martin Smidek <martin@smidek.eu>
 #
 /** =======================================================================================> TABLES */
+/*
 # -------------------------------------------------------------------------------------- ch truncate
 # inicializace db
 function ch_truncate() { trace();
@@ -179,6 +180,7 @@ function ch_import($par) { trace();
   }
   return "Bylo vloženo $n_clen lidí a $n_dar darů";
 }
+*/
 # ------------------------------------------------------------------------------------- ch csv2array
 # načtení CSV-souboru do asociativního pole, při chybě navrací chybovou zprávu
 # obsahuje speciální kód pro soubory kódované UTF-16LE
