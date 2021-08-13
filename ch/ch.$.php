@@ -182,7 +182,7 @@ function ch_import($par) { trace();
 # ------------------------------------------------------------------------------------- ch csv2array
 # načtení CSV-souboru do asociativního pole, při chybě navrací chybovou zprávu
 # obsahuje speciální kód pro soubory kódované UTF-16LE
-function ch_csv2array($fpath,&$data,$max=0,$encoding='UTF-8') { trace();
+function ch_csv2array($fpath,&$data,$max=0,$encoding='UTF-8') { //trace();
   $msg= '';
   $f= $encoding=='UTF-16LE' ? fopen_utf8($fpath, "r") : fopen($fpath, "r");
   if ( !$f ) { $msg.= "soubor $fpath nelze otevřít"; goto end; }
@@ -206,7 +206,7 @@ function ch_csv2array($fpath,&$data,$max=0,$encoding='UTF-8') { trace();
       else 
         $s= mb_convert_encoding($s, "UTF-8", $encoding);
     }
-    display("$n:$s");
+//    display("$n:$s");
     $d= str_getcsv($s,$del);
     foreach ($d as $i=>$val) {
       $data[$n][$head[$i]]= $val;

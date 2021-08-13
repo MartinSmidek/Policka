@@ -154,7 +154,6 @@ function klub_clen_udaje ($id_clen) {
 # ASK: zjistí zda je člen dobře vyplněn ($id_clen není pro nového člena definován)
 # 1. zda vyplněné rodné číslo nebo IČ není použito u nevymazaného kontaktu
 # 2. zda vyplněný obvyklý dárce má správný formát tzn. buďto jméno nebo jméno a plná adresa
-# a doplní ascii jméno a příjmení
 function klub_check ($id_clen,$rodcis='',$darce='') { trace();
   if ( !$id_clen ) $id_clen= 0;
   $ok= 1;
@@ -185,8 +184,6 @@ function klub_check ($id_clen,$rodcis='',$darce='') { trace();
       . "jméno po středníku doplněné o úplnou adresu: ulice;psč obec (zkuste kliknout [...])";
     }
   }
-  // doplnění ascii jména a příjmení
-  ch_remake_ascii_fields($id_clen);
   return (object)array('ok'=>$ok,'msg'=>$msg);
 }
 /** ****************************************************************************************==> DARY */

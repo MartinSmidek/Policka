@@ -213,7 +213,7 @@ function ch_ban_load($file) {  trace();
   while ( $res && list($idu,$u_b)= pdo_fetch_row($res) ) {
     $nase_ucty[$u_b]= $idu;
   }
-  debug($nase_ucty,'$nase_ucty');
+//  debug($nase_ucty,'$nase_ucty');
   // rozlišení banky 0800/0600 podle jména souboru
   $m= null;
   $ok= preg_match("~(\d+)_(0800|0600)_(\d\d\d\d_\d\d_\d\d)_(\d\d\d\d_\d\d_\d\d)\.csv~",$file,$m);
@@ -234,6 +234,7 @@ function ch_ban_load($file) {  trace();
   ch_csv2array($csv,$data,0, $banka=='0800' ? 'UTF-16LE' : 'CP1250');
   $flds= $banka=='0800' ? $flds_0800 : $flds_0600;
   $od= '9999-99-99'; $do= '0000-00-00';
+  $prevody= array(); // idc,
   foreach ($data as $i=>$rec) {
     // v prvním průchodu proveď kotroly a založ záznam pro výpis
     if ($i==0) {
@@ -246,15 +247,12 @@ function ch_ban_load($file) {  trace();
       }
       continue;
     }
-    if ($i==1) {
-      // vložení výpisu po kontrole Čísla_účtu pro Monetu
-      if ($banka=='0600' && $rec["Číslo účtu"]!=$ucet) {
-        $y->err= "číslo účtu v názvu souboru v nesouhlasí s číslem účtu uvnitř souboru"; 
+    if ($banka=='0600') {
+      // kontrola čísla_účtu pro Monetu
+      if ($rec["Číslo účtu"]!=$ucet) {
+        $y->err= "na řádku $i je převod na účet {$rec["Číslo účtu"]} což nesouhlasí s účtem výpisu"; 
         goto end;
       }
-      // pokud je vše v pořádku vlož výpis
-      query("INSERT INTO vypis SET soubor='$file', nas_ucet=$idu, soubor_od='$sod', soubor_do='$sdo' ");
-      $y->idv= pdo_insert_id();
     }
     // vložení záznamu
     $set= ''; $castka= 0; $ucet= $popis= $pozn= $zprava= '';
@@ -265,7 +263,13 @@ function ch_ban_load($file) {  trace();
         case 'd': $datum= sql_date($val,1); 
                   $od= strnatcmp($datum,$od)<0 ? $datum : $od; 
                   $do= strnatcmp($datum,$do)>0 ? $datum : $do; 
-                  $set.= ", $f='$datum'"; break;
+                  $set.= ", $f='$datum'"; 
+                  // test, jestli je v hranicích daných jménem souboru
+                  if (strnatcmp($datum,$sod)<0 || strnatcmp($datum,$sdo)>0) {
+                    $y->err= "na řádku $i je převod s datem $datum, které neleží v intervalu $sod až $sdo"; 
+                    goto end;
+                  }
+                  break;
         case 'c': $castka= preg_replace(array("/\s/u","/,/u"),array('','.'),$val);
                   $set.= ", $f=$castka"; break;
         case 'm': if ($val=='CZK') break;
@@ -310,15 +314,21 @@ function ch_ban_load($file) {  trace();
       $typ= $idc ? 7 : 5;
     }
     // vložení záznamu - pokud jde o příjem
+    $set.= ", id_clen=$idc, typ= $typ, zpusob=$zpusob ";
     if ($castka>0) {
-      $qry= "INSERT INTO dar SET id_vypis=$y->idv, id_clen=$idc, nas_ucet=$idu, 
-          typ= $typ, zpusob=$zpusob $set ";
-//      display($qry);
-      query($qry);
+      $prevody[]= $set;
     }
   }
-  // doplnění dat 
-  query("UPDATE vypis SET datum_od='$od', datum_do='$do' WHERE id_vypis=$y->idv ");
+//  query("UPDATE vypis SET datum_od='$od', datum_do='$do' WHERE id_vypis=$y->idv ");
+  debug($prevody);
+  // pokud je vše v pořádku vlož výpis
+  query("INSERT INTO vypis SET soubor='$file', nas_ucet=$idu, 
+      soubor_od='$sod', soubor_do='$sdo', datum_od='$od', datum_do='$do' ");
+  $y->idv= pdo_insert_id();
+  // a převody
+  foreach ($prevody as $set) {
+    query("INSERT INTO dar SET id_vypis=$y->idv, nas_ucet=$idu $set");    
+  }
 end:
   return $y;
 }
