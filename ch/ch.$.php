@@ -3,7 +3,6 @@
 # 2021 Martin Smidek <martin@smidek.eu>
 #
 /** =======================================================================================> TABLES */
-/*
 # -------------------------------------------------------------------------------------- ch truncate
 # inicializace db
 function ch_truncate() { trace();
@@ -19,6 +18,7 @@ function ch_truncate() { trace();
 function ch_import($par) { trace();
   global $ezer_path_root;
   $csv= "$ezer_path_root/doc/{$par->file}.csv";
+  $TEST= isset($par->test);
   $data= array();
   $msg= ch_csv2array($csv,$data,$par->max?:999999,'CP1250');
 //  display($msg);                                              
@@ -42,6 +42,7 @@ function ch_import($par) { trace();
       'poznamka'=> "C",
       'email/pozn'  => "C,ep",
       'adresa2' => "C,adr2",
+      'umrti'   => "C,d",
       // dar
       'castka'     => "D,dn",
       'zpusob'     => "D,z",
@@ -53,6 +54,8 @@ function ch_import($par) { trace();
   // rozdělíme na clen a dar
   $n_clen= $n_dar= 0;
   foreach ($data as $row) {
+    if ($TEST && $row['test']=='') continue;
+    if ($row['zdroj']=='x') continue;
 //                                                    debug($row);
     // najdi kontakt: fyzické podle jmeno+prijmeni (osoba=1), právnické podle firma (osoba=0)
     // nebo vlož nvý kontakt
@@ -60,12 +63,17 @@ function ch_import($par) { trace();
     $jmeno= $row['jmeno'];
     $prijmeni= $row['prijmeni'];
     $firma= trim($row['firma']);
-    $firma_info= trim($row['firma_info']);
     if (!$prijmeni && !$firma) continue;
+    $firma_info= trim($row['firma_info']);
+    if ($row['soukr']=='soukr') {
+      // u lékařů ap. proveď firma=titul+firma a info= celé jméno
+      $firma= "{$row['titul']} $firma";
+      $firma_info.= " {$row['firma']}";
+    }
     $idc= select('id_clen','clen', $osoba||!$firma
         ? "prijmeni='$prijmeni' AND jmeno='$jmeno'"
 //        : "firma='$firma' AND prijmeni='$prijmeni' AND jmeno='$jmeno'"
-        : "firma='$firma' AND firma_info='$firma_info'"
+        : "firma='$firma' /*AND firma_info='$firma_info'*/ "
         );
     if (!$idc) {
       if ($osoba||!$firma) {
@@ -129,7 +137,7 @@ function ch_import($par) { trace();
           $d[$fld]= str_replace(' ','',$val);
           break;
         case 'd': 
-          if (preg_match("~^\d+\.\d+\.\d+$~",$val)) {
+          if (preg_match("~^\*?\d+\.\d+\.\d+$~",$val)) {
             if ($tab=='C') $c[$fld]= sql_date($val,1); 
             elseif ($tab=='D') $d[$fld]= sql_date($val,1); 
           }
@@ -180,7 +188,6 @@ function ch_import($par) { trace();
   }
   return "Bylo vloženo $n_clen lidí a $n_dar darů";
 }
-*/
 # ------------------------------------------------------------------------------------- ch csv2array
 # načtení CSV-souboru do asociativního pole, při chybě navrací chybovou zprávu
 # obsahuje speciální kód pro soubory kódované UTF-16LE

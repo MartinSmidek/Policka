@@ -144,7 +144,8 @@ form _cleni [,,660,334+17] {
     view ro: table role {join_type:'LEFT', join:"ON ro.id_firma=c.id_clen"}
     show del [,,0,] { title:'D', data:c.deleted, format:'q=' }
     show id_clen  [,, 43,] { title:'dárce', data:c.id_clen, format:'rq=s' }
-    show firma    [,,120,] { title:'firma', data:c.firma, format:'tq$s' }
+    show firma    [,,120,] { title:'firma', data:c.firma, format:'tq$s' 
+        css_cell:'osoba,0:zluty' }
     show f_info   [,,120,] { title:'firma info.', data:c.firma_info, format:'tq$s' }
     show prijmeni [,, 80,] { title:'příjmení', data:c.prijmeni, format:'tq$s+' }
     show jmeno    [,, 60,] { title:'jméno', data:c.jmeno, format:'tq$s' }
