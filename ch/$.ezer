@@ -204,7 +204,7 @@ table clen { key_id:'id_clen'
   number id_clen        { key:'primary', help:'kontakt|jedinečné číslo kontaktu' },
   text zdroj
   text   deleted        { help:'ok|prázdné nebo D=značka smazání kontaktu' },
-  date   umrti          { help:'úmrtí|datum úmrtí', sql_pipe:'sql_date1' },
+  number umrti          { help:'rok úmrtí|rok zjištění úmrtí' },
   date   clen_od        { help:'člen od|zahájení členství v Klubu přátel', sql_pipe:'sql_date1' },
   text   historie       { help:'poznámky|poznámky ke kontaktu' },
   text   ps             { help:'PS|text připojený do nejbližšího dopisu' },

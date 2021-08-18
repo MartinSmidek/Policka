@@ -232,7 +232,7 @@ function klu_inf_stat() { trace();
   $html= '';
   // kontakty
   $c= pdo_object("SELECT count(*) as _pocet FROM clen
-                    WHERE left(clen.deleted,1)!='D' AND umrti='0000-00-00' ");
+                    WHERE left(clen.deleted,1)!='D' AND umrti=0 ");
   $html.= "<br>počet známých kontaktů = <b>{$c->_pocet}</b>";
   // dárci
   $clenu= $daru= 0;

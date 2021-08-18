@@ -110,7 +110,7 @@ form _cleni [,,660,334+17] {
     where= replace(_cond,'$user',cond_kdo.key(),'$datum',date2sql(cond_dne));
     where= conc(where,
       cond_del ? '' : " AND left(c.deleted,1)!='D'",
-      cond_xel ? '' : " AND umrti='0000-00-00'",
+      cond_xel ? '' : " AND umrti=0",
       cond_os&&!cond_fy ? " AND osoba=1" : '',
       !cond_os&&cond_fy ? " AND osoba=0" : ''
     );
@@ -121,7 +121,7 @@ form _cleni [,,660,334+17] {
     }
   }
   func ShowAll() { 
-    cleni.browse_load("left(c.deleted,1)!='D' AND umrti='0000-00-00'");
+    cleni.browse_load("left(c.deleted,1)!='D' AND umrti=0");
   }
   # přepínání_sloupce_del
   check cond_del [562,0,86,17] { title:'i smazaní', format:"t",
@@ -339,7 +339,7 @@ form _clen [,,399,251] {
 
   # ==> .. historie - tag=h, top=hist
   label [10,hist,50,15] {tag:'h', title:'<h1>Historie</h1>', format:'n' }
-  field umrti   [303,hist,81,] {tag:'h', title:'zemřel', data:clen.umrti, format:'n' }
+  field umrti   [344,hist,40,] {tag:'h', title:'rok zjištění úmrtí', data:clen.umrti, format:'n:e' }
   chat historie [9,hist+25,378,100] {tag:'h', data:clen.historie, divide:70, format:'n' }
 
   # ==> .. oslovení - tag=o, top=oslo

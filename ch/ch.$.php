@@ -42,7 +42,7 @@ function ch_import($par) { trace();
       'poznamka'=> "C",
       'email/pozn'  => "C,ep",
       'adresa2' => "C,adr2",
-      'umrti'   => "C,d",
+      'umrti'   => "C",
       // dar
       'castka'     => "D,dn",
       'zpusob'     => "D,z",
@@ -770,7 +770,7 @@ function osl_kontakt_new ($op,$ids='',$limit=25000) { trace();
     $qry= "SELECT id_clen,osoba,c.jmeno,prijmeni,titul,rod,n.sex,anomalie,osloveni,prijmeni5p,vyjimka
            FROM clen AS c LEFT JOIN _jmena AS n ON c.jmeno=n.jmeno
            WHERE id_clen>$konec AND vyjimka!=801 /*AND psc!='' AND psc!=0*/ and left(c.deleted,1)!='D'
-           and umrti='0000-00-00' AND neposilat=0
+           and umrti=0 AND neposilat=0
            GROUP BY id_clen
            ORDER BY id_clen LIMIT $limit";
     $res= pdo_qry($qry);
