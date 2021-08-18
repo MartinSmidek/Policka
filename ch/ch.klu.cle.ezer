@@ -199,7 +199,7 @@ form _cleni [,,660,334+17] {
       if (cleni.browse_count()) {
         C_clen_butt._clen_load(id_clen);
         if (has_skill('hdd')) C_dary._dary_load();
-        zmena= `<small>poslední změna: ${kdn} ${kdy}</small>`;
+//        zmena= `<small>poslední změna: ${kdn} ${kdy}</small>`;
 //        C_ukoly._ukoly_load(id_clen);
         C_clen.Show(C_clen.zalozka);
       }
@@ -764,7 +764,7 @@ form _dary [,,260,256] {
   label zmena [12,242,236,18] { title:'' },
   # ==> . procedury
   proc set_zmena() {
-    zmena.set(conc('<small>poslední změna: ',dary.kdn.get,' ',dary.kdy.get,'</small>')) 
+//    zmena.set(conc('<small>poslední změna: ',dary.kdn.get,' ',dary.kdy.get,'</small>')) 
   }  
   proc _dary_load () {
     C_dar._dar_init;
