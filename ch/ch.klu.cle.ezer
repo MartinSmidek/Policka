@@ -131,11 +131,6 @@ form _cleni [,,660,334+17] {
       | cleni.del.width(0); cleni.id_clen.width(43) };
       _cleni_vyber(0) }
   }
-  # ---------------------------------------==> . kontextové menu
-  menu { type:'context'
-    item sel_off { title:'zrušit výběr'
-      proc onclick () { cleni.selected('clear'); _cleni_vyber(0) } }
-  }
   # ---------------------------------------==> . vybraný seznam členů
   view c: table clen,
   browse cleni [4,34,0,0] {buf_rows:21, rows:14, qry_rows:1, wheel:5, 
@@ -166,6 +161,7 @@ form _cleni [,,660,334+17] {
       map_pipe:cis_k_potvrzeni.zkratka }
     show kategorie[,, 0,] { title:'kategorie', data:c.kategorie, format:'q#s'
       map_pipe:cis_kategorie.zkratka}
+    show poznamka [,, 0,] { title:'poznámka',  data:c.poznamka,   format:'q$s' }
     proc onclick() {
       zdroj.width;     zdroj.width(0);     ucet.width(90);
     | ucet.width;      ucet.width(0);      kategorie.width(90);
@@ -173,7 +169,8 @@ form _cleni [,,660,334+17] {
     | rodcis.width;    rodcis.width(0);    titul.width(90);
     | titul.width;     titul.width(0);     telefony.width(90);
     | telefony.width;  telefony.width(0);  email.width(90);
-    | email.width;     email.width(0);     potvrz.width(90);
+    | email.width;     email.width(0);     poznamka.width(90);
+    | poznamka.width;  poznamka.width(0);  zdroj.width(90);
     | potvrz.width;    potvrz.width(0);    zdroj.width(90);
     }
     // osoba nebo firma
@@ -206,6 +203,13 @@ form _cleni [,,660,334+17] {
       else {
         C_clen.init(); C_dary.suma= '';  C_dary.dary.browse_init();  C_dar.init()
       }
+    }
+    # ---------------------------------------==> . kontextové menu
+    menu { type:'context'
+      item { title:'zrušit výběr'
+        func onclick () { cleni.selected('clear'); _cleni_vyber(0) } }
+      item { title:'spojit vybrané kontakty'
+        proc onclick () {  } }
     }
   }
   label zmena [12,-5,236,18] { title:'' },

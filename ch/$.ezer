@@ -54,12 +54,15 @@ menu ch { type:'main', active:*
               info.fill(replace_fa(i.title),php.ch_truncate());
             }
           }
-          item {title:'[fa-upload] celý soubor v2-indiv.csv' par:{file:'v2-indiv',max:0} }
-          item {title:'[fa-upload] ... jen testy'            par:{file:'v2-indiv',max:0,test:1} }
-          item {title:'[fa-upload] ... jen 1 záznam'         par:{file:'v2-indiv',max:1} }
-          item {title:'[fa-upload] celý soubor v2-firmy.csv' par:{file:'v2-firmy',max:0} }
-          item {title:'[fa-upload] ... jen testy'            par:{file:'v2-firmy',max:0,test:1} }
-          item {title:'[fa-upload] ... jen 1 záznam'         par:{file:'v2-firmy',max:1} }
+          item {title:'[fa-upload] celý soubor v2-indiv.csv'  par:{file:'v2-indiv',max:0} }
+          item {title:'[fa-upload] ... jen testy'             par:{file:'v2-indiv',max:0,test:1} }
+          item {title:'[fa-upload] ... jen 1 záznam'          par:{file:'v2-indiv',max:1} }
+          item {title:'[fa-upload] celý soubor v2-firmy.csv'  par:{file:'v2-firmy',max:0} }
+          item {title:'[fa-upload] ... jen testy'             par:{file:'v2-firmy',max:0,test:1} }
+          item {title:'[fa-upload] ... jen 1 záznam'          par:{file:'v2-firmy',max:1} }
+          item {title:'[fa-upload] celý soubor v2-firmy2.csv' par:{file:'v2-firmy2',max:0} }
+          item {title:'[fa-upload] ... jen testy'             par:{file:'v2-firmy2',max:0,test:1} }
+          item {title:'[fa-upload] ... jen 1 záznam'          par:{file:'v2-firmy2',max:1} }
           func onclick (i:ezer) {
             clear(); info.display(0,'t');
             info.fill(replace_fa(i.title),' čekej ...');

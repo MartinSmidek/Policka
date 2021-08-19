@@ -39,7 +39,7 @@ function ch_import($par) { trace();
       'rodcis'  => "C,rc",
       'telefony'=> "C",
       'email'   => "C",
-      'poznamka'=> "C",
+      'poznamka'=> "C,p",
       'email/pozn'  => "C,ep",
       'adresa2' => "C,adr2",
       'umrti'   => "C",
@@ -56,7 +56,8 @@ function ch_import($par) { trace();
   foreach ($data as $row) {
     if ($TEST && $row['test']=='') continue;
     if ($row['zdroj']=='x') continue;
-//                                                    debug($row);
+    $poznamka= ''; // složená z poznamka s prefixem barva
+                                                    debug($row);
     // najdi kontakt: fyzické podle jmeno+prijmeni (osoba=1), právnické podle firma (osoba=0)
     // nebo vlož nvý kontakt
     $osoba= $row['osoba'];
@@ -70,11 +71,17 @@ function ch_import($par) { trace();
       $firma= "{$row['titul']} $firma";
       $firma_info.= " {$row['firma']}";
     }
-    $idc= select('id_clen','clen', $osoba||!$firma
-        ? "prijmeni='$prijmeni' AND jmeno='$jmeno'"
-//        : "firma='$firma' AND prijmeni='$prijmeni' AND jmeno='$jmeno'"
-        : "firma='$firma' /*AND firma_info='$firma_info'*/ "
-        );
+    if ($row['zdroj']=='firmy2') {
+      $idc= 0;
+      $poznamka= $row['barva'];
+      $firma_info= trim("{$row['titul']} {$row['jmeno']} {$row['prijmeni']} {$row['titul_za']}");
+    }
+    else
+      $idc= select('id_clen','clen', $osoba||!$firma
+          ? "prijmeni='$prijmeni' AND jmeno='$jmeno'"
+  //        : "firma='$firma' AND prijmeni='$prijmeni' AND jmeno='$jmeno'"
+          : "firma='$firma' /*AND firma_info='$firma_info'*/ "
+          );
     if (!$idc) {
       if ($osoba||!$firma) {
         $JM= trim(utf2ascii($jmeno,' .'));
@@ -155,6 +162,9 @@ function ch_import($par) { trace();
           break;
         case 'ep': 
           if (strchr($val,'@')) $c['email']= $val; elseif ($tab=='D') $c['poznamka']= $val; 
+          break;
+        case 'p': 
+          $c['poznamka']= ($poznamka ? "$poznamka, " : '').$val; 
           break;
         default: 
           if ($tab=='C') $c[$fld]= $val; else $d[$fld]= $val; 
