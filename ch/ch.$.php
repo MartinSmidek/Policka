@@ -39,10 +39,14 @@ function ch_import($par) { trace();
       'rodcis'  => "C,rc",
       'telefony'=> "C",
       'email'   => "C",
-      'poznamka'=> "C,p",
+      'poznamka'=> "C,p", // + poznamka2
       'email/pozn'  => "C,ep",
+      'adresa'  => "C,adr",
       'adresa2' => "C,adr2",
       'umrti'   => "C",
+      'narozeni'=> "C,d",
+      'clen_od' => "C,d",
+      'kategorie'=> "C",
       // dar
       'castka'     => "D,dn",
       'zpusob'     => "D,z",
@@ -56,8 +60,8 @@ function ch_import($par) { trace();
   foreach ($data as $row) {
     if ($TEST && $row['test']=='') continue;
     if ($row['zdroj']=='x') continue;
-    $poznamka= ''; // složená z poznamka s prefixem barva
-                                                    debug($row);
+    $poznamka= ''; // složená z poznamka s prefixem barva a poznamka2
+//                                                    debug($row);
     // najdi kontakt: fyzické podle jmeno+prijmeni (osoba=1), právnické podle firma (osoba=0)
     // nebo vlož nvý kontakt
     $osoba= $row['osoba'];
@@ -66,22 +70,29 @@ function ch_import($par) { trace();
     $firma= trim($row['firma']);
     if (!$prijmeni && !$firma) continue;
     $firma_info= trim($row['firma_info']);
+    $idc= 0;
     if ($row['soukr']=='soukr') {
       // u lékařů ap. proveď firma=titul+firma a info= celé jméno
       $firma= "{$row['titul']} $firma";
       $firma_info.= " {$row['firma']}";
     }
     if ($row['zdroj']=='firmy2') {
-      $idc= 0;
       $poznamka= $row['barva'];
       $firma_info= trim("{$row['titul']} {$row['jmeno']} {$row['prijmeni']} {$row['titul_za']}");
     }
-    else
+    if ($row['zdroj']=='dobr' || $row['zdroj']=='kruh') {
+      $p2= trim($row['poznamka2']);
+      $p3= trim($row['poznamka3']);
+      $poznamka.= ($p2 && $p3) ? "POVOLÁNÍ $p2, POMOC: $p3" 
+          : ($p2 ? "POVOLÁNÍ $p2" : ($p3 ? "POMOC $p3" : ''));
+    }
+    if ($row['zdroj']=='darci') {
       $idc= select('id_clen','clen', $osoba||!$firma
           ? "prijmeni='$prijmeni' AND jmeno='$jmeno'"
   //        : "firma='$firma' AND prijmeni='$prijmeni' AND jmeno='$jmeno'"
           : "firma='$firma' /*AND firma_info='$firma_info'*/ "
           );
+    }
     if (!$idc) {
       if ($osoba||!$firma) {
         $JM= trim(utf2ascii($jmeno,' .'));
@@ -119,6 +130,23 @@ function ch_import($par) { trace();
             $c['ulice2']= $m[1];
             $c['psc2']= str_replace(' ','',$m[2]);
             $c['obec2']= $m[3];
+          }
+          break;
+        case 'adr': 
+          $m= null;
+          if (!$val) {
+            break;
+          }
+          elseif (preg_match("~^\*~",$val)) {
+            display("UPRAVIT:$val");
+          }
+          elseif (preg_match("~^(.*),([\s\d]+)(.*)$~",$val,$m)) {
+            $c['ulice']= $m[1];
+            $c['psc']= str_replace(' ','',$m[2]);
+            $c['obec']= $m[3]=='P'?'Polička':$m[3];
+          }
+          else {
+            $c['ulice']= $val;
           }
           break;
         case 'rc': 

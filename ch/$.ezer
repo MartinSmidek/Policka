@@ -54,15 +54,19 @@ menu ch { type:'main', active:*
               info.fill(replace_fa(i.title),php.ch_truncate());
             }
           }
-          item {title:'[fa-upload] celý soubor v2-indiv.csv'  par:{file:'v2-indiv',max:0} }
-          item {title:'[fa-upload] ... jen testy'             par:{file:'v2-indiv',max:0,test:1} }
-          item {title:'[fa-upload] ... jen 1 záznam'          par:{file:'v2-indiv',max:1} }
-          item {title:'[fa-upload] celý soubor v2-firmy.csv'  par:{file:'v2-firmy',max:0} }
-          item {title:'[fa-upload] ... jen testy'             par:{file:'v2-firmy',max:0,test:1} }
-          item {title:'[fa-upload] ... jen 1 záznam'          par:{file:'v2-firmy',max:1} }
-          item {title:'[fa-upload] celý soubor v2-firmy2.csv' par:{file:'v2-firmy2',max:0} }
-          item {title:'[fa-upload] ... jen testy'             par:{file:'v2-firmy2',max:0,test:1} }
-          item {title:'[fa-upload] ... jen 1 záznam'          par:{file:'v2-firmy2',max:1} }
+//          item {title:'[fa-upload] celý soubor v2-indiv.csv'  par:{file:'v2-indiv',max:0} }
+//          item {title:'[fa-upload] ... jen testy'             par:{file:'v2-indiv',max:0,test:1} }
+//          item {title:'[fa-upload] ... jen 1 záznam'          par:{file:'v2-indiv',max:1} }
+//          item {title:'[fa-upload] celý soubor v2-firmy.csv'  par:{file:'v2-firmy',max:0} }
+//          item {title:'[fa-upload] ... jen testy'             par:{file:'v2-firmy',max:0,test:1} }
+//          item {title:'[fa-upload] ... jen 1 záznam'          par:{file:'v2-firmy',max:1} }
+//          item {title:'[fa-upload] celý soubor v2-firmy2.csv' par:{file:'v2-firmy2',max:0} }
+//          item {title:'[fa-upload] ... jen testy'             par:{file:'v2-firmy2',max:0,test:1} }
+//          item {title:'[fa-upload] ... jen 1 záznam'          par:{file:'v2-firmy2',max:1} }
+          item {title:'[fa-upload] celý soubor v2-dobr.csv'   par:{file:'v2-dobr',max:0} }
+//          item {title:'[fa-upload] ... jen testy'             par:{file:'v2-dobr',max:0,test:1} }
+//          item {title:'[fa-upload] ... jen 1 záznam'          par:{file:'v2-dobr',max:1} }
+          item {title:'[fa-upload] celý soubor v2-kruh.csv'   par:{file:'v2-kruh',max:0} }
           func onclick (i:ezer) {
             clear(); info.display(0,'t');
             info.fill(replace_fa(i.title),' čekej ...');
@@ -123,7 +127,7 @@ menu ch { type:'main', active:*
       use info: form right [12,4,,]     { tag:'i' }
     }
     # ===================================================================================> STŘEDISKA
-    panel str {type:'plain', title:"[fa-cubes] Střediska a účty", _sys:'*', skill:'hns|hns', include:'onclick' }
+    panel str {type:'plain', title:"[fa-cubes] Střediska, účty, kategorie", _sys:'*', skill:'hns|hns', include:'onclick' }
   }
   tabs doc  {title:"[fa-question] Nápověda", _sys:'nap',  include:'onload,ezer2.help', active:* }
   tabs off  {type:'logoff', title:"[fa-power-off] Odhlásit"}
