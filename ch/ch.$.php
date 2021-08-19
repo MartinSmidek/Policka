@@ -284,7 +284,7 @@ function git_make($par) {
         fclose($f);
     }
     if ( $folder=='ezer') chdir("../_ezer3.1");
-    elseif ( $folder=='skins') chdir("../_skins");
+    elseif ( $folder=='skins') { chdir($abs_root); chdir("../_skins"); }
     $exec= "git $cmd>$abs_root/docs/.git.log";
     exec($exec,$lines,$state);
                             display("$state::$exec");
