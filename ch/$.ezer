@@ -104,6 +104,9 @@ menu ch { type:'main', active:*
           item { title:'[fa-gears] Ezer: git pull'      par:{folder:'ezer',op:'cmd',cmd:'pull'}}
           item { title:'[fa-gears] Ezer: git fetch ...' help:"po fetch>git reset --hard origin/master"
                                                         par:{folder:'ezer',op:'cmd',cmd:'fetch'}}
+          item { title:'[fa-gears] skins: git pull'      par:{folder:'skins',op:'cmd',cmd:'pull'}}
+          item { title:'[fa-gears] skins: git fetch ...' help:"po fetch>git reset --hard origin/master"
+                                                        par:{folder:'skins',op:'cmd',cmd:'fetch'}}
           proc onclick (i) {  
             info.fill(replace_fa(conc(i.owner.title,' - ',i.title)),' '); panel.display(2,'i'); 
             sys('ezer','server'); // test na lokální běh na NTB

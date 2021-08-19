@@ -29,7 +29,7 @@ form _kategorie [,,380,250] {css:'ae_parm'
   label [6,6,267,17] { title:'<b>Seznam kategorií kontaktů</b>' },
   button [18,top_cmd,,] {type:'submit', title:'Upravit', skill:'hnse|hnse'
     func onclick () { Kategorie.Upravit(); klu.cle.refresh_vyber() } }
-  button [214,top_cmd,,] {title:'Vytvořit', skill:'r|a'
+  button [214,top_cmd,,] {title:'Vytvořit', skill:'hnse|hnse'
     func onclick () { Kategorie.Vytvorit(); klu.cle.refresh_vyber() } }
   button [272,top_cmd,,] {title:'Smazat', skill:'r|a'
     func onclick () { var n:number
