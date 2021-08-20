@@ -54,6 +54,10 @@ func zmena_typu(novy_typ,idc) { var y:object // idc může být *
     v._vypisy.browse_row();
   }
 }
+func Refresh() {
+  p._prevody.browse_row();
+  v._vypisy.browse_row();
+}
 # --------------------------------------------------==> VÝPISY
 form _p_vypisy [,,1070,309] { css:'work'
   label tit [22,5,100,] { title:'<h1>Výpisy</h1>' }
@@ -139,20 +143,59 @@ form _p_prevody [,,774,262] {
         func onclick () { 
           if (idc) cle.show_clen(idc); 
       }}
-      item { title:'ukázat změny platebních údajů'
+      item { title:'vložit jako nového dárce'
+        func onclick () { 
+          pop_novy.Vytvor(id_dar,vsym); 
+      }}
+      item { title:'-ukázat změny platebních údajů'
         func onclick () { 
           track.back_show('dar',_prevody.browse_key()) 
       }}
-      item { title:'-spojit s existujícím darem'
+      item { title:'spojit s existujícím darem'
         func onclick () { 
           php.ch_bank_join_dar(_prevody.browse_key());
           _prevody.browse_row();
       }}
-      item { title:'... celý výpis'
+      item { title:'... celý výpis' skill:'a'
         func onclick () { 
           php.ch_bank_join_dary(v._vypisy.browse_key());
           _prevody.browse_refresh();
       }}
+    }
+  }
+  # --------------------------------------------------==> DROP
+  panel pop_novy [,,392,161] { title:'Vytvoření nového dárce', type:'popup', css:'dialog'
+    func Vytvor(_idd,_vs) { var y:object
+      clear();
+      f.jmeno= ''; f.prijmeni= ''; f.telefon= ''; f.k_fld= '';
+      f.vs= _vs; f.idd= _idd;
+      y= php.ch_bank_novy_darce(_idd);
+      if (y.err) return(alert(y.err));
+      f.jmeno= y.jmeno;
+      f.prijmeni= y.prijmeni;
+      panel.popup();
+    }
+    use f: form { css:'work'
+      var vs:text, idd:number
+      field jmeno [61,10,100,] { title:'jméno' }
+      field prijmeni [61,35,100,] { title:'příjmení' }
+      field telefon [61,60,100,] { title:'telefon' }
+      button [180,60,,] {title:'VS jako telefon'
+        func onclick () { telefon= vs; }
+      }
+      field k_fld [61,85,100,] { title:'kategorie' }
+      button [180,85,,] {title:'[fa-long-arrow-left]' func onclick () { k_fld= k_sel; }}
+      select k_sel [215,85,169,] { type:'map0', options:cis_kategorie.hodnota, format:'t'  }
+      // zapiš nebo odejdi
+      button [334,10,,] {title:'[fa-save] Ulož'
+        func onclick () { 
+          php.ch_bank_uloz_darce(idd,jmeno,prijmeni,telefon,k_sel.key());
+          Refresh();
+          panel.hide(1); 
+      }}
+      button [334,40,,] {title:'[fa-undo] Zpět'
+        func onclick () { panel.hide(0); }
+      }
     }
   }
 }

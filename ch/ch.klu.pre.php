@@ -85,6 +85,52 @@ function ch_remake_ascii_fields($given_idc=0) {
   }
 }
 # ===========================================================================================> BANKA
+# ------------------------------------------------------------------------------- ch bank_novy_darce
+# založ nového dárce
+function ch_bank_novy_darce ($idd) {
+  $ret= (object)array('err'=>'');
+  // kontroly vhodnosti vytvoření
+  list($popis,$typ)= select('ucet_popis,typ','dar',"id_dar=$idd");
+  if ($typ!=5) { $ret->err= "lze použít jen na žluté řádky"; goto end; }
+  $cond= ch_search_popis($popis);
+  $idc= select('id_clen','clen',"deleted='' AND $cond LIMIT 1");
+  if ($idc) { $ret->err= "kontakt tohoto jména už v databázi je"; goto end; }
+  // vytvoření návrhu 
+  list($jmeno,$prijmeni)= preg_split("/[\s,]+/u",trim($popis));
+  display("$popis:$jmeno,$prijmeni");
+//  $jmeno= mb_ucfirst(mb_strtolower($jmeno));
+//  $prijmeni= mb_ucfirst(mb_strtolower($prijmeni));
+  $jmeno= mb_convert_case($jmeno, MB_CASE_TITLE, 'UTF-8');
+  $prijmeni= mb_convert_case($prijmeni, MB_CASE_TITLE, 'UTF-8');
+  $zname= select('jmeno','_jmena',"jmeno='$jmeno'");
+  if ($zname) {
+    $ret->jmeno= $jmeno;
+    $ret->prijmeni= $prijmeni;
+  }
+  else {
+    $ret->jmeno= $prijmeni;
+    $ret->prijmeni= $jmeno;
+  }
+end:
+  return $ret;
+}
+function ch_bank_uloz_darce($idd,$jmeno,$prijmeni,$telefon,$kategorie) {
+  // vlož kontakt
+  $upd= array();
+  $idc= ezer_qry("INSERT",'clen',0,array(
+    (object)array('fld'=>'zdroj',     'op'=>'i','val'=>'VYPIS'),
+    (object)array('fld'=>'osoba',     'op'=>'i','val'=>1),
+    (object)array('fld'=>'jmeno',     'op'=>'i','val'=>$jmeno),
+    (object)array('fld'=>'prijmeni',  'op'=>'i','val'=>$prijmeni),
+    (object)array('fld'=>'telefony',  'op'=>'i','val'=>$telefon),
+    (object)array('fld'=>'kategorie', 'op'=>'i','val'=>$kategorie)
+  ));
+  // proveď změnu daru
+  ezer_qry("UPDATE",'dar',$idd,array(
+    (object)array('fld'=>'id_clen', 'op'=>'u','val'=>$idc), //,'old'=>0),
+    (object)array('fld'=>'typ',     'op'=>'u','val'=>9)     //,'old'=>5)
+  ));
+}
 # --------------------------------------------------------------------------------- ch bank kontrola
 # kotrola řad
 function ch_bank_kontrola ($cis_ucet,$rok) {

@@ -51,9 +51,13 @@ menu ch { type:'main', active:*
           item {title:'[fa-upload] TRUNCATE clen, role, dar, vypis'
             func onclick (i:ezer) {
               clear(); info.display(0,'t');
-              info.fill(replace_fa(i.title),php.ch_truncate());
+              info.fill(replace_fa(i.title),' ');
+              if (!sys('ezer','server')) 
+                info.fill('',php.ch_truncate());
+              else
+                alert('TRUNCATE nelze provádět na ostrém serveru');
+              }
             }
-          }
 //          item {title:'[fa-upload] celý soubor v2-indiv.csv'  par:{file:'v2-indiv',max:0} }
 //          item {title:'[fa-upload] ... jen testy'             par:{file:'v2-indiv',max:0,test:1} }
 //          item {title:'[fa-upload] ... jen 1 záznam'          par:{file:'v2-indiv',max:1} }
