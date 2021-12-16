@@ -130,6 +130,7 @@ function ch_bank_uloz_darce($idd,$jmeno,$prijmeni,$telefon,$kategorie) {
     (object)array('fld'=>'id_clen', 'op'=>'u','val'=>$idc), //,'old'=>0),
     (object)array('fld'=>'typ',     'op'=>'u','val'=>9)     //,'old'=>5)
   ));
+  ch_remake_ascii_fields($idc);
 }
 # --------------------------------------------------------------------------------- ch bank kontrola
 # kotrola řad
