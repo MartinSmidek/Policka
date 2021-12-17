@@ -299,7 +299,6 @@ function ch_ban_load($file) {  trace();
       foreach ($flds as $fld=>$desc) {
         if (!$desc[0]) { $y->err= "ve výpisu chybí povinné pole '$fld'"; goto end; }
       }
-      continue;
     }
     if ($banka=='0600') {
       // kontrola čísla_účtu pro Monetu

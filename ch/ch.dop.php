@@ -494,16 +494,32 @@ function clen_data($c,$part) {
 # --------------------------------------------------------------------------------- dop gener_stitky
 # ASK
 # vytvoření souboru se štítky
-# $c - kontext vytvořený funkcí dop_subst
-function dop_gener_stitky($komu,$kat,$report) { 
+# par = {komu:1,kat:kategorie} | {komu:2,aspon:částka,od:datum,do:datum}
+function dop_gener_stitky($komu,$par,$report) { 
+  debug($par,"dop_gener_stitky");
   $ret= (object)array(pdf=>'',msg=>'');
   // generování podle komu+kat
   $idcs= $err_idcs= array();
   switch ($komu) {
     case 1: // --------------------- podle kategorie
       $rc= pdo_qry("SELECT id_clen,psc,psc2 FROM clen 
-        WHERE deleted='' AND FIND_IN_SET($kat,kategorie)");
+        WHERE deleted='' AND FIND_IN_SET($par->kat,kategorie)");
       while ($rc && (list($idc,$psc,$psc2)=pdo_fetch_row($rc))) {
+        if (trim($psc)||trim($psc2)) 
+          $idcs[]= $idc;
+        else
+          $err_idcs[]= $idc;
+      }
+      break;
+    case 2: // --------------------- dárci, kteří dali alespoň ... od ... do
+      $od= sql_date1($par->od,1);
+      $do= sql_date1($par->do,1);
+      $rc= pdo_qry("SELECT id_clen,psc,psc2,SUM(castka) AS _celkem 
+        FROM clen AS c JOIN dar AS d USING (id_clen)
+        WHERE c.deleted='' AND d.deleted='' AND castka_kdy BETWEEN '$od' AND '$do' 
+        GROUP BY id_clen HAVING _celkem>=$par->aspon
+        ");
+      while ($rc && (list($idc,$psc,$psc2,$celkem)=pdo_fetch_row($rc))) {
         if (trim($psc)||trim($psc2)) 
           $idcs[]= $idc;
         else
@@ -524,9 +540,9 @@ function dop_gener_stitky($komu,$kat,$report) {
   $ret->msg= "$stitku";
   $ko= count($err_idcs);
   if ($ko) {
-  $stitku= kolik_1_2_5($ko,'štítek vytvořen nebyl,štítky vytvořeny nebyly,štítků vytvořeno nebylo');
-    $ret->msg.= ", ale $stitku - v adrese chybí PSČ. 
-      <br><br>Týká se to:";
+  $stitku= kolik_1_2_5($ko,'štítek přeskočen,štítky přeskočeny,štítků přeskočeno');
+    $ret->msg.= ", $stitku - v adrese chybí PSČ. 
+      <br><br>Přeskočeni byli dárci:";
     foreach ($err_idcs as $idc) {
       list($osoba,$prijmeni,$jmeno,$firma)= 
           select('osoba,prijmeni,jmeno,firma','clen',"id_clen=$idc");

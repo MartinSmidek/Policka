@@ -167,21 +167,38 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
     func Init() {
       pdf= 'zde bude po stisku [Generuj] odkaz na PDF s vygenerovanými štítky';
       msg= '';
+      form.display(2,'k');
       kat.selects();
+      stitek.report_init(); stitek.report_check();  
     }
     // ==> . položky
-    label  [0,0,449,93] {css:'work'}
-    select komu  [10,25,150,] {title:'^typ adresátů', type:'map', options:cis_adresati.zkratka,
-        format:'t', help:'komu|skupina adresátů'}
-    select kat  [180,25,150,] {title:'^kategorie', type:'map', options:cis_kategorie.zkratka,
+    label  [0,0,531,93] {css:'work'}
+    label  [440,14,74,34] {css:'parm'}
+    select komu  [10,25,150,] {title:'^vybrat adresáty ...', type:'map', options:cis_adresati.zkratka,
+        format:'t', help:'komu|skupina adresátů'
+      func onchanged() {
+        switch (komu.key()) {
+          case 1: // kategorie
+            form.display(2,'k'); break;
+          case 2: // dárci
+            form.display(2,'d'); break;
+        }
+      }
+    }
+    select kat  [180,25,150,] {tag:'k', title:'^kategorie', type:'map', options:cis_kategorie.zkratka,
         format:'t', help:'kategorie|kategorie dárců'}
-    label pdf [10,59,432,20]
-    label  [356,14,74,34] {css:'parm'}
-    button [366,22,,] {title:'Generuj'
-      func onclick() { var ret:object
-        clear(); Init();
-        stitek.report_init(); stitek.report_check();  
-        ret= php.dop_gener_stitky(komu.key(),kat.key(),stitek.get_json());
+    field aspon [180,25,50,] {tag:'d', title:'^dali aspoň', format:'rt', help:'dali v období aspoň tolik'}
+    field od [240,25,90,] {tag:'d', type:'date', title:'^v období od', format:'rt'}
+    field do [340,25,90,] {tag:'d', type:'date', title:'^do', format:'rt'}
+    label pdf [10,59,514,20]
+    button [450,22,,] {title:'Generuj'
+      func onclick() { var typ:number, par:object, ret:object
+        clear(); 
+        typ= komu.key();
+        par= typ==1 
+            ? {komu:typ,kat:kat.key()} // kategorie
+            : {komu:typ,aspon:aspon,od:od,do:do}; // dárci
+        ret= php.dop_gener_stitky(typ,par,stitek.get_json());
         pdf= ret.pdf;
         msg= ret.msg;
     }}
