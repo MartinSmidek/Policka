@@ -446,9 +446,10 @@ panel pop_popis [,,780,215] { title:'Kontakty Klubu', type:'popup', css:'dialog'
     return panel.modal(186,100) ? idc : 0;
   }
   use pu: form {
-    view d: table dar
-    view c: table clen {join_type:'LEFT' join:'USING (id_clen)' }
+    view c: table clen
+    view d: table dar {join_type:'LEFT' join:'USING (id_clen)' }
     browse seznam [7,7,820,200] { rows:10, qry_rows:0, 
+      show {data:c.id_clen}
       show [,,120,] { title:'účet', data:d.ucet, format:'r' }
       show [,,150,] { title:'popis', data:d.ucet_popis }
       show id_clen [,,70,] { title:'ID dárce', data:d.id_clen, format:'r' }
