@@ -117,7 +117,7 @@ form _p_prevody [,,774,262] {
     show id_dar [,,55,] { title:'ID platby', data:p.id_dar, format:'rs+' }
     show popis [,,151,] { title:'popis účtu', data:p.ucet_popis, format:'tq*' }
     show zprava [,,110,] { title:'zpráva', data:p.zprava, format:'tq*' }
-    show idc [,,50,] { title:'člen', data:p.id_clen, format:'rq=' 
+    show idc [,,50,] { title:'ID osoby', data:p.id_clen, format:'rq=' 
         css_cell:'typ_slozenka,5:pre_5,6:pre_6,7:pre_7,8:pre_8,9:pre_9' }
     show castka [,,70,] { title:'částka', data:p.castka, format:'rq=' 
         css_cell:'typ_slozenka,5:pre_5,6:pre_6,7:pre_7,8:pre_8,9:pre_9' }
@@ -441,6 +441,8 @@ panel pop_popis [,,780,215] { title:'Kontakty Klubu', type:'popup', css:'dialog'
   func Vyber(popis) {
     pu.seznam.browse_load(`${php.ch_search_popis(popis)} AND d.typ=9 AND d.deleted=''`,
         'd.castka_kdy DESC');
+//    pu.seznam.browse_load(`${php.ch_search_popis(popis)} AND d.typ=9 AND d.deleted=''`,
+//        'd.castka_kdy DESC');
     return panel.modal(186,100) ? idc : 0;
   }
   use pu: form {

@@ -61,15 +61,20 @@ end:
 }
 # -------------------------------------------------------------------------------==> ch search_popis
 # viz https://php.vrana.cz/vyhledani-textu-bez-diakritiky.php
-function ch_search_popis($popis) {
+function ch_search_popis($popis) { 
   $popis= utf2ascii($popis,' .');
   $popis= strtr($popis,array(
       'mgr'=>'', 'mudr'=>'', 'mvdr'=>'', 'rndr'=>'', 'ing'=>'', 'bc'=>'', 
       '_'=>'','.'=>''));
   $popis= trim($popis);
-  $cond1= "CONCAT(ascii_prijmeni,' ',ascii_jmeno) LIKE '%$popis%'";
-  $cond2= "CONCAT(ascii_jmeno,' ',ascii_prijmeni) LIKE '%$popis%'";
-  return "($cond1 OR $cond2)";
+  $cond1= "'$popis' RLIKE CONCAT(ascii_prijmeni,' ',ascii_jmeno)";
+  $cond2= "'$popis' RLIKE CONCAT(ascii_jmeno,' ',ascii_prijmeni)";
+  $cond3= "CONCAT(ascii_prijmeni,' ',ascii_jmeno) LIKE '%$popis%'";
+  $cond4= "CONCAT(ascii_jmeno,' ',ascii_prijmeni) LIKE '%$popis%'";
+  $cond= "($cond1 OR $cond2 OR $cond3 OR $cond4) AND NOT (jmeno='' AND prijmeni='') 
+      AND NOT (ascii_jmeno='' AND ascii_prijmeni='') ";
+                        display("ch_search_popis($popis) => $cond");
+  return $cond;
 }
 # ------------------------------------------------------------------------==> ch remake_ascii_fields
 # zajistí korektní nastavení ascii-položek
@@ -238,7 +243,9 @@ function ch_ban_load($file) {  trace();
       "Název protiúčtu"   => array(0,'n','ucet_popis'),
       "Protiúčet"         => array(0,'u','ucet'),
       "Částka"            => array(0,'c','castka'),
-      "Měna"              => array(0,'m')
+      "Měna"              => array(0,'m'),
+      "Zpráva pro příjemce" => array(0,'p0','zprava'),
+      "Zpráva pro mě"     => array(0,'p1','zprava')
     );
   $flds_0600= array(
       "Číslo účtu"        => array(0),
@@ -283,7 +290,7 @@ function ch_ban_load($file) {  trace();
   $od= '9999-99-99'; $do= '0000-00-00';
   $prevody= array(); // idc,
   foreach ($data as $i=>$rec) {
-    // v prvním průchodu proveď kotroly a založ záznam pro výpis
+    // v prvním průchodu proveď kontroly a založ záznam pro výpis
     if ($i==0) {
       // ověření existence základních položek
       foreach ($rec as $fld=>$val) {
@@ -314,7 +321,12 @@ function ch_ban_load($file) {  trace();
                   $set.= ", $f='$datum'"; 
                   // test, jestli je v hranicích daných jménem souboru
                   if (strnatcmp($datum,$sod)<0 || strnatcmp($datum,$sdo)>0) {
-                    $y->err= "na řádku $i je převod s datem $datum, které neleží v intervalu $sod až $sdo"; 
+                    $y->err= "na řádku $i je platba s datem $datum, které neleží v intervalu $sod až $sdo"; 
+                    goto end;
+                  }
+                  $nd= select('COUNT(*)','dar',"nas_ucet=$idu AND deleted='' AND castka_kdy='$datum'");
+                  if ($nd) {
+                    $y->err= "na řádku $i je platba s datem $datum, které již pro tento účet bylo zpracované"; 
                     goto end;
                   }
                   break;
@@ -344,6 +356,11 @@ function ch_ban_load($file) {  trace();
       $pozn= trim("$zprava $pozn");
       if ($pozn) $set.= ", zprava='$pozn'"; 
     }
+    // dokončení převodu pro Moneta
+    if ($banka=='0800') {
+      $pozn= trim("$zprava $pozn");
+      if ($pozn) $set.= ", zprava='$pozn'"; 
+    }
     // určení typu a způsobu
     $typ= $castka<=0 ? 1 : ($ucet=='160987123/0300' && $popis=='CESKA POSTA, S.P.' ? 8 : 5);
     $zpusob= $typ==8 ? 3 : 2;
@@ -356,7 +373,7 @@ function ch_ban_load($file) {  trace();
       // potom podle popisu
       if (!$idc && $popis) {
         $cond= ch_search_popis($popis);
-        $idc= select('id_clen','clen',"deleted='' AND $cond LIMIT 1");
+        $idc= select('id_clen','clen',"deleted='' AND $cond ORDER BY id_clen LIMIT 1");
       }
       $idc= $idc ?: 0;
       $typ= $idc ? 7 : 5;
@@ -367,7 +384,6 @@ function ch_ban_load($file) {  trace();
       $prevody[]= $set;
     }
   }
-//  query("UPDATE vypis SET datum_od='$od', datum_do='$do' WHERE id_vypis=$y->idv ");
   debug($prevody);
   // pokud je vše v pořádku vlož výpis
   query("INSERT INTO vypis SET soubor='$file', nas_ucet=$idu, 
