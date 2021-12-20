@@ -130,7 +130,7 @@ form _p_prevody [,,774,262] {
     func onrowclick () {
       i.load(id_dar);
       d.load(id_dar);
-      if (idc) c.load(idc); else c.init();
+      if (idc) c.load_clen(idc); else c.init();
 //      { eq(typ.get,9); d.enable(0,'d') | d.enable(1,'d') } 
     }
     func onclick() {
@@ -236,15 +236,20 @@ form _p_info [,,672,52] { css:'work'
   field [155,28,475,18] { title:'zpráva:', data:p.zprava, format:'o' }
   field [589,8,70,18] { title:'částka:', data:p.castka, format:'or' }
 }
-# --------------------------------------------------==> PLÁTCE
+# --------------------------------------------------==> PLÁTCE (osoba | firma)
 form _p_clen [,,464,123] { css:'work'
   view c: table clen
   label [9,10,50,15] { title:'<h1>Plátce</h1>' }
+  field osoba { data:c.osoba }
   field [69,17,50,18] { title:'^ID', data:c.id_clen, format:'dr' }
-  field [150,17,63,17] { title:'^titul', data:c.titul, format:'dF' }
-  field [223,17,130,17] { title:'^příjmení', data:c.prijmeni, format:'dF' }
-  field [363,17,91,17] { title:'^jméno', data:c.jmeno, format:'dF' }
-//  field [150,56,203,17] { title:'^organizace', data:c.organizace, format:'d' }
+  // osoba
+  field [150,17,63,17] { tag:'o', title:'^titul', data:c.titul, format:'dF' }
+  field [223,17,130,17] { tag:'o', title:'^příjmení', data:c.prijmeni, format:'dF' }
+  field [363,17,91,17] { tag:'o', title:'^jméno', data:c.jmeno, format:'dF' }
+  // firma
+  field [150,17,203,17] { tag:'f', title:'^firma', data:c.firma, format:'d' }
+  field [150,56,203,17] { tag:'f', title:'^firma info', data:c.firma_info, format:'d' }
+  // adresa
   field [150,92,132,17] { title:'^ulice', data:c.ulice, format:'d' }
   field [288,92,40,17] { title:'^psč', data:c.psc, format:'dr' } //, sql_pipe:'psc' }
   field [334,92,122,17] { title:'^obec', data:c.obec, format:'dF' }
@@ -260,8 +265,9 @@ form _p_clen [,,464,123] { css:'work'
     func onclick () {
       zmena_typu(5,0); c.init()
   }}
-  proc p_load_clen (idc) {
+  func load_clen (idc) {
     form.load(idc);
+    form.display(2,osoba==1 ? 'o' : 'f');
   }
 }
 # --------------------------------------------------==> ROZDĚLENÍ
@@ -345,12 +351,12 @@ form _cmd [,,897,62] { css:'work'
   button ucty [12,9,,] { title:'[fa-search] Hledat v účtech'
     func onclick () { var idc: number
       idc= pop_ucty.Vyber(p._prevody.ucet); 
-      if (idc) c.load(idc);
+      if (idc) c.load_clen(idc);
   }}
   button cleni [12,35,,] { title:'[fa-search] Hledat podle jména'
     func onclick () { var idc: number
       idc= pop_popis.Vyber(p._prevody.popis); 
-      if (idc) c.load(idc);
+      if (idc) c.load_clen(idc);
   }}
   # ==> . < kontakty
   button kontakt_set [152,9,,] { title:'kontakt [fa-arrow-left] plátce'
@@ -363,7 +369,7 @@ form _cmd [,,897,62] { css:'work'
     help:'vymění plátce za osobu nastavenou v Kontakty'
     func onclick () { var idc:number
       idc= cle.curr_clen(1);
-      if (idc) c.load(idc);
+      if (idc) c.load_clen(idc);
   }}
   # ==> . > kontroly výpisů
   button [265,9,,] { title:'[fa-info-circle] kontrola výpisů'
