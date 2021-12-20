@@ -494,38 +494,43 @@ function clen_data($c,$part) {
 # --------------------------------------------------------------------------------- dop gener_stitky
 # ASK
 # vytvoření souboru se štítky
-# par = {komu:1,kat:kategorie} | {komu:2,aspon:částka,od:datum,do:datum}
+# par = {kateg:0|1,kat:kategorie,darci:0|1,aspon:částka,od:datum,do:datum}
 function dop_gener_stitky($komu,$par,$report) { 
   debug($par,"dop_gener_stitky");
   $ret= (object)array(pdf=>'',msg=>'');
   // generování podle komu+kat
   $idcs= $err_idcs= array();
-  switch ($komu) {
-    case 1: // --------------------- podle kategorie
-      $rc= pdo_qry("SELECT id_clen,psc,psc2 FROM clen 
-        WHERE deleted='' AND FIND_IN_SET($par->kat,kategorie)");
-      while ($rc && (list($idc,$psc,$psc2)=pdo_fetch_row($rc))) {
-        if (trim($psc)||trim($psc2)) 
-          $idcs[]= $idc;
-        else
-          $err_idcs[]= $idc;
+  // --------------------- podle kategorie
+  if ($par->kateg) {
+    $cond= '0';
+    foreach ($par->kat AS $k) {
+      $cond.= " OR FIND_IN_SET($k,kategorie)";
+    }
+    $rc= pdo_qry("SELECT id_clen,psc,psc2 FROM clen 
+      WHERE deleted='' AND ($cond)");
+    while ($rc && (list($idc,$psc,$psc2)=pdo_fetch_row($rc))) {
+      if (trim($psc)||trim($psc2)) 
+        if (!in_array($idc,$idcs)) $idcs[]= $idc;
+      else
+        if (!in_array($idc,$err_idcs)) $err_idcs[]= $idc;
+    }
+  }
+  // --------------------- dárci, kteří dali alespoň ... od ... do
+  if ($par->darci) {
+    $od= sql_date1($par->od,1);
+    $do= sql_date1($par->do,1);
+    $rc= pdo_qry("SELECT id_clen,psc,psc2,SUM(castka) AS _celkem 
+      FROM clen AS c JOIN dar AS d USING (id_clen)
+      WHERE c.deleted='' AND d.deleted='' AND castka_kdy BETWEEN '$od' AND '$do' 
+      GROUP BY id_clen HAVING _celkem>=$par->aspon
+      ");
+    while ($rc && (list($idc,$psc,$psc2,$celkem)=pdo_fetch_row($rc))) {
+      if (trim($psc)||trim($psc2)) {
+        if (!in_array($idc,$idcs)) $idcs[]= $idc;
       }
-      break;
-    case 2: // --------------------- dárci, kteří dali alespoň ... od ... do
-      $od= sql_date1($par->od,1);
-      $do= sql_date1($par->do,1);
-      $rc= pdo_qry("SELECT id_clen,psc,psc2,SUM(castka) AS _celkem 
-        FROM clen AS c JOIN dar AS d USING (id_clen)
-        WHERE c.deleted='' AND d.deleted='' AND castka_kdy BETWEEN '$od' AND '$do' 
-        GROUP BY id_clen HAVING _celkem>=$par->aspon
-        ");
-      while ($rc && (list($idc,$psc,$psc2,$celkem)=pdo_fetch_row($rc))) {
-        if (trim($psc)||trim($psc2)) 
-          $idcs[]= $idc;
-        else
-          $err_idcs[]= $idc;
-      }
-      break;
+      else
+        if (!in_array($idc,$err_idcs)) $err_idcs[]= $idc;
+    }
   }
   // generování štítků, pokud jsou
   $ok= count($idcs);
