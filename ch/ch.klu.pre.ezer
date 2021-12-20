@@ -257,7 +257,7 @@ form _p_clen [,,464,123] { css:'work'
   button spojit [26,60,,] {
     title:"<span class='pre_9'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> Ano, spojit", format:''
     func onclick () {
-      if (form.key()) { zmena_typu(p._prevody.typ==8?8:9,form.key()); c.init() }
+      if (form.key()) { zmena_typu(p._prevody.typ==8?8:9,form.key()); load_clen(form.key()) }
   }}
   # ==> . rozpojit
   button zmenit [27,88,,] {
@@ -302,7 +302,7 @@ form _p_rok [,,155,74] { css:'parm'
   }
 }
 # --------------------------------------------------==> PŘÍKAZY
-form _cmd [,,897,62] { css:'work'
+form _cmd [,,897,89] { css:'work'
 # ----------------------------------------==> . rychle
   label ram [394,16,321,31] { css:'pasivni' }
   var rychle: number
@@ -356,6 +356,11 @@ form _cmd [,,897,62] { css:'work'
   button cleni [12,35,,] { title:'[fa-search] Hledat podle jména'
     func onclick () { var idc: number
       idc= pop_popis.Vyber(p._prevody.popis); 
+      if (idc) c.load_clen(idc);
+  }}
+  button cleni_fy [12,61,,] { title:'[fa-search] Hledat ve firmách'
+    func onclick () { var idc: number
+      idc= pop_popis.Vyber_fy(p._prevody.popis); 
       if (idc) c.load_clen(idc);
   }}
   # ==> . < kontakty
@@ -447,8 +452,11 @@ panel pop_popis [,,780,215] { title:'Kontakty Klubu', type:'popup', css:'dialog'
   func Vyber(popis) {
     pu.seznam.browse_load(`${php.ch_search_popis(popis)} AND IFNULL(d.deleted='',1) `,
         'd.castka_kdy DESC');
-//    pu.seznam.browse_load(`${php.ch_search_popis(popis)} AND d.typ=9 AND d.deleted=''`,
-//        'd.castka_kdy DESC');
+    return panel.modal(186,100) ? idc : 0;
+  }
+  func Vyber_fy(popis) {
+    pu.seznam.browse_load(`${php.ch_search_popis_fy(popis)} AND IFNULL(d.deleted='',1) `,
+        'd.castka_kdy DESC');
     return panel.modal(186,100) ? idc : 0;
   }
   use pu: form {
@@ -456,10 +464,11 @@ panel pop_popis [,,780,215] { title:'Kontakty Klubu', type:'popup', css:'dialog'
     view d: table dar {join_type:'LEFT' join:'USING (id_clen)' }
     browse seznam [7,7,820,200] { rows:10, qry_rows:0, 
       show id_clen [,,70,] { title:'ID osoby', data:c.id_clen, format:'r' }
-      show [,,100,] { title:'příjmení', data:c.prijmeni, format:'t' }
-      show [,,90,] { title:'jméno', data:c.jmeno, format:'t' }
-      show [,,120,] { title:'účet', data:d.ucet, format:'r' }
-      show [,,150,] { title:'popis', data:d.ucet_popis }
+      show [,,90,] { title:'příjmení', data:c.prijmeni, format:'t' }
+      show [,,80,] { title:'jméno', data:c.jmeno, format:'t' }
+      show [,,90,] { title:'firma', data:c.firma, format:'t' }
+      show [,,100,] { title:'účet', data:d.ucet, format:'r' }
+      show [,,100,] { title:'popis', data:d.ucet_popis }
       show [,,60,] { title:'částka', data:d.castka, format:'r' }
       show [,,70,] { title:'datum', data:d.castka_kdy, format:'r'  }
       func onsubmit () { idc= id_clen; panel.hide(1); }

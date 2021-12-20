@@ -76,6 +76,16 @@ function ch_search_popis($popis) {
                         display("ch_search_popis($popis) => $cond");
   return $cond;
 }
+# ----------------------------------------------------------------------------==> ch search_popis_fy
+function ch_search_popis_fy($popis) { 
+  $popis= strtoupper(strtr($popis,array(' '=>'',','=>'')));
+  $firma= "UPPER(REPLACE(REPLACE(firma,' ',''),',',''))";
+  $cond1= "'$popis' RLIKE $firma";
+  $cond2= "$firma LIKE '%$popis%'";
+  $cond= "($cond1 OR $cond2) ";
+                        display("ch_search_popis_fy($popis) => $cond");
+  return $cond;
+}
 # ------------------------------------------------------------------------==> ch remake_ascii_fields
 # zajistí korektní nastavení ascii-položek
 function ch_remake_ascii_fields($given_idc=0) {
