@@ -181,8 +181,8 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
     check kateg [10,25,150,] { title:'podle kategorie', format:'t'
       func onchange() { form.enable(this,'k') }
     }
-    select kat  [180,25,150,] {tag:'k', title:'^kategorie', type:'map+', options:cis_kategorie.hodnota,
-        format:'t', help:'kategorie|kategorie dárců'}
+    select kat  [180,25,251,] {tag:'k', type:'map+', options:cis_kategorie.hodnota,
+        format:'t', help:'kategorie|kategorie dárců', title:'^kategorie (výběr kliknutím s držením Ctrl)' }
     // dárci
     check darci [10,65,150,] { title:'jako dárce, kteří', format:'t' 
       func onchange() { form.enable(this,'d') }

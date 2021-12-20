@@ -560,7 +560,6 @@ function dop_gener_stitky($komu,$par,$report) {
 # tisk adresních štítků pro seznam členů (přes TCPDF)
 # struktura pole $adresy
 #   array(-$idc,$osloveni,$titul,$jmeno,$prijmeni,$organizace,$ulice,$obec,$psc,$kusy,$konto)
-
 # $report_json obsahuje: jmeno_postovni, adresa_postovni, cislo
 function dop_rep_stitky($fname,$idcs,$report_json,$ramecek=0) { trace();
   global $ezer_path_docs, $json;

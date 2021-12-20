@@ -34,10 +34,10 @@
   $bank= $bank[$ezer_server];
   $path_banka['0800']= "$bank/banky/0800/";
 
-  // specifické cesty pro Ark
-    $path_backup= array(
-      "C:/Ezer/beans/policka/sql"
-    )[$ezer_server];
+  // specifické cesty pro Poličku
+  $path_backup= array(
+    "C:/Ezer/beans/policka/sql"
+  )[$ezer_server];
   
   // databáze
   $deep_root= "../files/policka";
