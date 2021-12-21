@@ -566,16 +566,19 @@ function dop_rep_stitky($fname,$idcs,$report_json,$ramecek=0) { trace();
   // rozbalení reportu
   if ( !isset($json) ) $json= new Services_JSON_Ezer();  
   $report= $json->decode($report_json);
+  $map_osloveni= map_cis('k_osloveni','zkratka');
+
 //  /**/                                               debug($report,"report $report_json");
   $texty= array();
   // projdi kontakty
   foreach ($idcs as $i=>$idc) {
     list($osoba,$ulice,$psc,$obec,$ulice2,$psc2,$obec2,
-        $titul,$jmeno,$prijmeni,$titul_za,$firma,$firma_info)= 
+        $titul,$jmeno,$prijmeni,$titul_za,$firma,$firma_info,$osloveni)= 
       select('osoba,ulice,psc,obec,ulice2,psc2,obec2,
-        titul,jmeno,prijmeni,titul_za,firma,firma_info','clen',"id_clen=$idc");
+        titul,jmeno,prijmeni,titul_za,firma,firma_info,osloveni','clen',"id_clen=$idc");
     if ($osoba) { // fyzická osoba
-      $adresa= trim("$titul $jmeno $prijmeni $titul_za");
+      $adresa= $osloveni!=0 ? "{$map_osloveni[$osloveni]}<br>" : '';
+      $adresa.= trim("$titul $jmeno $prijmeni $titul_za");
     }
     else { // firma
       $adresa= trim("$firma<br>$firma_info");
