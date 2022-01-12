@@ -487,9 +487,6 @@ function clen_data($c,$part) {
 //                                                 display("clen_data({$c->id_clen},$part)=$html");
   return $html;
 }
-
-
-
 # ==========================================================================================> ŠTÍTKY
 # --------------------------------------------------------------------------------- dop gener_stitky
 # ASK
@@ -595,9 +592,6 @@ function dop_rep_stitky($fname,$idcs,$report_json,$ramecek=0) { trace();
   $ref= "<a href='docs/$fname' target='pdf'>$fname</a>";
   return $ref;
 }
-
-
-
 # ========================================================================================> HROMADNÉ
 # ---------------------------------------------------------------------------------==> dop show_vars
 # ASK
@@ -605,6 +599,8 @@ function dop_rep_stitky($fname,$idcs,$report_json,$ramecek=0) { trace();
 function dop_show_vars($idd=0) {  trace();
   $html= '';
   $vars= array(
+    'rocni_rok'         => 'rok potvrzení',
+    'rocni_dary'        => 'dary za rok',
     'adresa'            => 'adresa odběratele',
     'datum'             => 'datum odeslání',
     'osloveni'          => 'oslovení odběratele z karty Odběratelé',
@@ -720,7 +716,8 @@ function dop_compute($vars,$dopis,$idc) {  trace();
 # --------------------------------------------------------------------------------------==> . všem
 # ASK
 # provede substituce pro dané odběratele
-function dop_vsem($idd) {  trace();
+# pokud je zadáno idc vygeneruje dopis jen pro nej
+function dop_vsem($idd,$idc=0) {  trace();
   global $ezer_path_docs;
   $ret= (object)array(pdf=>'',msg=>'');
   $ref= $err= '';
@@ -782,4 +779,93 @@ function dop_vsem($idd) {  trace();
   }
 end:
   return $ret;
+}
+# ---------------------------------------------------------------------------------==> . substituce
+# spočítá hodnoty proměnných předaných z browse a objektu values
+# ve warning vrací případné nesrovnalosti
+function dop_substituce($vars,$params,$c) {  trace();
+  $pairs= array();
+  $organizace= $c->firma ? "{$c->firma}<br>" : "";
+  foreach ($vars as $var) {
+    switch ($var) {
+    // informace z browse
+    case 'rocni_dary':  $val= str_replace('.',',',$c->dary). ' Kč'; break;
+    // informace z params
+    case 'rocni_rok':   $val= $params->rok; break;
+    case 'datum': $val= sql_date1($params->datum,0,'. '); break;
+    // osobní údaje
+    case 'adresa':
+      $val= $organizace.trim("$c->titul $c->jmeno")." $c->prijmeni<br>$c->ulice<br>$c->psc $c->obec";
+      break;
+    default:
+      $val= "<b style='color:red' title='$var'>???</b>";
+      break;
+    }
+    $pairs['{'."$var}"]= $val;
+  }
+                                                         debug($pairs);
+  return $pairs;
+}
+# -----------------------------------------------------------------------------------==> . potvrzení
+# ASK
+# provede substituce pro rozeslání potvrzení
+# pokud je zadáno idc vygeneruje dopis jen pro nej
+function dop_potvrzeni($browse_status,$params,$idc=0) {  trace();
+  global $ezer_path_docs;
+  $ret= (object)array(pdf=>'',msg=>'');
+  $ref= $err= '';
+  $dopis= select_object('*','dopis',"vzor='rocni'");
+  $html= $dopis->obsah; // poslední zůstane jako ukázka
+  $vars= dop_show_vars($dopis->id_dopis);
+  // doplníme adresu
+  $vars->use[]= 'adresa';
+//                                                         debug($vars);
+  $browse= browse_status($browse_status,$idc?"id_clen=$idc":1);
+  $rc= pdo_qry($browse->qry);
+  // zahájení generování
+  $n= 0;
+  $dopisy= array();
+  while ($rc && ($clen= pdo_fetch_object($rc))) {
+    $n++;
+    // generování dopisu, personifikuj obsah
+    $pairs= dop_substituce($vars->use,$params,$clen);
+    $ret->html= strtr($html,$pairs);
+    $dop= (object)array('text'=>$ret->html,'adresa'=>$pairs['{adresa}']);
+    $dopisy[]= $dop;
+  }
+  // generování PDF a předání odkazu
+  $fname= "potvrzeni_".date('ymd_Hi').".pdf";
+  $f_abs= "$ezer_path_docs/$fname";
+  $f_rel= "docs/$fname";
+  $listu= null;
+  tc_dopisy($dopisy,$f_abs,'rozesilani','_user',$listu,'D','');
+  $ref= "<a target='dopis' href='$f_rel'>zde</a>";
+  $ret->pdf= "Vygenerované PDF je ke stažení $ref";
+  // zápis počtu k dopisu
+  query("UPDATE dopis SET pocet=$n WHERE id_dopis=$dopis->id_dopis");
+  // vytvoření zprávy
+  $dopisu= kolik_1_2_5($n,'Byl vytvořen $ dopis,Byly vytvořeny $ dopisy,Bylo vytvořeno $ dopisů');
+  $ret->msg= "$dopisu";
+end:
+  return $ret;
+}
+# ---------------------------------------------------------------------------------==> . zapis_datum
+# ASK
+# zapíše datum odeslání potvrzení k darům
+function dop_zapis_datum($browse_status,$params,$idc=0) {  trace();
+  $rok= $params->rok;
+  $kdy= sql_date1($params->datum,1);
+  // projdeme řádky browse
+  $browse= browse_status($browse_status,$idc?"id_clen=$idc":1);
+  $rc= pdo_qry($browse->qry);
+  $n= 0;
+  while ($rc && ($clen= pdo_fetch_object($rc))) {
+    $n++;
+    $idc= $clen->id_clen;
+    // zapiš datum odeslání nepotvrzeným finančním darům
+    query("UPDATE dar SET potvrz_kdy='$kdy' WHERE 
+      id_clen=$idc AND YEAR(castka_kdy)=$rok AND potvrz_kdy='0000-00-00' AND zpusob!=4 ");
+  }
+end:
+  return "U $n dárců bylo doplněno datum odeslání potvrzení darů ";
 }

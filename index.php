@@ -48,7 +48,9 @@
     'contact' => $kontakt,
     'CKEditor' => "{
       version:'4.6',
-      Minimal:{toolbar:[['Bold','Italic','Source']]}
+      Minimal:{toolbar:[['Bold','Italic','Source']]},
+      Letter:{toolbar:[['Format','Bold','Italic','Underline'],['Table'],
+        ['JustifyLeft','JustifyCenter','JustifyRight'],['Source']]}
     }"
   );
   $add_options= (object)array(

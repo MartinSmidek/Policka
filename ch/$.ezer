@@ -18,10 +18,11 @@ menu ch { type:'main', active:*
     panel cle { type:'plain'
       func refresh_vyber() { }
       func curr_clen(mode) {}
+      func show_clen(idc) {}
     }
   }
   tabs eko {title:"[fa-line-chart] Ekonomika", skill:'he', _sys:'eko',  include:'onclick', active:*  }
-  tabs dop {title:"[fa-envelope] Korespondence", skill:'hk', _sys:'dop',  include:'onclick', active:* }
+  tabs dop {title:"[fa-envelope] Korespondence", skill:'hk', _sys:'dop',  include:'onclick' }
   tabs sys {title:"[fa-cogs] Nastavení", skill:'hn', _sys:'sys',  include:'onclick,ezer2.syst', active:*
     //panel oso {type:'right', title:'Osobní nastavení', _sys:'*', include:'onclick' }
     panel oso {type:'right', title:'[fa-user] Osobní nastavení', _sys:'*', include:'onclick,ezer2.pers' }
@@ -47,36 +48,36 @@ menu ch { type:'main', active:*
     # ===================================================================================== APLIKACE
     panel APPL {type:'right', title:'[fa-download] Git/DB', _sys:'str', skill:'m'
       menu m {type:'left', format:'f+'
-        menu  {title:'Primární import dat', type:'group', skill:'m'
-          item {title:'[fa-upload] TRUNCATE clen, role, dar, vypis'
-            func onclick (i:ezer) {
-              clear(); info.display(0,'t');
-              info.fill(replace_fa(i.title),' ');
-              if (!sys('ezer','server')) 
-                info.fill('',php.ch_truncate());
-              else
-                alert('TRUNCATE nelze provádět na ostrém serveru');
-              }
-            }
-//          item {title:'[fa-upload] celý soubor v2-indiv.csv'  par:{file:'v2-indiv',max:0} }
-//          item {title:'[fa-upload] ... jen testy'             par:{file:'v2-indiv',max:0,test:1} }
-//          item {title:'[fa-upload] ... jen 1 záznam'          par:{file:'v2-indiv',max:1} }
-//          item {title:'[fa-upload] celý soubor v2-firmy.csv'  par:{file:'v2-firmy',max:0} }
-//          item {title:'[fa-upload] ... jen testy'             par:{file:'v2-firmy',max:0,test:1} }
-//          item {title:'[fa-upload] ... jen 1 záznam'          par:{file:'v2-firmy',max:1} }
-//          item {title:'[fa-upload] celý soubor v2-firmy2.csv' par:{file:'v2-firmy2',max:0} }
-//          item {title:'[fa-upload] ... jen testy'             par:{file:'v2-firmy2',max:0,test:1} }
-//          item {title:'[fa-upload] ... jen 1 záznam'          par:{file:'v2-firmy2',max:1} }
-          item {title:'[fa-upload] celý soubor v2-dobr.csv'   par:{file:'v2-dobr',max:0} }
-//          item {title:'[fa-upload] ... jen testy'             par:{file:'v2-dobr',max:0,test:1} }
-//          item {title:'[fa-upload] ... jen 1 záznam'          par:{file:'v2-dobr',max:1} }
-          item {title:'[fa-upload] celý soubor v2-kruh.csv'   par:{file:'v2-kruh',max:0} }
-          func onclick (i:ezer) {
-            clear(); info.display(0,'t');
-            info.fill(replace_fa(i.title),' čekej ...');
-            info.fill('',php.ch_import(i.par));
-          }
-        }
+//        menu  {title:'Primární import dat', type:'group', skill:'m'
+//          item {title:'[fa-upload] TRUNCATE clen, role, dar, vypis'
+//            func onclick (i:ezer) {
+//              clear(); info.display(0,'t');
+//              info.fill(replace_fa(i.title),' ');
+//              if (!sys('ezer','server')) 
+//                info.fill('',php.ch_truncate());
+//              else
+//                alert('TRUNCATE nelze provádět na ostrém serveru');
+//              }
+//            }
+////          item {title:'[fa-upload] celý soubor v2-indiv.csv'  par:{file:'v2-indiv',max:0} }
+////          item {title:'[fa-upload] ... jen testy'             par:{file:'v2-indiv',max:0,test:1} }
+////          item {title:'[fa-upload] ... jen 1 záznam'          par:{file:'v2-indiv',max:1} }
+////          item {title:'[fa-upload] celý soubor v2-firmy.csv'  par:{file:'v2-firmy',max:0} }
+////          item {title:'[fa-upload] ... jen testy'             par:{file:'v2-firmy',max:0,test:1} }
+////          item {title:'[fa-upload] ... jen 1 záznam'          par:{file:'v2-firmy',max:1} }
+////          item {title:'[fa-upload] celý soubor v2-firmy2.csv' par:{file:'v2-firmy2',max:0} }
+////          item {title:'[fa-upload] ... jen testy'             par:{file:'v2-firmy2',max:0,test:1} }
+////          item {title:'[fa-upload] ... jen 1 záznam'          par:{file:'v2-firmy2',max:1} }
+//          item {title:'[fa-upload] celý soubor v2-dobr.csv'   par:{file:'v2-dobr',max:0} }
+////          item {title:'[fa-upload] ... jen testy'             par:{file:'v2-dobr',max:0,test:1} }
+////          item {title:'[fa-upload] ... jen 1 záznam'          par:{file:'v2-dobr',max:1} }
+//          item {title:'[fa-upload] celý soubor v2-kruh.csv'   par:{file:'v2-kruh',max:0} }
+//          func onclick (i:ezer) {
+//            clear(); info.display(0,'t');
+//            info.fill(replace_fa(i.title),' čekej ...');
+//            info.fill('',php.ch_import(i.par));
+//          }
+//        }
         menu { title:'Backup databáze',type:'group',skill:'m'
           item { title:"[fa-question] přehled záloh"                par:{typ:'download'}}
           item { title:"[fa-upload] zálohuj teď"                    par:{typ:'special'}}
@@ -207,16 +208,20 @@ panel track [,,540,276] { title:'Historie oprav', type:'popup', css:'dialog'
 form right [,,*,50] {
   label head [0,0,*,50]  { title:' ' }
   label note [0,36,,530] { title:' ' }
-  proc fill(h,n) {
-    [ h; head.set(conc("<div class='karta'>",h,"</div>")) ];
-    [ n; note.set(n) ]
+  func header(i:ezer) { var i_owner:ezer
+    clear(); i_owner= i.owner();
+    head= replace_fa(`<div class='karta'>${i_owner.title} - ${i.title}</div>`);
   }
-  proc append(n) {
-    note.set(conc(note.get,n))
+  func fill(x,y) {
+    if (x) head= `<div class='karta'>${replace_fa(x)}</div>`;
+    if (y) note= y
+  }
+  func append(y) {
+    if (y) note= conc(note,y)
   }
   label working [348,256,64,64] { title:"<img src='ch/img/spinner.gif'>",
     style:'z-index:999', format:'n' }
-  proc work(on) { working.display(on) }
+  func work(on) { working.display(on) }
 }
 # -------------------------------------------------------------------------------------------------- TABLES
 table clen { key_id:'id_clen'

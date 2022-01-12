@@ -12,6 +12,7 @@ panel vzo {type:'right', title:"[fa-paperclip] Vzory / šablony", _sys:'*'
   menu {type:'left', format:'f+'
     menu {title:'Vzory dopisů', type:'group'
       item {title:'Potvrzení finančního daru'   ,par:{vzor:'dar1'} }
+      item {title:'Potvrzení za kalendářní rok' ,par:{vzor:'rocni'} }
       func onclick (i:ezer) {
         ii.opravit.display(1); S_sablona.hide();
         cast_dopis= php.dop_sab_text(i.par.vzor);
@@ -132,32 +133,40 @@ panel EDITOR [0,0,645,520] { title:' Úprava textu dopisu', type:'popup', css:'d
       proc onclick() { form.save; panel.hide(1); }}
     button  [600,9,,] { title:'Zpět', help:'ukončit editor bez uložení změn'
       proc onclick() { panel.hide(0); }}
-    edit html [0,40,655,480] {type:'html', data:dopis.obsah, par:{toolbar:'EzerLetter'} },
+    edit html [0,40,655,480] {type:'html', data:dopis.obsah, par:{toolbar:'Letter'} },
   }
 }
 # ==========================================================================================> DOPISY
 panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
   var virgin=1, last_item:object
   use info:   form right   [12,4,,]
-  use dopisy: form _dopisy [12,50,,] {tag:'d'}
-  use stitky: form _stitky [12,50,,] {tag:'s'}
-  proc onfirstfocus() { virgin.get; virgin.set(0); dopisy.Start; onfocus }
-  proc onfocus() { var ret:object
+  use dopisy: form _dopisy [12,50,,] {tag:'d', format:'n'}
+  use potvrz: form _potvrz [12,50,,] {tag:'p', format:'n'}
+  use stitky: form _stitky [12,50,,] {tag:'s', format:'n'}
+  func onfirstfocus() { 
+    if (virgin) {
+      virgin= 0; 
+      dopisy.Start(); potvrz.Start(); panel.display(2,'s'); 
+    }
   }
-  menu m {type:'left', active:*, format:'f+'
-    menu {title:'Dopisy', type:'group'
+  menu m {type:'left', format:'f+', active:m.d.i
+    menu d {title:'Dopisy', type:'group'
       item {title:'[fa-file-text-o] vytváření a editace dopisů'
         func onclick (i:ezer) {
-          clear(); panel.display(2,'d');
+          clear(); panel.display(2,'d'); info.header(i);
           dopisy.Init();
-          info.fill("Seznam rozeslaných i připravovaných dopisů"," ");
         }
       }
-      item   {title:'[fa-envelope-o] tisk adresních štítků'
+      item {title:'[fa-stack-overflow] roční potvrzení - osoby'
         func onclick (i:ezer) {
-          clear(); panel.display(2,'s');
+          clear(); panel.display(2,'p'); info.header(i);
+          potvrz.Init();
+        }
+      }
+      item i {title:'[fa-envelope-o] tisk adresních štítků'
+        func onclick (i:ezer) {
+          clear(); panel.display(2,'s'); info.header(i);
           stitky.Init();
-          info.fill(replace_fa(i.title)," ");
         }
       }
     }
@@ -200,7 +209,8 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
         msg= ret.msg;
     }}
     label [15,145,436,33] {title:"Poznámka: tisk je optimalizován pro štítky velikosti 70x41 
-        (21 štítků na listu). <br>Tento typ se prodává např. pod označením RAYFILM R0100.0533A"}
+        (21 štítků na listu). <br>Tento typ se prodává např. pod označením RAYFILM R0100.0533A"
+    }
     label msg [0,188,600,600] 
   }
   // ==> . štítky
@@ -208,7 +218,7 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
     box stitek    [  0,  0, 70, 41] { style:'12,R,LRTB' }
     box adresa    [  5, 10, 65, 32] { style:'12,L' }
   }
-# --------------------------------------------------------------------------------------==> DOPISY
+  # --------------------------------------------------------------------------------------==> DOPISY
   var et_prazdy: number
   form _dopisy [0,0,180,267] {
     # ==> . procedury
@@ -346,6 +356,86 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
           Reload();
         }
       }
+    }
+  }
+  # -----------------------------------------------------------------------------------==> POTVRZENÍ
+  var et_prazdy: number
+  form _potvrz [0,0,180,267] {
+    var rok=2021
+    #--------------------------------------==> výběr potvrzení
+    func Start () { rok= fdate('Y'); odeslano= now(); drok= 2; rok= fdate('Y')-1; znovu= 1;}
+    func Init() { Reload(); info= '' }
+    func Reload() {
+      darci.browse_load( // nesmazané nevěcné dary daného roku fyzických osob
+          `osoba=1 AND c.deleted='' AND d.deleted='' AND d.zpusob!=4 AND psc!='' AND YEAR(d.castka_kdy)=${rok}`,
+          '',znovu?'1':'nema>0');
+    }
+    view c: table clen
+    view d: table dar {join:'USING (id_clen)'}
+    browse darci [4,0,200,240] { rows:11, qry_rows:1, group_by:'id_clen'
+      show id_clen [,,50,] { title:'člen', data:c.id_clen, format:'rq=s+' }
+      show titul { data:c.titul }
+      show jmeno [,,60,] { title:'jméno', data:c.jmeno, format:'q*s' }
+      show prijmeni [,,80,] { title:'příjmení', data:c.prijmeni, format:'q*s' }
+      show ulice [,,110,] { title:'ulice', data:c.ulice, format:'q*s'  }
+      show psc [,,50,] { title:'psč', data:c.psc, format:'rq*s', sql_pipe:'psc' }
+      show obec [,,80,] { title:'obec', data:c.obec, format:'q*s' }
+      show dary [,,60,] { title:'dary', expr:"SUM(d.castka)", format:'sr' }
+      show uzma [,,60,] { title:'už má', expr:"SUM(IF(d.potvrz_kdy,d.castka,0))", format:'sr' }
+      show nema [,,60,] { title:'nemá', expr:"SUM(IF(d.potvrz_kdy,0,d.castka))", format:'sr' }
+//      proc onrowclick () { curr_clen.set(id_clen.get); reselect(curr_clen.get) }
+      func onsubmit () { klu.cle.show_clen(id_clen) }
+    }
+    label info [4,250,800,] 
+    #--------------------------------------==> . parametrizace
+    const LL=660
+    label [LL+0,0,185,145] { css:'work' }
+    field odeslano [LL+12,20,96,18]  { title:'^datum odeslání', type:'date', format:'rt' }
+    label [LL+12,50,120,14] { title:"vypsat potvrzení na" }
+    radio drok [LL+12,66,120,41] { style:'border:1px solid #ddd', format:'t'
+      case [0,3,100,16] { title:'letošní dary', value:'1' }
+      case [0,23,100,16] { title:'loňské dary', value:'2' }
+      func onchange () {
+        rok= drok==1 ? fdate('Y') : fdate('Y')-1;
+        Reload();
+      }
+    }
+    check znovu [LL+12,117,120,] { title:'včetně poslaných', format:'t'
+      proc onchange () { Reload() }
+    }
+    #--------------------------------------==> . test
+    button test [LL+120,21,,] { tag:'s', title:'Ukázka',
+      help:'vyzkoušet na nastaveném dárci'
+      func onclick () { var ret:object, idd:number
+        clear();
+        idd= 7;
+        ret= php.dop_potvrzeni(darci.browse_status(),{rok:rok,datum:odeslano},darci.id_clen);
+        info= `${ret.pdf}<hr>${ret.html}`;
+      }
+    }
+    #--------------------------------------==> . tvorba PDF
+    label  [LL+0,170,182,69] { css:'parm' }
+    button pdf [LL+15,180,,] { title:'1. vytvořit PDF pro tisk', help:'po vytištění je nutné zapsat datum potvrzení'
+      func onclick () { var ret:object
+        clear();
+        ret= php.dop_potvrzeni(darci.browse_status(),{rok:rok,datum:odeslano});
+        info= `${ret.msg}. ${ret.pdf}, ukázka posledního potvrzení<hr>${ret.html}`;
+    }}
+    button zpet [LL+15,210,,] { title:'2. zapsat datum potvrzení', help:'zápis o zaslání potvrzení'
+      func onclick () { 
+        if (confirm('podařilo se vytiskout vygenerovaná potvrzení?')) {
+          info= php.dop_zapis_datum(darci.browse_status(),{rok:rok,datum:odeslano});
+        }
+    }}
+    proc reselect (id) {
+//      var cond:text
+//      cond.set(conc(" AND YEAR(datum)=",rok.get));
+//      [ dary.browse_load(conc("left(deleted,1)!='D' AND id_clen=",id,cond)) ];
+//      dary.browse_select(conc("left(deleted,1)!='D' AND druh!=1 AND id_clen=",id,cond))
+    }
+    proc onstart () {
+//      ii.potvrzeni.key(202); 
+//      drok.set(2); drok.onchange;
     }
   }
 }
