@@ -9,7 +9,7 @@ panel vzo {type:'right', title:"[fa-paperclip] Vzory / šablony", _sys:'*'
   use ii: form right [12,4,,]
   var cast_sablony: text
   var cast_dopis: object
-  menu {type:'left', format:'f+'
+  menu {type:'left', format:'f+', active:*
     menu {title:'Vzory dopisů', type:'group'
       item {title:'Potvrzení finančního daru'   ,par:{vzor:'dar1'} }
       item {title:'Potvrzení za kalendářní rok' ,par:{vzor:'rocni'} }
@@ -146,10 +146,10 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
   func onfirstfocus() { 
     if (virgin) {
       virgin= 0; 
-      dopisy.Start(); potvrz.Start(); panel.display(2,'s'); 
+      dopisy.Start(); potvrz.Start(); 
     }
   }
-  menu m {type:'left', format:'f+', active:m.d.i
+  menu m {type:'left', format:'f+', active:*
     menu d {title:'Dopisy', type:'group'
       item {title:'[fa-file-text-o] vytváření a editace dopisů'
         func onclick (i:ezer) {
@@ -367,7 +367,8 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
     func Init() { Reload(); info= '' }
     func Reload() {
       darci.browse_load( // nesmazané nevěcné dary daného roku fyzických osob
-          `osoba=1 AND c.deleted='' AND d.deleted='' AND d.zpusob!=4 AND psc!='' AND YEAR(d.castka_kdy)=${rok}`,
+          `osoba=1 AND potvrzeni IN (1,2) AND c.deleted='' AND psc!='' 
+              AND d.deleted='' AND d.zpusob!=4 AND YEAR(d.castka_kdy)=${rok}`,
           '',znovu?'1':'nema>0');
     }
     view c: table clen
@@ -375,11 +376,12 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
     browse darci [4,0,200,240] { rows:11, qry_rows:1, group_by:'id_clen'
       show id_clen [,,50,] { title:'člen', data:c.id_clen, format:'rq=s+' }
       show titul { data:c.titul }
-      show jmeno [,,60,] { title:'jméno', data:c.jmeno, format:'q*s' }
-      show prijmeni [,,80,] { title:'příjmení', data:c.prijmeni, format:'q*s' }
+      show jmeno [,,50,] { title:'jméno', data:c.jmeno, format:'q*s' }
+      show prijmeni [,,75,] { title:'příjmení', data:c.prijmeni, format:'q*s' }
       show ulice [,,110,] { title:'ulice', data:c.ulice, format:'q*s'  }
       show psc [,,50,] { title:'psč', data:c.psc, format:'rq*s', sql_pipe:'psc' }
       show obec [,,80,] { title:'obec', data:c.obec, format:'q*s' }
+      show potvr [,,15,] { title:'P', expr:"IF(c.potvrzeni=1,'V','R')", format:'q=s' }
       show dary [,,60,] { title:'dary', expr:"SUM(d.castka)", format:'sr' }
       show uzma [,,60,] { title:'už má', expr:"SUM(IF(d.potvrz_kdy,d.castka,0))", format:'sr' }
       show nema [,,60,] { title:'nemá', expr:"SUM(IF(d.potvrz_kdy,0,d.castka))", format:'sr' }
@@ -423,7 +425,7 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
     }}
     button zpet [LL+15,210,,] { title:'2. zapsat datum potvrzení', help:'zápis o zaslání potvrzení'
       func onclick () { 
-        if (confirm('podařilo se vytiskout vygenerovaná potvrzení?')) {
+        if (confirm('podařilo se vytiskout všechna vygenerovaná potvrzení?')) {
           info= php.dop_zapis_datum(darci.browse_status(),{rok:rok,datum:odeslano});
         }
     }}

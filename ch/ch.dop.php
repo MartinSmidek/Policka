@@ -795,7 +795,8 @@ function dop_substituce($vars,$params,$c) {  trace();
     case 'datum': $val= sql_date1($params->datum,0,'. '); break;
     // osobní údaje
     case 'adresa':
-      $val= $organizace.trim("$c->titul $c->jmeno")." $c->prijmeni<br>$c->ulice<br>$c->psc $c->obec";
+      $psc= $c->psc ? substr($c->psc,0,3).' '.substr($c->psc,3,2) : '';
+      $val= $organizace.trim("$c->titul $c->jmeno")." $c->prijmeni<br>$c->ulice<br>$psc $c->obec";
       break;
     default:
       $val= "<b style='color:red' title='$var'>???</b>";
