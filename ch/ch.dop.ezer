@@ -6,33 +6,26 @@ proc onstart () { dopis_id.set(0) }
 # ================================================================================> DOPISY A ŠABLONY
 # editace vzorů zasílaných dopisů a jejich hlaviček
 panel vzo {type:'right', title:"[fa-paperclip] Vzory / šablony", _sys:'*'
-  use ii: form right [12,4,,]
+    use ii: form right [12,4,,] {
+      button opravit [-24,4,,] { title:'[fa-edit] Upravit', style:'display:none;zIndex:2'
+        proc onclick() { EDITOR.Edit(dopis_id.get); form.fill('',EDITOR.d.html.get) }
+      }
+  }
   var cast_sablony: text
   var cast_dopis: object
   menu {type:'left', format:'f+', active:*
     menu {title:'Vzory dopisů', type:'group'
-      item {title:'Potvrzení finančního daru'   ,par:{vzor:'dar1'} }
-      item {title:'Potvrzení za kalendářní rok' ,par:{vzor:'rocni'} }
+      item {title:'[fa-envelope-open-o] Potvrzení finančního daru'   ,par:{vzor:'dar1'} }
+      item {title:'[fa-stack-overflow] Potvrzení za kalendářní rok' ,par:{vzor:'rocni'} }
       func onclick (i:ezer) {
         ii.opravit.display(1); S_sablona.hide();
         cast_dopis= php.dop_sab_text(i.par.vzor);
         dopis_id= cast_dopis.id_dopis;
-        ii.nadpis(i.title,cast_dopis.obsah);
+        ii.header(i);
+        ii.fill('',cast_dopis.obsah);
       }
     }
-//    menu {title:'Vzory mailů', type:'group'
-//      item {title:'Rozesílání Zpravodajů'        ,par:{typ:'bulletiny'} }
-//      proc onclick (i) {
-//        ii.opravit.display(1); S_sablona.hide;
-//        cast_dopis.set(ask('dop_sab_mail',i.par.typ));
-//        dopis_id.set(cast_dopis.get('id_dopis'));
-//        ii.nadpis(i.title,cast_dopis.get('obsah'))
-//      }
-//    }
     menu {title:'Části šablony dopisů', type:'group', _sys:'sab'
-//    item {title:'hlavička - logo'             ,par:{druh:'D',name:'logo'} }
-//    item {title:'hlavička - motto'            ,par:{druh:'D',name:'motto'} }
-//    item {title:'kontakt'                     ,par:{druh:'D',name:'kontakt'} }
       item {title:'hlavička'                    ,par:{druh:'D',name:'hlavicka'} }
       item {title:'vyřizuje'                    ,par:{druh:'D',name:'vyrizuje'} }
       item {title:'telefon'                     ,par:{druh:'D',name:'telefon'} }
@@ -45,36 +38,17 @@ panel vzo {type:'right', title:"[fa-paperclip] Vzory / šablony", _sys:'*'
       func onclick (i:ezer) {
         ii.opravit.display(0);
         cast_sablony= php.dop_sab_cast(i.par.druh,i.par.name);
-        ii.nadpis(i.title,' ');
+        ii.fill(i.title,' ');
         S_sablona.popup(0,90);
       }
     }
     menu {title:'Ukázkové tisky šablon', type:'group', _sys:'sab'
-      item {title:'šablona Charita'              ,par:{druh:'D'} }
+      item {title:'[fa-print] šablona Charita'              ,par:{druh:'D'} }
       func onclick (i:ezer) {
         ii.opravit.display(0); S_sablona.hide();
-        ii.nadpis(i.title,php.dop_sab_nahled(i.par.druh))
+        ii.fill(i.title,php.dop_sab_nahled(i.par.druh))
       }
     }
-  }
-  # --------------------------------------------------------------------------------==> . right
-  # formulář pro levostranné menu s tlačítkem OPRAVIT a spinerem
-  form right [,,*,600] {
-    button opravit [-24,4,,] { title:'Upravit', style:'display:none;zIndex:2'
-      proc onclick() { EDITOR.Edit(dopis_id.get); ii.nadpis('',EDITOR.d.html.get) }
-    }
-    label head [0,0,*,50] { title:'' }
-    label note [0,50,*,500] { title:'' }
-    proc nadpis(h,n) {
-      [ h; head.set(conc("<div class='karta'>",h,"</div>")) ];
-      [ n; note.set(n) ]
-    }
-    proc append(n) {
-      note.set(conc(note.get,n))
-    }
-    label working [360,140,64,64] { title:"<img src='ch/img/spinner.gif'>",
-      style:'z-index:999', format:'n' }
-    proc work(on) { working.display(on) }
   }
   # -----------------------------------------------------------------------------------==> S_sablona
   # popup
@@ -109,7 +83,7 @@ panel vzo {type:'right', title:"[fa-paperclip] Vzory / šablony", _sys:'*'
       edit obsah [95,63,547,200] { data:dopis_cast.obsah },
       label [23,275,640,17] { title:"<u>orientační</u> ukázka (přesná viz menu 'Ukázkové tisky šablon'):" },
       label ukazka [23,295,640,500]
-      button uloz [590,0,,] { title:'Uložit'
+      button uloz [590,0,,] { title:'[fa-save] Uložit'
         proc onclick () { form.save; form.load }
       }
     }
@@ -129,9 +103,9 @@ panel EDITOR [0,0,645,520] { title:' Úprava textu dopisu', type:'popup', css:'d
   form _dopis [10,10,600,460] {
 //    label [0,12,60,20] { title:'Aktuální:' }
 //    check nazev [50,10,50,20] { data:dopis.aktualni },
-    button  [540,9,,] { title:'Uložit', help:'ukončit editor a uložit změny'
+    button  [540,9,,] { title:'[fa-save] Uložit', help:'ukončit editor a uložit změny'
       proc onclick() { form.save; panel.hide(1); }}
-    button  [600,9,,] { title:'Zpět', help:'ukončit editor bez uložení změn'
+    button  [600,9,,] { title:'[fa-undo] Zpět', help:'ukončit editor bez uložení změn'
       proc onclick() { panel.hide(0); }}
     edit html [0,40,655,480] {type:'html', data:dopis.obsah, par:{toolbar:'Letter'} },
   }
@@ -151,7 +125,7 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
   }
   menu m {type:'left', format:'f+', active:*
     menu d {title:'Dopisy', type:'group'
-      item {title:'[fa-file-text-o] vytváření a editace dopisů' 
+      item {title:'[fa-envelope-open-o] vytváření a editace dopisů' 
         func onclick (i:ezer) {
           clear(); panel.display(2,'d'); info.header(i);
           dopisy.Init();
@@ -369,7 +343,7 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
   form _potvrz [0,0,180,267] {
     var rok=2021, osoba:number
     #--------------------------------------==> výběr potvrzení
-    func Start () { rok= fdate('Y'); odeslano= now(); drok= 2; rok= fdate('Y')-1; znovu= 1;}
+    func Start () { rok= fdate('Y'); odeslano= now(); drok= 2; rok= fdate('Y')-1; znovu= 0;}
     func Init(_osoba) { 
       osoba= _osoba;
       if (_osoba) {
