@@ -45,49 +45,6 @@ map cis_b_ucty:         table _cis  { where:"druh='b_ucty'", order:'poradi', key
 map user:               table _user { where:'1', order:'surname'}
 map user2:              table _user { where:"skills!=''", order:'surname'}
 
-# ============================================================================================> Tisk
-panel Tisk [0,0,650,540] { title:' Prohlížení a tisk dopisu', type:'popup', css:'dialog'
-  var dop: object               // definice dopisu: °{typ:'potvrz',id_clen,id_dar,kdy,kdo,text}
-  use d: form _dopis [0,0,,]
-  var generovano: number        // 1 - uživatel zmačkl [PDF]
-  proc onfocus () {
-    d.ref.set(''); generovano.set(0);
-    d.html.set(dop.get('text')); d.adresa.set(dop.get('dopis.adresa_preview'));
-  }
-  # --------------------------------------------------------------------------------- _dopis
-  form _dopis [5,10,650,460] {
-    label ref  [0,7,194,37]
-    # PDF
-    button      [223,10,,]  { title:'PDF', help:'Generovat PDF a zpřístupnit jej odkazem vlevo'
-      proc onclick() {
-        var fname: text
-        fname.set(ask('dop_gener_pdf',html.get,dop.get));
-        ref.set(conc("Byl vygenerován PDF soubor: <a target='dopis' href='",
-          fname.get,"'>",fname.get,"</a>"));
-        generovano.set(1); } }
-    # Vzor
-    button      [271,10,,]  { title:'Vzor', help:'zobrazit původní dopis podle vzoru'
-      proc onclick() {
-        dop.set(ask('dop_gener_new',dop.get('typ'),dop.get('id_clen'),dop.get('id_dar'),
-          dop.get('kdy'),dop.get('kdy_ch')));
-        d.html.set(dop.get('text'));
-    } }
-    # Uložit
-    button      [318,10,,]  { title:'Uložit', help:'Uložit změny formuláře a vytištěný dopis'
-      proc onclick() {
-        dop.set(html.get,'text'); panel.hide(1) } }
-    # Zpět
-    button      [371,10,,]  { title:'Zpět', help:'ukončit editor bez uložení změn'
-      proc onclick() {
-        generovano.get;
-        not(confirm('Opravdu ukončit dialog bez uložení vygenerovaného dopisu?'));
-      | panel.hide(0); } }
-    # adresa a text
-    label        [433,1,,] { title:'adresa' }
-    label adresa [473,0,181,64] { style:'background-color:white' }
-    edit html   [0,66,655,480] { type:'html', par:°{toolbar:'CK_letter'} }
-  }
-}
 # =======================================================================================> BackTrace
 panel Ctrack [,,572,564] { title:'Korekce oprav členů', type:'popup', css:'dialog'
   use CT_track: form _back [0,16,,] { tabindex:20 },

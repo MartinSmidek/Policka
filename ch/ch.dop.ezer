@@ -151,7 +151,7 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
   }
   menu m {type:'left', format:'f+', active:*
     menu d {title:'Dopisy', type:'group'
-      item {title:'[fa-file-text-o] vytváření a editace dopisů'
+      item {title:'[fa-file-text-o] vytváření a editace dopisů' 
         func onclick (i:ezer) {
           clear(); panel.display(2,'d'); info.header(i);
           dopisy.Init();
@@ -160,7 +160,13 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
       item {title:'[fa-stack-overflow] roční potvrzení - osoby'
         func onclick (i:ezer) {
           clear(); panel.display(2,'p'); info.header(i);
-          potvrz.Init();
+          potvrz.Init(1);
+        }
+      }
+      item {title:'[fa-stack-overflow] roční potvrzení - firmy'
+        func onclick (i:ezer) {
+          clear(); panel.display(2,'p'); info.header(i);
+          potvrz.Init(0);
         }
       }
       item i {title:'[fa-envelope-o] tisk adresních štítků'
@@ -361,13 +367,22 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
   # -----------------------------------------------------------------------------------==> POTVRZENÍ
   var et_prazdy: number
   form _potvrz [0,0,180,267] {
-    var rok=2021
+    var rok=2021, osoba:number
     #--------------------------------------==> výběr potvrzení
     func Start () { rok= fdate('Y'); odeslano= now(); drok= 2; rok= fdate('Y')-1; znovu= 1;}
-    func Init() { Reload(); info= '' }
+    func Init(_osoba) { 
+      osoba= _osoba;
+      if (_osoba) {
+        darci.firma.width(0); darci.ico.width(0); darci.jmeno.width(50); darci.prijmeni.width(75);
+      }
+      else { // firma
+        darci.firma.width(75); darci.ico.width(50); darci.jmeno.width(0); darci.prijmeni.width(0);
+      }
+      Reload(); info= '';
+    }
     func Reload() {
       darci.browse_load( // nesmazané nevěcné dary daného roku fyzických osob
-          `osoba=1 AND potvrzeni IN (1,2) AND c.deleted='' AND psc!='' 
+          `osoba=${osoba} AND potvrzeni IN (1,2) AND c.deleted='' AND psc!='' 
               AND d.deleted='' AND d.zpusob!=4 AND YEAR(d.castka_kdy)=${rok}`,
           '',znovu?'1':'nema>0');
     }
@@ -375,9 +390,12 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
     view d: table dar {join:'USING (id_clen)'}
     browse darci [4,0,200,240] { rows:11, qry_rows:1, group_by:'id_clen'
       show id_clen [,,50,] { title:'člen', data:c.id_clen, format:'rq=s+' }
+      show osoba { data:c.osoba }
       show titul { data:c.titul }
       show jmeno [,,50,] { title:'jméno', data:c.jmeno, format:'q*s' }
       show prijmeni [,,75,] { title:'příjmení', data:c.prijmeni, format:'q*s' }
+      show firma [,,0,] { title:'firma', data:c.firma, format:'q*s' }
+      show ico   [,,0,] { title:'IČO', data:c.ico, format:'q*s' }
       show ulice [,,110,] { title:'ulice', data:c.ulice, format:'q*s'  }
       show psc [,,50,] { title:'psč', data:c.psc, format:'rq*s', sql_pipe:'psc' }
       show obec [,,80,] { title:'obec', data:c.obec, format:'q*s' }

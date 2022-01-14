@@ -9,8 +9,8 @@ use C_ukoly: form _ukoly [670,24,,] { tabindex:30
   proc u_show() { C_ukoly.get.display(1,'u|b') }
 }
 use C_clen_butt: form _clen_butt [670,580,,] { tabindex:30 }
-use C_dary: form _dary [5,360,,] { tabindex:50, skill:'hdd' }
-use C_dar: form _dar [270,360,,] {  skill:'hdd' }
+use C_dary: form _dary [5,340,,] { tabindex:50, skill:'hdd' }
+use C_dar: form _dar [270,340,,] {  skill:'hdd' }
 
 proc onstart () {
   ch.modul_state.set(°{active:1,dirty:0},'klu.cle');   # poznačení, že modul je aktivní
@@ -327,6 +327,18 @@ form _clen [,,399,251] {
                                     help:'rok narození, pokud neznáme přesnější datum'  }
   field clen_od  [308,160,87,] {tag:'k', type:'date', title:'v Klubu od', data:clen.clen_od, format:'n' }
 
+
+
+  button [78,160,110,30] {tag:'o,O,f,F', title:' adresa<=>adresa2 '
+    func onclick() { var u:text,p:text,o:text,s:text
+      u= ulice; p=psc; o=obec; s=stat;
+      php.query(`UPDATE clen SET ulice=ulice2,psc=psc2,obec=obec2,stat=stat2 WHERE id_clen=${C_clen.id} `);
+      php.query(`UPDATE clen SET ulice2='${u}',psc2='${p}',obec2='${o}',stat2='${s}' WHERE id_clen=${C_clen.id} `);
+      C_clen.load(); C_cleni.cleni.browse_seek(); 
+    }}
+
+  
+  
   const zasi=193, oslo=268, pozn=343, hist= 443 // ----------------==> .. pozice částí karty
   # ==> .. zasílání - tag=z (zobrazí se při startu)
   field darce   [212,zasi+44,177,] {tag:'z', type:'list', title:'potvrzení na:', par:°{delim:';'}, data:clen.darce  }
@@ -749,7 +761,7 @@ form _dary [,,260,256] {
   # ----------------------------------------------------==> . seznam darů
   # jsou zobrazeny jen dary s typ=8|9 
   view dd: table dar
-  browse dary [4,34,0,54] { rows:10, wheel:5 //, css_rows:'color,0:dar_2'
+  browse dary [4,34,0,54] { rows:12, wheel:5 //, css_rows:'color,0:dar_2'
     show del    [,,0,]  { title:'D', data:dd.deleted, format:'q' },
     show nucet  [,,0,]  { title:'ú', data:dd.nas_ucet, map_pipe:cis_k_ucet.zkratka },
     show dne    [,,70,] { title:'ze dne', data:dd.castka_kdy, format:'rfs-' },
@@ -815,7 +827,7 @@ form _dar [,,390,240] {
     }
   }
   # ---------------------------------------------------==> . záložky
-  const predani= '1.5.2021'
+//  const predani= '1.5.2021'
   func autoswitch(c) {
     switch(zpusob){
       case 1: kas.stisk(c); break;
@@ -824,10 +836,11 @@ form _dar [,,390,240] {
       case 4: vec.stisk(c); break;
       default:  x.stisk(c); break
     }
-    dik_open.display( dik_typ==1 && js.date_gt(dik_dne,predani) ? 1 : 0); 
-    dik_close.display(dik_typ==2 && js.date_gt(dik_dne,predani) ? 1 : 0);
-    pot_open.display( pot_typ==1 && js.date_gt(pot_dne,predani) ? 1 : 0); 
-    pot_close.display(pot_typ==2 && js.date_gt(pot_dne,predani) ? 1 : 0);
+//    dik_open.display( dik_typ==1 && js.date_gt(dik_dne,predani) ? 1 : 0); 
+//    dik_close.display(dik_typ==2 && js.date_gt(dik_dne,predani) ? 1 : 0);
+    pot_open.display( pot_typ ? 1 : 0); 
+//    pot_open.display( pot_typ==1 && js.date_gt(pot_dne,predani) ? 1 : 0); 
+//    pot_close.display(pot_typ==2 && js.date_gt(pot_dne,predani) ? 1 : 0);
   }
   proc tags(nochange,a,on,off,zp) {
     form.set_css('ae_butt_off','ae_butt_on changed','z');
@@ -860,14 +873,14 @@ form _dar [,,390,240] {
     proc onclick() { id_clen.get; stisk(0); }
     proc stisk(prog) { tags(prog,this,'x','v|n|u',4); } }
   # -----------------------------------------------==> . položky
-  label    [1,16,388,205] { css:'ae_work'}
+  label    [1,16,388,225] { css:'ae_work'}
   view d: table dar
   field id_clen { data:d.id_clen }
   field zpusob  { data:d.zpusob, value:'1' }  // 1:pokladnou, 2:bankou, 3:složenkou, 4:věcný
   field typ  { data:d.typ, value:'9' }  // 8/9:přiřazený 
   field del { data:d.deleted }
   // ovládání zobrazení ikony dopisu: 0:otevřená, 1:žádná, 2:zavřená
-  field dik_typ { expr:"CASE WHEN  d.diky_kdy='0000-00-00' THEN 0 WHEN d.diky_txt='' THEN 1 ELSE 2 END" }
+//  field dik_typ { expr:"CASE WHEN  d.diky_kdy='0000-00-00' THEN 0 WHEN d.diky_txt='' THEN 1 ELSE 2 END" }
   field pot_typ { expr:"CASE WHEN  d.potvrz_kdy='0000-00-00' THEN 0 WHEN d.potvrz_txt='' THEN 1 ELSE 2 END" }
   field kdo     { data:d.zmena_kdo }
   field kdy     { data:d.zmena_kdy }
@@ -876,48 +889,29 @@ form _dar [,,390,240] {
   field castka  [15,34,70,17] { title:'^hodnota daru', data:d.castka, format:'r', value:'' },
   select stred  [130,34,198,] { title:'^pro středisko', type:'map', data:d.stredisko, options:cis_stredisko.hodnota }
   field dar_dne [15,71,87,17] { title:'^došlého dne', format:'RUr', type:'date', data:d.castka_kdy }
-  field darce   [218,110,158,17] { title:'^jiné jméno do potvrzení', data:d.darce },
-  field pozn    [14,110,184,17]  { title:'^poznámka k daru', data:d.pozn, value:'' },
+  field darce   [218,148,158,17] { title:'^jiné jméno do potvrzení', data:d.darce },
+  field pozn    [14,110,363,17]  { title:'^poznámka k daru', data:d.pozn, value:'' },
   // poděkování a potvrzení
   field dik_dne [129,71,87,16]  { title:'^poděkovaného', type:'date', data:d.diky_kdy, format:'RUr' }
-  label dik_open [110,71,16,15] { tag:'d', title:"<img src='ch/img/letter_open.png'>", format:''
-      help:"Vytvoření a tisk poděkování za dar"
-    proc onclick() {
-      Tisk.dop.set(ask('dop_gener_new','diky',id_clen.get,iddar.get,pot_dne.get,pot_dne.changed));
-      { Tisk.modal(44,10,this.help); _dopis_uloz('diky')
-      | echo('ne')
-  } } }
-  label dik_close [110,71,16,15] { tag:'d', title:"<img src='ch/img/letter_closed.png'>", format:''
-      help:"Oprava dříve vygenerovaného textu poděkování za dar a jeho opakovaný tisk"
-    proc onclick() {
-      Tisk.dop.set(ask('dop_gener_load','diky',iddar.get));
-      { Tisk.modal(44,10,this.help); _dopis_uloz('diky')
-      | echo('ne')
-  } } }
   // potvrzení
   field pot_dne [241,71,87,16]  { title:'^potvrzeného', type:'date', data:d.potvrz_kdy, format:'RUr' }
   label pot_open [222,71,16,15] { tag:'d', title:"<img src='ch/img/letter_open.png'>", format:''
       help:"Vytvoření a tisk potvrzení o přijetí daru"
     func onclick() {
-      Tisk.dop= php.dop_gener_new('potvrz',id_clen,iddar,pot_dne,pot_dne.changed());
-      if (Tisk.modal(44,10,this.help)) _dopis_uloz('potvrz');
-  } }
-  label pot_close [222,71,16,15] { tag:'d', title:"<img src='ch/img/letter_closed.png'>", format:''
-      help:"Oprava dříve vygenerovaného textu potvrzení a jeho opakovaný tisk"
-    func onclick() {
-      Tisk.dop= php.dop_gener_load('potvrz',iddar);
-      if (Tisk.modal(44,10,this.help)) _dopis_uloz('potvrz');
+      clear(); Tisk.dop= php.dop_potvrz_dar1(id_clen,iddar);
+      Tisk.modal(44,10);
   } }
   # -----------------------------------------------==> . položky podle způsobu 
-  select nucet  [15,152,188,]   { tag:'n', type:'map', title:'^náš účet', data:d.nas_ucet, 
+  select nucet  [15,189,188,]   { tag:'n', type:'map', title:'^náš účet', data:d.nas_ucet, 
     options:cis_k_ucet.hodnota, format:'n' },
-  field ucet [217,150,156,17]  { tag:'u', title:'^účet dárce', format:'rn', data:d.ucet, value:'' },
-  edit popis [15,147,362,64] { tag:'v', title:'^popis věcného daru', data:d.popis, format:'n' },
+  field ucet [217,187,156,17]  { tag:'u', title:'^účet dárce', format:'rn', data:d.ucet, value:'' },
+  edit popis [15,172,362,59] { tag:'v', title:'^popis věcného daru', data:d.popis, format:'n' },
   label [15,147,362,64] { tag:'x', title:'nebylo možné určit cestu doručení daru', format:'n' },
   # -----------------------------------------------==> . tlačítka
+  const Tt=240
   # ==> .. uložit dar
-  label [1,220,388,35] { css:'ae_parm'}
-  button uloz_dar [11,229,,] {tag:'bc', type:'submit', title:'Uložit', skill:'hdde|hdde',
+  label [1,Tt,388,35] { css:'ae_parm'}
+  button uloz_dar [11,Tt+9,,] {tag:'bc', type:'submit', title:'Uložit', skill:'hdde|hdde',
       help:'provede uložení změněných (červeně orámovaných) položek'
     func onclick() { var stav: number
       stav= dar_uloz();
@@ -968,7 +962,7 @@ form _dar [,,390,240] {
     return state 
   }
   # ==> .. zpět dar
-  button zpet_dar [69,229,,] {tag:'bcc', title:'Zpět', skill:'hdde|hdde',
+  button zpet_dar [69,Tt+9,,] {tag:'bcc', title:'Zpět', skill:'hdde|hdde',
       help:'zruší červené orámování a vrátí původní obsah'
     func onclick() { echo(3);
       form.dar_zpet(C_dary.dary.browse_key()); 
@@ -986,7 +980,7 @@ form _dar [,,390,240] {
     }
   }
   # ==> .. nový dar
-  button vytvor_dar [121,229,,] {tag:'be', title:'Nový', skill:'hdde|hdde',
+  button vytvor_dar [121,Tt+9,,] {tag:'be', title:'Nový', skill:'hdde|hdde',
       help:'naplní položky základními hodnotami pro nový dar, vlastní vytvoření se provede uložením změn' 
     func onclick() {
       form.init(2); autoswitch(0);
@@ -996,7 +990,7 @@ form _dar [,,390,240] {
     }
   }
   # ==> . přepsat dar na jiného
-  button prepis_dar [233,229,,] {tag:'br', title:'Přepsat', skill:'hddd|hddd',
+  button prepis_dar [233,Tt+9,,] {tag:'br', title:'Přepsat', skill:'hddd|hddd',
     help:'přepíše dar na jiného dárce'
     func onclick () { var novy_darce: number, stary_darce: number
       novy_darce= prompt2('zadej členské číslo správného dárce'); 
@@ -1008,7 +1002,7 @@ form _dar [,,390,240] {
     }
   }
   # ==> . smazat dar
-  button zrus_dar [328,229,,] {tag:'br', title:'Smazat', skill:'hddd|hddd',
+  button zrus_dar [328,Tt+9,,] {tag:'br', title:'Smazat', skill:'hddd|hddd',
     help:'smaže dar po předchozím dotazu'
     func onclick () {
       if (confirm('opravdu smazat dar ',castka,' Kč?')) {
@@ -1018,7 +1012,7 @@ form _dar [,,390,240] {
       }}
   }
   # ==> . obnovit dar
-  button obnov_dar [328,229,,] {tag:'br', title:'Obnovit', skill:'hddd|hddd',
+  button obnov_dar [328,Tt+9,,] {tag:'br', title:'Obnovit', skill:'hddd|hddd',
     help:'obnoví dar po předchozím dotazu'
     func onclick () {
       if (confirm('opravdu obnovit dar ',castka,' Kč smazaný ',substr(del,1),'?')) {
@@ -1036,51 +1030,31 @@ form _dar [,,390,240] {
   proc _dar_load (iddar) {
     form.load(iddar); _form_state('br|be','bc'); 
   }
-  # dopisy
-  proc _dopis_uloz (typ) {
-    ask('dop_gener_save',typ,Tisk.dop.get); form.load; autoswitch(1); 
-  }
 }
 # ============================================================================================> Tisk
 panel Tisk [0,0,650,540] { title:' Prohlížení a tisk dopisu', type:'popup', css:'dialog'
   var dop: object               // definice dopisu: °{typ:'potvrz',id_clen,id_dar,kdy,kdo,text}
   use d: form _dopis [0,0,,]
-  var generovano: number        // 1 - uživatel zmačkl [PDF]
-  proc onfocus () {
-    d.ref.set(''); generovano.set(0);
-    d.html.set(dop.get('text')); d.adresa.set(dop.get('dopis.adresa_preview'));
+  func onfocus () {
+    d.ref= ''; 
+    d.html= dop.text; d.adresa= dop.value.adresa_darce;
   }
   # --------------------------------------------------------------------------------- _dopis
   form _dopis [5,10,650,460] {
-    label ref  [0,7,194,37]
+    label ref [0,7,194,37]
     # PDF
-    button      [223,10,,]  { title:'PDF', help:'Generovat PDF a zpřístupnit jej odkazem vlevo'
-      proc onclick() {
-        var fname: text
-        fname.set(ask('dop_gener_pdf',html.get,dop.get));
-        ref.set(conc("Byl vygenerován PDF soubor: <a target='dopis' href='",
-          fname.get,"'>",fname.get,"</a>"));
-        generovano.set(1); } }
-    # Vzor
-    button      [271,10,,]  { title:'Vzor', help:'zobrazit původní dopis podle vzoru'
-      proc onclick() {
-        dop.set(ask('dop_gener_new',dop.get('typ'),dop.get('id_clen'),dop.get('id_dar'),
-          dop.get('kdy'),dop.get('kdy_ch')));
-        d.html.set(dop.get('text'));
+    button [221,10,,]  { title:'[fa-print] PDF', help:'Generovat PDF a zpřístupnit jej odkazem vlevo'
+      func onclick() { var fname: text
+        fname= php.dop_potvrz_dar1_pdf(html,dop);
+        ref= `Byl vygenerován PDF soubor: <a target='dopis' href='${fname}'>${fname}</a>`;
     } }
-    # Uložit
-    button      [318,10,,]  { title:'Uložit', help:'Uložit změny formuláře a vytištěný dopis'
-      proc onclick() {
-        dop.set(html.get,'text'); panel.hide(1) } }
     # Zpět
-    button      [371,10,,]  { title:'Zpět', help:'ukončit editor bez uložení změn'
-      proc onclick() {
-        generovano.get;
-        not(confirm('Opravdu ukončit dialog bez uložení vygenerovaného dopisu?'));
-      | panel.hide(0); } }
+    button [282,10,,]  { title:'[fa-undo] Zpět', help:'zpět k editaci darů'
+      func onclick() { panel.hide(0); } 
+    }
     # adresa a text
-    label        [433,1,,] { title:'adresa' }
-    label adresa [473,0,181,64] { style:'background-color:white' }
+    label        [365,1,,] { title:'adresa' }
+    label adresa [405,0,249,64] { style:'background-color:white' }
     edit html   [0,66,655,480] { type:'html', par:°{toolbar:'CK_letter'} }
   }
 }

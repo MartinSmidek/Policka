@@ -14,6 +14,7 @@ function klub_vyber($cmd,$key=0) {
   $conds[101]= (object)array(nazev=>'změny kým ...',cond=>" c.zmena_kdo=\$user");
   $conds[102]= (object)array(nazev=>'změny dne ...',cond=>" left(c.zmena_kdy,10)='\$datum'");
   $conds[103]= (object)array(nazev=>'změny dne ... kým ...',cond=>" c.zmena_kdo=\$user and left(c.zmena_kdy,10)='\$datum'");
+  $conds[104]= (object)array(nazev=>'použita adresa2',cond=>" (psc2!='' OR ulice2!='' OR obec2!='') ");
   switch($cmd) {
     case 'options':
       $selects= $del= '';

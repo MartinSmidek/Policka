@@ -300,16 +300,6 @@ table dar { key_id:'id_dar'
   text   pozn        { help:'účel platby|účel platby nebo jiná poznámka' },
   text   body        { help:'poznámka|poznámka k daru nebo dopisu' },
   text   darce       { help:'jméno dárce|jméno použité v daňovém povrzení' },
-//  // žádost
-//  date   zadost_kdy  { help:'žádost poslána dne', sql_pipe:'sql_date1' }
-//  text   zadost_kdo  { help:'žádost vyřídil' }
-//  text   zadost_txt  { help:'text žádosti' }
-//  // smlouva
-//  date   smlouva_kdy { help:'smlouva poslána dne', sql_pipe:'sql_date1' }
-//  text   smlouva_kdo  { help:'smlouvu vyřídil' }
-//  text   smlouva_txt  { help:'text smlouvy' }
-//  // podpis
-//  date   podpis_kdy  { help:'podpis smlouvy poslán dne', sql_pipe:'sql_date1' }
   // částka
   number castka      { help:'částka|celková částka v celých korunách' },
   date   castka_kdy  { help:'přijato|datum přijetí daru', sql_pipe:'sql_date1' }
