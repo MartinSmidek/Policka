@@ -273,7 +273,7 @@ form _clen [,,399,251] {
     func onclick() { Show(&doc); }}
   label ukl [240,0,69,20] {tag:'p', title:'<b>Úkoly</b>', format:'c', skill:'hdu|hdu', _sys:'uko'
     func onclick() { Show(&ukl); }}
-  label [0,16,399,560] {css:'ae_work'}
+  label [0,15,399,560] {css:'ae_work'}
   # ------------------------==> . kontextové_menu
   menu { type:'context'
     item back { title:'ukázat všechny změny'
@@ -316,35 +316,19 @@ form _clen [,,399,251] {
   field psc      [200,91,40,]  { tag:'k,O,F', data:clen.psc, format:'r', sql_pipe:'psc' },
   field obec     [250,91,101,] { tag:'k,O,F', data:clen.obec, format:'F' },
   field stat     [359,91,28,]  { tag:'k,O,F', data:clen.stat },
-  field ulice2   [80, 114,111,] { tag:'k', title:'adresa pošt.', data:clen.ulice2 },
-  field psc2     [200,114,40,]  { tag:'k', data:clen.psc2, format:'r', sql_pipe:'psc' },
-  field obec2    [250,114,101,] { tag:'k', data:clen.obec2, format:'F' },
-  field stat2    [359,114,28,]  { tag:'k', data:clen.stat2, format:'d' },
-  field telefony [80,137,160,] { tag:'k', title:'tel.,mail', type:'list', data:clen.telefony },
-  field email    [247,137,148,] { tag:'k', type:'list', par:°{delim:';'}, data:clen.email },
-  field narozeni [80,160,87,] { tag:'o', title:'dat.narození', type:'date', data:clen.narozeni }
-  field nar_rok  [209,160,30,] { tag:'o', title:'jen rok' data:clen.narozeni_rok, format:'r' 
+  field telefony [80,114,160,] { tag:'k', title:'tel.,mail', type:'list', data:clen.telefony },
+  field email    [247,114,148,] { tag:'k', type:'list', par:°{delim:';'}, data:clen.email },
+  field narozeni [80,137,87,] { tag:'o', title:'dat.narození', type:'date', data:clen.narozeni }
+  field nar_rok  [209,137,30,] { tag:'o', title:'jen rok' data:clen.narozeni_rok, format:'r' 
                                     help:'rok narození, pokud neznáme přesnější datum'  }
-  field clen_od  [308,160,87,] {tag:'k', type:'date', title:'v Klubu od', data:clen.clen_od, format:'n' }
+  field clen_od  [308,137,87,] {tag:'k', type:'date', title:'v Klubu od', data:clen.clen_od, format:'n' }
 
-
-
-  button [78,160,110,30] {tag:'o,O,f,F', title:' adresa<=>adresa2 '
-    func onclick() { var u:text,p:text,o:text,s:text
-      u= ulice; p=psc; o=obec; s=stat;
-      php.query(`UPDATE clen SET ulice=ulice2,psc=psc2,obec=obec2,stat=stat2 WHERE id_clen=${C_clen.id} `);
-      php.query(`UPDATE clen SET ulice2='${u}',psc2='${p}',obec2='${o}',stat2='${s}' WHERE id_clen=${C_clen.id} `);
-      C_clen.load(); C_cleni.cleni.browse_seek(); 
-    }}
-
-  
-  
-  const zasi=193, oslo=268, pozn=343, hist= 443 // ----------------==> .. pozice částí karty
+  const zasi=185, oslo=268, pozn=343, hist= 443 // ----------------==> .. pozice částí karty
   # ==> .. zasílání - tag=z (zobrazí se při startu)
-  field darce   [212,zasi+44,177,] {tag:'z', type:'list', title:'potvrzení na:', par:°{delim:';'}, data:clen.darce  }
-  check [9,zasi+19,100,17] { tag:'z', title:'jen mailem', data:clen.jen_mail }
-  check [9,zasi+38,100,17] { tag:'z', title:'nic neposílat', data:clen.neposilat }
-  select potvrzeni [212,zasi+21,99,] { tag:'z', type:'map', data:clen.potvrzeni,
+  field darce   [212,zasi+43,177,] {tag:'z', type:'list', title:'potvrzení na:', par:°{delim:';'}, data:clen.darce  }
+  check [9,zasi+18,100,17] { tag:'z', title:'jen mailem', data:clen.jen_mail }
+  check [9,zasi+37,100,17] { tag:'z', title:'nic neposílat', data:clen.neposilat }
+  select potvrzeni [212,zasi+20,99,] { tag:'z', type:'map', data:clen.potvrzeni,
     title:'daň.potvrzení:', options:cis_k_potvrzeni.hodnota, value:'2'
   }
   label [10,zasi,170,15]  { tag:'z', title:'<h1>Zasílání potvrzení</h1>' }

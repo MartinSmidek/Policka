@@ -993,9 +993,9 @@ function list_out($x) {
 //       $result[$n]['dary']= clen_data($c,'dary');
 //     // adresa člena pro potvrzení tzn. se zohledněním "dary na"
 //     $result[$n]['adresa_darce']=  "???";
-//     // adresa poštovní
+//     // adresa poš tovní
 //     $result[$n]['kod_poslani']= clen_data($s ? $s : $c,'kod_poslani');
-//     $result[$n]['adresa_postovni']=  $s
+//     $result[$n]['adresa_pos tovni']=  $s
 //       ? clen_data($s,'jmeno2').'<br>(pro '.clen_data($c,'jmeno2').')<br>'.clen_data($s,'adresa2')
 //       : clen_data($c,'jmeno2').'<br>'.clen_data($c,'adresa2');
 //     // údaje pro členskou legitimaci

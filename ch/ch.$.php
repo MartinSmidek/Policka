@@ -127,9 +127,9 @@
 //            display("UPRAVIT:$val");
 //          }
 //          elseif (preg_match("~^(.*),([\s\d]+)(.*)$~",$val,$m)) {
-//            $c['ulice2']= $m[1];
-//            $c['psc2']= str_replace(' ','',$m[2]);
-//            $c['obec2']= $m[3];
+//            $c['ulice 2']= $m[1];
+//            $c['psc 2']= str_replace(' ','',$m[2]);
+//            $c['obec 2']= $m[3];
 //          }
 //          break;
 //        case 'adr': 
