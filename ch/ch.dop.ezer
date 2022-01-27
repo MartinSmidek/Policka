@@ -355,10 +355,11 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
       Reload(); info= '';
     }
     func Reload() {
-      darci.browse_load( // nesmazané nevěcné dary daného roku fyzických osob
+      // nesmazané nevěcné dary daného roku fyzických osob v celkové minimální výši
+      darci.browse_load( 
           `osoba=${osoba} AND potvrzeni IN (1,2) AND c.deleted='' AND psc!='' 
               AND d.deleted='' AND d.zpusob!=4 AND YEAR(d.castka_kdy)=${rok}`,
-          '',znovu?'1':'nema>0');
+          '',conc(znovu?'1':'nema>0',` AND dary>=${dmin?dmin:0}`));
     }
     view c: table clen
     view d: table dar {join:'USING (id_clen)'}
@@ -377,7 +378,6 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
       show dary [,,60,] { title:'dary', expr:"SUM(d.castka)", format:'sr' }
       show uzma [,,60,] { title:'už má', expr:"SUM(IF(d.potvrz_kdy,d.castka,0))", format:'sr' }
       show nema [,,60,] { title:'nemá', expr:"SUM(IF(d.potvrz_kdy,0,d.castka))", format:'sr' }
-//      proc onrowclick () { curr_clen.set(id_clen.get); reselect(curr_clen.get) }
       func onsubmit () { klu.cle.show_clen(id_clen) }
     }
     label info [4,250,800,] 
@@ -385,8 +385,12 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
     const LL=660
     label [LL+0,0,185,145] { css:'work' }
     field odeslano [LL+12,20,96,18]  { title:'^datum odeslání', type:'date', format:'rt' }
-    label [LL+12,50,120,14] { title:"vypsat potvrzení na" }
-    radio drok [LL+12,66,120,41] { style:'border:1px solid #ddd', format:'t'
+    label [LL+8,50,171,14] { title:"vypsat potvrzení na minimálně" }
+    field dmin [LL+117,68,37,]  { format:'rt', value:'500'
+      func onchange () { Reload() }
+    }
+    label [LL+164,72,20,14] { title:"Kč" }
+    radio drok [LL+2,66,104,41] { style:'border:1px solid #ddd', format:'t'
       case [0,3,100,16] { title:'letošní dary', value:'1' }
       case [0,23,100,16] { title:'loňské dary', value:'2' }
       func onchange () {
@@ -394,7 +398,7 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
         Reload();
       }
     }
-    check znovu [LL+12,117,120,] { title:'včetně poslaných', format:'t'
+    check znovu [LL+5,117,120,] { title:'včetně poslaných', format:'t'
       proc onchange () { Reload() }
     }
     #--------------------------------------==> . test
