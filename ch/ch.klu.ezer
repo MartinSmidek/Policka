@@ -14,7 +14,7 @@ panel cle {type:'plain', title:"[fa-home] Kontakty", _sys:'*',  include:'onload'
 # =========================================================================================> PŘEVODY
 panel pre {type:'plain', title:"[fa-bank] Převody", _sys:'*',  skill:'hdp', include:'onclick' }
 # ========================================================================================> KONTROLY
-panel kon  {type:'right', title:"[fa-info-circle] Informace", _sys:'*',
+panel kon  {type:'right', title:"[fa-info-circle] Informace, kontroly", _sys:'*',
   menu leve {type:'left', active:*
     menu cisla {title:'Statistika',type:'group', _sys:'*'
       item pocet {title:'[fa-line-chart] počet kontaktů'       ,par:{fce:'stat'} }
