@@ -214,7 +214,7 @@ function klu_inf($par) {
       break;
     case 'dary_dupl':
       $rok= date('Y') - $par->p;
-      $msg= dop_kon_dupl($rok);
+      $msg= dop_kon_dupl($rok,$par->corr);
       $html= $msg=='' ? "vše ok" : $msg;
       break;
   }
@@ -223,41 +223,86 @@ function klu_inf($par) {
 # ------------------------------------------------------------==> . duplicitní dary
 # MENU
 # kontrola darů roku
-function dop_kon_dupl($rok) {
+function dop_kon_dupl($rok,$corr) {
   $map_zpusob= map_cis('k_zpusob','hodnota');
   $r= " align='right'";
   $html= '';
   $err= 0;
   $msg= '';
-  $n= 0;
+  $n_del= $n_kop= $n_ruc= 0;
   $qry= mysql_qry("
     SELECT castka_kdy,castka,zpusob,id_clen,count(*) AS _pocet_,
-      prijmeni,jmeno,SUM(IF(ISNULL(soubor) AND (
-        diky_kdy OR potvrz_kdy OR popis!='' OR stredisko),1,0) OR d.darce)
-      -- GROUP_CONCAT(IF(id_vypis=0 AND diky_kdy,diky_kdy,''))
+      prijmeni,jmeno,SUM(IF(
+        diky_kdy OR potvrz_kdy OR popis!='' OR stredisko!=0  OR d.darce,1,0)),
+        GROUP_CONCAT(id_dar)
     FROM dar AS d
     LEFT JOIN clen AS c USING (id_clen)
     LEFT JOIN vypis AS v USING (id_vypis)
     WHERE YEAR(castka_kdy)=$rok AND LEFT(d.deleted,1)!='D'
     GROUP BY castka_kdy,castka,d.id_clen,d.zpusob HAVING _pocet_>1 ORDER BY castka_kdy");
   while ( $qry 
-    && list($datum,$castka,$zpusob,$idc,$pocet,$prijmeni,$jmeno,$rucne)= pdo_fetch_row($qry) ) {
+    && list($datum,$castka,$zpusob,$idc,$pocet,$prijmeni,$jmeno,$rucne,$idds)= pdo_fetch_row($qry) ) {
     $datum= sql_date1($datum);
     $zpusob= $map_zpusob[$zpusob];
     $clen= klub_ukaz_clena($idc);
-    $pozn= '';
-    if ( $rucne ) {
-      $pozn= $rucne; $n++;
+    if ( $rucne ) { // na vyžádání automatická oprava
+      $pozn= $rucne; 
+      if ($corr==2 && $zpusob=='bankou') {
+        list($delete,$dkdy,$pkdy,$poz,$pop,$str)= 
+            select('id_dar,diky_kdy,potvrz_kdy,pozn,popis,stredisko',
+                'dar',"id_dar IN ($idds) AND id_vypis=0");
+        $update= select('id_dar','dar',"id_dar IN ($idds) AND id_vypis!=0");
+        if ($delete && $update) {
+          $pozn.= " doplnit údaje: $update, smazat: $delete z $idds";
+          // smažeme starý dar
+          $new= 'D duplicita';
+          ezer_qry("UPDATE",'dar',$delete,array(
+            (object)array('fld'=>'deleted',  'op'=>'u','val'=>$new)
+          ));
+          // zkopírujeme údaje do nového
+          ezer_qry("UPDATE",'dar',$update,array(
+            (object)array('fld'=>'diky_kdy',  'op'=>'u','val'=>$dkdy),
+            (object)array('fld'=>'potvrz_kdy','op'=>'u','val'=>$pkdy),
+            (object)array('fld'=>'pozn',      'op'=>'u','val'=>$poz),
+            (object)array('fld'=>'popis',     'op'=>'u','val'=>$pop),
+            (object)array('fld'=>'stredisko', 'op'=>'u','val'=>$str)
+          ));
+          $n_kop++;
+        }
+        else {
+          $pozn.= " upravit ručně";
+          $n_ruc++;
+        }
+      }
+    }
+    else { // na vyžádání automatický výmaz
+      $pozn= '';
+      if ($corr==1 && $zpusob=='bankou') {
+        $delete= select('id_dar','dar',"id_dar IN ($idds) AND id_vypis=0");
+        if ($delete) {
+          $pozn.= "smazat: $delete z ($idds)";
+          // smažeme starý dar
+          $new= 'D duplicita';
+          ezer_qry("UPDATE",'dar',$delete,array(
+            (object)array('fld'=>'deleted',  'op'=>'u','val'=>$new)
+          ));
+          $n_del++;
+        }
+        else {
+          $pozn.= " upravit ručně";
+          $n_ruc++;
+        }
+      }
     }
     $msg.= "<tr><td$r>$datum</td><td>$zpusob</td><td$r><b>$castka,-</b></td><td>{$pocet}x</td>
       <td$r>$clen</td><td>$prijmeni $jmeno</td><td>$pozn</td></tr>";
     $err++;
   }
-  $html.= $msg=='' ? '' : "<h3>Podezřelé (stejný dárce, den a cesta) zápisy darů v roce $rok
-    , ručně je třeba opravit $n duplicit</h3>
-    <table>$msg</table>";
-end:
-  if ( $err ) $html= "CHYBY $err<hr>$html";
+end:  
+  $html.= $msg=='' ? '' : "<h3>Podezřelé (stejný dárce, den a cesta) zápisy darů v roce $rok</h3>";
+  $html.= $corr ? "$n_del darů bylo smazáno, $n_kop údajů převedeno, ručně zbývá posoudit $n_ruc takových duplicit<hr>" : '';
+  $html.= "<table>$msg</table>";
+  if ( $err ) $html= "CELKEM JE PODEZŘELÝCH DARŮ: $err<hr>$html";
   return $html;
 }
 # ------------------------------------------------------------------------------------- klu_inf_stat
