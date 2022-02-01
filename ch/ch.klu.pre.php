@@ -336,9 +336,9 @@ function ch_ban_load($file) {  //trace();
                   $nd= select('COUNT(*)','dar',"nas_ucet=$idu AND deleted='' AND castka_kdy='$datum'");
                   if ($nd) {
                     display("na řádku $i je platba s datem $datum, které již pro tento účet bylo zpracované"); 
-                    $y->war= "na řádku $i je platba s datem $datum, které již pro tento účet bylo zpracované"; 
-//                    $y->err= "na řádku $i je platba s datem $datum, které již pro tento účet bylo zpracované"; 
-//                    goto end;
+//                    $y->war= "na řádku $i je platba s datem $datum, které již pro tento účet bylo zpracované"; 
+                    $y->err= "na řádku $i je platba s datem $datum, které již pro tento účet bylo zpracované"; 
+                    goto end;
                   }
                   break;
         case 'c': $castka= preg_replace(array("/\s/u","/,/u"),array('','.'),$val);
