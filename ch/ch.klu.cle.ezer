@@ -20,6 +20,7 @@ proc onstart () {
   C_cleni._cleni_vyber(0);
   C_clen.kon.onclick;
   Ctrack.clen_form.set(C_clen);
+  Dtrack.dar_form.set(C_dar);
   has_skill('hdd');
   C_dar.kas.stisk(1); C_dar.kas.set_css('','changed');
 }
@@ -1013,6 +1014,11 @@ form _dar [,,390,240] {
   # load
   proc _dar_load (iddar) {
     form.load(iddar); _form_state('br|be','bc'); 
+  }
+  # ------------------------==> . kontextové_menu
+  menu { type:'context'
+    item back { title:'ukázat všechny změny'
+      proc onclick () { Dtrack.DT_load(form.key) } }
   }
 }
 # ============================================================================================> Tisk
