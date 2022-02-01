@@ -211,6 +211,7 @@ form right [,,*,50] {
   func header(i:ezer) { var i_owner:ezer
     clear(); i_owner= i.owner();
     head= replace_fa(`<div class='karta'>${i_owner.title} - ${i.title}</div>`);
+    note= '';
   }
   func fill(x,y) {
     if (x) head= `<div class='karta'>${replace_fa(x)}</div>`;

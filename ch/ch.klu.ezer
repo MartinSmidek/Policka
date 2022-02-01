@@ -17,13 +17,18 @@ panel pre {type:'plain', title:"[fa-bank] Převody", _sys:'*',  skill:'hdp', inc
 panel kon  {type:'right', title:"[fa-info-circle] Informace", _sys:'*',
   menu leve {type:'left', active:*
     menu cisla {title:'Statistika',type:'group', _sys:'*'
-      item pocet {title:'počet kontaktů'        ,par:{fce:'stat'} }
-      item       {title:'vývoj obdarování'      ,par:{fce:'vyvoj', p:'2014'} }
+      item pocet {title:'[fa-line-chart] počet kontaktů'       ,par:{fce:'stat'} }
+      item       {title:'[fa-line-chart]vývoj obdarování'      ,par:{fce:'vyvoj', p:'2014'} }
     }
-    proc onclick(i){
-      rp.fill(conc(i.owner.title,' - ',i.title),' ');
-      panel.property(°{height:'*',min_height:8000});
-      rp.fill('',ask('klu_inf',i.par));
+    menu dary {title:'Kontrola darů',type:'group', _sys:'*'
+      item {title:'[fa-exclamation] duplicity letošních darů',        par:{fce:'dary_dupl',p:'0'} }
+      item {title:'[fa-exclamation-circle] duplicity loňských darů',  par:{fce:'dary_dupl',p:'1'} }
+//      item {title:'[fa-exclamation-circle fa-red] ... OPRAVIT',       par:{fce:'dary_dupl',p:'1',corr:'1'} }
+    }
+    func onclick(i:ezer){
+      rp.header(i);
+      panel.property({height:'*',min_height:8000});
+      rp.append(php.klu_inf(i.par));
     }
   }
   use rp: form right [12,4,,]
