@@ -218,6 +218,7 @@ form _drop [,,392,161] { css:'work'
     func onload(f:object) { var y:object // po dokončení přenosu, jméno bude ASCII
       echo(`load: ${f.name}`);
       y= php.ch_ban_load(f.name);
+      if (y.war) warning(y.war);
       if (y.err) alert(y.err);
       else {
         v.Seek(y.idv);

@@ -73,7 +73,7 @@ function ch_search_popis($popis) {
   $cond4= "CONCAT(ascii_jmeno,' ',ascii_prijmeni) LIKE '%$popis%'";
   $cond= "($cond1 OR $cond2 OR $cond3 OR $cond4) AND NOT (jmeno='' AND prijmeni='') 
       AND NOT (ascii_jmeno='' AND ascii_prijmeni='') ";
-                        display("ch_search_popis($popis) => $cond");
+//                        display("ch_search_popis($popis) => $cond");
   return $cond;
 }
 # ----------------------------------------------------------------------------==> ch search_popis_fy
@@ -83,7 +83,7 @@ function ch_search_popis_fy($popis) {
   $cond1= "'$popis' RLIKE $firma";
   $cond2= "$firma LIKE '%$popis%'";
   $cond= "($cond1 OR $cond2) ";
-                        display("ch_search_popis_fy($popis) => $cond");
+//                        display("ch_search_popis_fy($popis) => $cond");
   return $cond;
 }
 # ------------------------------------------------------------------------==> ch remake_ascii_fields
@@ -112,7 +112,7 @@ function ch_bank_novy_darce ($idd) {
   if ($idc) { $ret->err= "kontakt tohoto jména už v databázi je"; goto end; }
   // vytvoření návrhu 
   list($jmeno,$prijmeni)= preg_split("/[\s,]+/u",trim($popis));
-  display("$popis:$jmeno,$prijmeni");
+//  display("$popis:$jmeno,$prijmeni");
 //  $jmeno= mb_ucfirst(mb_strtolower($jmeno));
 //  $prijmeni= mb_ucfirst(mb_strtolower($prijmeni));
   $jmeno= mb_convert_case($jmeno, MB_CASE_TITLE, 'UTF-8');
@@ -175,7 +175,7 @@ function ch_bank_join_dary ($idv) {
 # --------------------------------------------------------------------------------- ch bank_join_dar
 # spáruj dar
 function ch_bank_join_dar ($idd) {
-  // podrobnosti z převodu a cískání podmínky na popis
+  // podrobnosti z převodu a získání podmínky na popis
   list($castka,$datum,$popis,$typ)= 
       select('castka,castka_kdy,ucet_popis,typ','dar',"id_dar=$idd");
   if ($typ==9) goto end;
@@ -184,17 +184,17 @@ function ch_bank_join_dar ($idd) {
   list($idd2,$idc)= select('id_dar,id_clen','dar JOIN clen USING (id_clen)',
       "zpusob=2 AND typ=9 AND dar.deleted='' AND $cond AND castka=$castka AND castka_kdy='$datum' ");
   if ($idd2) {
-    display("idc=$idc, idd2= $idd2");
+//    display("idc=$idc, idd2= $idd2");
     query("UPDATE dar SET deleted='D x' WHERE id_dar=$idd2");
     query("UPDATE dar SET typ=9,id_clen=$idc WHERE id_dar=$idd");
   }
   else {
     $idc= select('id_clen','clen',$cond);
     if ($idc) {
-      display("idc=$idc, idd2= ---");
+//      display("idc=$idc, idd2= ---");
       query("UPDATE dar SET typ=7,id_clen=$idc WHERE id_dar=$idd");
     }
-    display("? $popis ");
+//    display("? $popis ");
   }
 end:
 }
@@ -244,7 +244,7 @@ function ch_bank_load_ucty () {
 # -----------------------------------------------------------------------------------==> ch ban_load
 # ASK
 # načtení souboru CSV z ČSAS
-function ch_ban_load($file) {  trace();
+function ch_ban_load($file) {  //trace();
   global $ezer_path_root;
   $y= (object)array('err'=>'','msg'=>'ok',idv=>0);
   // definice importovaných sloupců
@@ -335,8 +335,10 @@ function ch_ban_load($file) {  trace();
                   }
                   $nd= select('COUNT(*)','dar',"nas_ucet=$idu AND deleted='' AND castka_kdy='$datum'");
                   if ($nd) {
-                    $y->err= "na řádku $i je platba s datem $datum, které již pro tento účet bylo zpracované"; 
-                    goto end;
+                    display("na řádku $i je platba s datem $datum, které již pro tento účet bylo zpracované"); 
+                    $y->war= "na řádku $i je platba s datem $datum, které již pro tento účet bylo zpracované"; 
+//                    $y->err= "na řádku $i je platba s datem $datum, které již pro tento účet bylo zpracované"; 
+//                    goto end;
                   }
                   break;
         case 'c': $castka= preg_replace(array("/\s/u","/,/u"),array('','.'),$val);
