@@ -299,7 +299,7 @@ function dop_kon_dupl($rok,$corr) {
     $err++;
   }
 end:  
-  $html.= $msg=='' ? '' : "<h3>Podezřelé (stejný dárce, den a cesta) zápisy darů v roce $rok</h3>";
+  $html.= $msg=='' ? 'Nebyl zjištěn žádný problém' : "<h3>Podezřelé (stejný dárce, den a cesta) zápisy darů v roce $rok</h3>";
   $html.= $corr ? "$n_del darů bylo smazáno, $n_kop údajů převedeno, ručně zbývá posoudit $n_ruc takových duplicit<hr>" : '';
   $html.= "<table>$msg</table>";
   if ( $err ) $html= "CELKEM JE PODEZŘELÝCH DARŮ: $err<hr>$html";
