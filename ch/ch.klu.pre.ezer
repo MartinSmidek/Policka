@@ -88,7 +88,7 @@ form _p_vypisy [,,1070,309] { css:'work'
 //        help:'datum nejstarší platby v souboru'}
 //    show [,,65,] { title:'do', expr:"MAX(vp.castka_kdy)", sql_pipe:'sql_date1', format:'rsq=' 
 //        help:'datum nejnovější platby v souboru'}
-    show soubor [,,120,] { title:'soubor', data:vv.soubor, format:'t' 
+    show soubor [,,120,] { title:'soubor', data:vv.soubor, format:'ts' 
         help:'název importovaného souboru'}
     func onrowclick () {
       p._prevody.browse_load(`id_vypis=${v._vypisy.id_vypis}`);

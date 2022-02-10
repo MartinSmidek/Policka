@@ -206,6 +206,10 @@ function klub_dary_suma ($id_clen) {  trace();
 function klu_inf($par) {
   $html= '';
   switch($par->fce) {
+    case 'vypisy_uplnost': 
+      $rok= date('Y') - $par->p;
+      $html= klu_inf_vypisy($rok); 
+      break;
     case 'stat': 
       $html= klu_inf_stat(); 
       break;
@@ -220,8 +224,51 @@ function klu_inf($par) {
   }
   return $html;
 }
+# ------------------------------------------------------------==> . úplnost výpisů
+# kontrola výpisů roku
+# název souboru má tvar "číslo účtu-banka_od_do.csv 
+#   kde banka je 0600 nebo 0800 a od a do jsou datumy ve tvaru rrrr-mm-dd
+function klu_inf_vypisy($rok) {
+  $html= '<i>Kontrolujeme se úplnost výpisů v daném roce, zda jsou měsíční, korektnost jejich názvů,
+    při vládání se kontrolovala shoda názvu s obsahem</i>';
+  
+  $mesice= array(1=>'leden','únor','březen','duben','květen','červen',
+    'červenec','srpen','září','říjen','listopad','prosinec');
+  // projdeme účty
+  $res= pdo_qry("SELECT data,zkratka,hodnota FROM _cis WHERE druh='b_ucty' ORDER BY zkratka ASC");
+  while ( $res && (list($ucet,$zkratka,$nazev)= pdo_fetch_row($res)) ) {
+    $html.= "<h3>$zkratka: $nazev</h3>";
+    $mesic= array(); 
+    $rv= pdo_qry("SELECT MONTH(soubor_od),DAY(soubor_od),MONTH(soubor_do),DAY(soubor_do)
+      FROM vypis WHERE nas_ucet=$ucet AND YEAR(soubor_od)=$rok ORDER BY soubor_od ASC");
+    while ( $rv && (list($mod,$dod,$mdo,$ddo)= pdo_fetch_row($rv)) ) {
+      $od= "$rok-$mod-$dod"; $do= "$rok-$mdo-$ddo"; 
+      $vypis= "$zkratka $od $do";
+      // musí být měsíční
+      $last= date('t',strtotime($od))+date('L',$od);
+      if ($mod!=$mdo) $mesic[$mod]= "$vypis není měsíční";
+      elseif ($dod!=1 || $ddo!=$last) $mesic[$mod]= "$vypis chybná mezní data";
+      else $mesic[$mod]= "ok";
+    }
+    debug($mesic);
+    // vyhodnocení
+    if (count($mesic)==12) {
+      $html.= "výpisy jsou všechny";
+    }
+    elseif (count($mesic)) {
+      $mend= $rok==date('Y') ? date('m') : 13;
+      for ($m= 1; $m<$mend; $m++) {
+        if (!isset($mesic[$m])) $html.= "chybí $mesice[$m]<br>";
+        elseif ($mesic[$m]!='ok') $html.= "chyba $mesice[$m]: $mesic[$m]<br>";
+      }
+    }
+    else {
+      $html.= "není ani jeden výpis";
+    }
+  }
+  return $html;
+}
 # ------------------------------------------------------------==> . duplicitní dary
-# MENU
 # kontrola darů roku
 function dop_kon_dupl($rok,$corr) {
   $map_zpusob= map_cis('k_zpusob','hodnota');
