@@ -1,76 +1,76 @@
-// Systém CK - modul Ekonomika
-// (c) 2010 Martin Šmídek <martin@smidek.eu>
+// Aplikace Polička - modul Ekonomika
+// (C) 2022 Martin Šmídek <martin@smidek.eu>
 
 panel pre {type:'right', title:"[fa-pie-chart] Přehledy", _sys:'pri'
-  var this_item: object, this_par:object
+  var this_item: ezer, this_par:object
   var this_export: number
-  use rp: form right [12,4,,]
+  use rp: form _eko [12,4,,] 
+  use vz: form right { 
+    check odkazy [-10,4,100,17] {title:'odkazy',style:'color:white', format:'t'
+      func onchange() { this_item.click() } } 
+  }
   menu m {type:'left', active:m.uz.dar, format:'f+'
     menu uz {title:'Přehledy',type:'group', _sys:'dar'
-      item dar {title:'[fa-euro] Přehled finančních darů'                 par:°{typ:'D',off:'uz|his|rok',on:'VS|den',dary:'0',vs:'1'}}
-      item  {title:'[fa-gift] Přehled věcných darů'                       par:°{typ:'D',off:'uz|his|rok',on:'VS|den',dary:'1',vs:'1'}}
-//      item vs {title:'[fa-euro] Výnosy fin. darů podle VS'                par:°{typ:'V',off:'uz|his|VS|rok',on:'den',dary:'0',sloz:'0'}}
-//      item vss {title:'[fa-envelope-o] Výnosy fin. darů dle VS / slož.'   par:°{typ:'V',off:'uz|his|VS|rok',on:'den',dary:'0',sloz:'1'}}
-//      item  {title:'[fa-gift] Výnosy věcných darů podle VS',              par:°{typ:'V',off:'uz|his|VS|rok',on:'den',dary:'1',sloz:'0'}}
+      item dar {title:'[fa-euro] Přehled finančních darů'   par:°{typ:'D',off:'uz|his|rok',on:'VS|den',dary:'0',vs:'1'}}
+      item  {title:'[fa-gift] Přehled věcných darů'         par:°{typ:'D',off:'uz|his|rok',on:'VS|den',dary:'1',vs:'1'}}
       proc onclick (i) { var tab:text
-        clear;  
+        clear; rp.display(1); vz.display(0);
         this_item.set(i);
         rp.get.display(0,i.par.off); rp.get.display(1,i.par.on);
         rp.fill(replace_fa(conc(i.owner.title,' - ',i.title)),'... počkejte prosím, provádím výpočet');
         tab.set(ask('eko_mesic_dary',  this_export.get,rp.den_od.get,rp.den_do.get,i.par.dary));
-//        { eq(i.par.typ,'D');
-//          vs.set(cconc(i.par.vs,rp.VS.get,''));
-//          tab.set(ask('eko_mesic_dary',  this_export.get,rp.den_od.get,rp.den_do.get,i.par.dary,vs))
-//        | tab.set(ask('eko_mesic_vynosy',this_export.get,rp.den_od.get,rp.den_do.get,i.par.dary,i.par.sloz))
-//        };
         rp.fill('',tab);
         this_export.set(0);
       }
     }
-//    menu {title:'Roční přehledy',type:'group', _sys:'rok'
-//      item {title:'[fa-calendar] Roční přehled finančních darů', par:°{off:'uz|his|VS|den',on:'rok',vecne:0} }
-//      item {title:'[fa-calendar] Roční přehled věcných darů',    par:°{off:'uz|his|VS|den',on:'rok',vecne:1} }
-//      proc onclick (i) {
-//        clear; this_item.set(i); this_par.set(i.par);
-//        rp.get.display(0,i.par.off); rp.get.display(1,i.par.on);
-//        rp.fill(replace_fa(conc(i.owner.title,' - ',i.title)),'');
-//        rok_refresh;
-//        this_export.set(0);
-//      }
-//    }
     menu {title:'Statistika',type:'group', _sys:'dar'
       item dar {title:'[fa-bar-chart] Histogram finančních darů',
           par:°{deleni:'300,700,1000;1500,2000;3000,4000,10000;20000;50000;100000'}
         proc onclick (i) {
-          clear;  
+          clear; rp.display(1); vz.display(0);
           this_item.set(i); rp.get.display(0,'VS|rok|uz'); rp.get.display(1,'his|den');
           rp.fill(replace_fa(conc(i.owner.title,' - ',i.title)),' ');
           rp.fill('',ask('eko_histogram',this_export.get,rp.den_od.get,rp.den_do.get,0,i.par,rp.deleni.get));
           this_export.set(0);
       } }
     }
-//    menu {title:'Uzávěrky',type:'group', _sys:'dar'
-//      item dar {title:'[fa-key] Uzavření úprav před datem' }
-//        proc onclick (i) {
-//          clear;  
-//          this_item.set(i); rp.get.display(0,'VS|rok|his|den'); rp.get.display(1,'uz');
-//          rp.fill(replace_fa(conc(i.owner.title,' - ',i.title)),' ');
-//          rp.uzaverka.set(sql2date(ask('eko_uzaverka_den')));
-//          this_export.set(0);
-//      } 
-//    }
-    proc onstart () {
-      rp.den_od.set(now); rp.den_do.set(now); rp.rok.set(fdate('Y')); this_export.set(0) }
+    menu {title:'Výroční zpráva',type:'group', _sys:'dar'
+      item {title:'[fa-file-text-o] benefiční koncert – firemní dárci'
+        par:{kdo:'0',ucty:'M',velky:0,
+            nazev:'Benefiční koncert',
+            velci:'Sponzoři benefičního koncertu'}}
+      item {title:'[fa-file-text-o] další firemní dárci'     
+        par:{kdo:'0',neucty:'M,D,Z',velky:5000,
+            nazev:'Další firemní dárci - právnické osoby',
+            velci:'Významní dárci Charity'}}
+      item {title:'[fa-file-text-o] individuální dárci '     
+        par:{kdo:'1',neucty:'D,Z',velky:5000,
+            nazev:'Individuální dárci',
+            velci:'Významní Individuální dárci Charity'}}
+      item {title:'[fa-file-text-o] dárci sbírky: Projekt ch.dům'    
+        par:{kdo:'1',ucty:'D',velky:5000,
+            nazev:'Veřejná sbírka Projekt charitní dům',
+            velci:'Velcí dárci na veřejnou sbírku Projekt charitní dům'}}
+      item {title:'[fa-file-text-o] dárci sbírky: Mé přání je ...'   
+        par:{kdo:'1',ucty:'Z',velky:5000,
+            nazev:'Veřejná sbírka Projekt charitní dům',
+            velci:'Velcí dárci na veřejnou sbírku Projekt charitní dům'}}
+      item {title:'[fa-file-text-o] věcní dárci' 
+        par:{vecne:1,
+            nazev:'Dárci věcných darů a hmotné pomoci'}}
+      func onclick (i:ezer) {
+        clear(); rp.display(0); vz.display(1);
+        vz.header(i);
+        this_item= i; this_par= i.par;
+        vz.fill('',php.eko_vyrocka(this_par,vz.odkazy));
+      } 
+    }
+    func onstart () {
+      rp.den_od= now(); rp.den_do= now(); rp.rok= fdate('Y'); this_export= 0 }
   }
-  proc rok_refresh() { var tab:text, opts:object
-    opts.set(object('nuly',rp.nuly.get,'rok',rp.rok.get));
-    rp.fill('','... počkejte prosím, provádím výpočet');
-    tab.set(ask('eko_rok_dary',this_export.get,this_par.get,opts));
-    rp.fill('',tab);
-  }
-  # ------------------------------------------------------------------------------------------------ right
+  # ------------------------------------------------------------------------------------------- _eko
   # formulář pro levostranné menu
-  form right {//[,,750,600] {
+  form _eko {//[,,750,600] {
     label head [0,0,*,50] { title:'' }
     label note [0,50,*,500] { title:'' }
     label [-81,0,327,30] { tag:'den', css:'parm', style:'zIndex:1' }

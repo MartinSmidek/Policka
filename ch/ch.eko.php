@@ -1,4 +1,133 @@
 <?php # (c) 2007-2008 Martin Smidek <martin@smidek.eu>
+/** =======================================================================================> VÝROČKA */
+# -------------------------------------------------------------------------------------- eko vyrocka
+# seznam loňských dárců do výroční zprávy podle zadaných parametrů
+#   vecny=1 - jen věcné dary
+#     nazev - titulek
+#   vecny=0 - finanční dary
+#     ucty - které mají být zahrnuty
+#     neucty - které mají být vynechány
+#     kdo - 0|1|0,1
+#     velky - mez významého daru
+#     nazev - titulek
+#     velci -věta před seznam darů>=velky
+function eko_vyrocka($par,$ref=0) { trace(); 
+  $html= '';
+  // společné parametry
+  $rok= date('Y')-1;
+  $nazev= $par->nazev;
+  if (isset($par->vecne) || $par->vecne==1) {
+    // parametry věcných darů    
+    $vecne= 1;
+    $velci= '';
+    $cond= "zpusob=4";
+    $note= "výběr obsahuje všechny dárce věcných darů";
+  }
+  else {
+    // parametry finančních darů
+    $vecne= 0;
+    $velky= $par->velky;
+    $velci= $par->velci;
+    $ucty= isset($par->ucty) ? select('GROUP_CONCAT(data)','_cis',
+        "druh='b_ucty' AND FIND_IN_SET(zkratka,'$par->ucty') ") : '';
+    $neucty= isset($par->neucty) ? select('GROUP_CONCAT(data)','_cis',
+        "druh='b_ucty' AND FIND_IN_SET(zkratka,'$par->neucty') ") : '';
+    $cond= "zpusob!=4";
+    $cond.= isset($par->kdo) ? ($cond?' AND ':'')."osoba IN ($par->kdo)" : '';
+    $cond.= $ucty ? ($cond?' AND ':'')."FIND_IN_SET(nas_ucet,'$ucty')" : '';
+    $cond.= $neucty ? ($cond?' AND ':'')."NOT FIND_IN_SET(nas_ucet,'$neucty')" : '';
+    $note_kdo= strtr($par->kdo,
+        array('0,1'=>'firemní i individuální','0'=>'firemní','1'=>'individuální'));
+    $note= "výběr obsahuje $note_kdo dárce finančních darů ";
+    $note.= $par->ucty ? "na účty $par->ucty" : '';
+    $note.= $par->neucty ? "ale ne na účty $par->neucty" : '';
+    $note.= $velky ? ", s hranicí významnosti daru $velky" : ', bez hranice významnosti daru';
+  }
+  // přehled darů
+  $velke= $mensi= array();
+  $html= "<i>$note</i>";
+  $html.= "<h3>$nazev v roce $rok</h3>";
+  $rd= pdo_qry("
+    SELECT id_clen, SUM(castka), 
+      IF(osoba=1,CONCAT(titul,' ',prijmeni,' ',jmeno,' ',titul_za),firma) AS _jmeno,
+      IF(osoba=1,CONCAT(prijmeni,' ',jmeno),firma) AS _order
+    FROM dar AS d JOIN clen AS c USING (id_clen)
+    WHERE $cond AND YEAR(castka_kdy)=$rok AND c.deleted='' AND d.deleted='' 
+    GROUP BY id_clen
+    ORDER BY _order
+  ");
+  while ($rd && (list($idc,$dar,$jmeno,$ord)= pdo_fetch_row($rd))) {
+//        if (!trim($ord)) continue;
+    $jmeno= trim($jmeno);
+    if ($velci && $dar>=$velky) {
+      $velke[]= $ref ? klub_ukaz_clena($idc)." $jmeno": $jmeno;
+    }
+    else {
+      $mensi[]= $ref ? klub_ukaz_clena($idc)." $jmeno": $jmeno;
+    }
+  }
+  if (count($velke)) {
+    $html.= "<b>$velci:</b> "; 
+    $del= '';
+    foreach($velke as $jmeno) {
+      $html.= "$del$jmeno"; $del= '; ';
+    }
+    $html.= '<br>';
+  }
+  if (count($mensi)) {
+    $html.= "<br>"; 
+    $del= '';
+    foreach($mensi as $jmeno) {
+      $html.= "$del$jmeno"; $del= '; ';
+    }
+    $html.= '<br>';
+  }
+//      break;
+//    // ------------------------------------------------- sbírky
+//    case 'sbirka':      
+//      $nazev= select('hodnota','_cis',"druh='b_ucty' AND zkratka='$par->ucet' ");
+//      $velky= 5000;
+//      $velke= $mensi= array();
+//      $html.= "<h3>Veřejná sbírka $nazev</h3>";
+//      $rd= pdo_qry("
+//        SELECT id_clen, SUM(castka), CONCAT(titul,' ',prijmeni,' ',jmeno,' ',titul_za) AS _jmeno,
+//          CONCAT(prijmeni,' ',jmeno) AS _order
+//        FROM dar AS d JOIN clen AS c USING (id_clen)
+//        WHERE YEAR(castka_kdy)=$rok AND c.deleted='' AND d.deleted='' AND $cond
+//        GROUP BY id_clen
+//        ORDER BY _order
+//      ");
+//      while ($rd && (list($idc,$dar,$jmeno,$ord)= pdo_fetch_row($rd))) {
+//        if (!trim($ord)) continue;
+//        $jmeno= trim($jmeno);
+//        if ($dar>=$velky) {
+//          $velke[]= $ref ? klub_ukaz_clena($idc)." $jmeno": $jmeno;
+//        }
+//        else {
+//          $mensi[]= $ref ? klub_ukaz_clena($idc)." $jmeno": $jmeno;
+//        }
+//      }
+//      if (count($velke)) {
+//        $html.= "<b>Velcí dárci na veřejnou sbírku $nazev:</b> "; 
+//        $del= '';
+//        foreach($velke as $jmeno) {
+//          $html.= "$del$jmeno"; $del= '; ';
+//        }
+//        $html.= '<br>';
+//      }
+//      if (count($mensi)) {
+//        $html.= "<br>"; 
+//        $del= '';
+//        foreach($mensi as $jmeno) {
+//          $html.= "$del$jmeno"; $del= '; ';
+//        }
+//        $html.= '<br>';
+//      }
+////      debug($velke);
+//      break;
+//  }
+  return $html;
+}
 /** ========================================================================================> EKONOM */
 //# ------------------------------------------------------------------------------------- eko uzaverka
 //# nastaví den v číselníku jako den uzávěrky
