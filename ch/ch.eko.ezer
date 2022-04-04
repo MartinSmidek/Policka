@@ -55,6 +55,9 @@ panel pre {type:'right', title:"[fa-pie-chart] Přehledy", _sys:'pri'
         par:{kdo:'1',ucty:'Z',velky:5000,
             nazev:'Veřejná sbírka Projekt charitní dům',
             velci:'Velcí dárci na veřejnou sbírku Projekt charitní dům'}}
+      item {title:'[fa-file-text-o] DARUJME.CZ' 
+        par:{kategorie:19,velky:5000,
+            nazev:'Dárci přes darujme.cz'}}
       item {title:'[fa-file-text-o] věcní dárci' 
         par:{vecne:1,
             nazev:'Dárci věcných darů a hmotné pomoci'}}

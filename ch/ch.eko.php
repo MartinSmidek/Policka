@@ -5,6 +5,7 @@
 #   vecny=1 - jen věcné dary
 #     nazev - titulek
 #   vecny=0 - finanční dary
+#     kategorie - pokud je uvedena, berou se dary ze všech účtů
 #     ucty - které mají být zahrnuty
 #     neucty - které mají být vynechány
 #     kdo - 0|1|0,1
@@ -28,19 +29,26 @@ function eko_vyrocka($par,$ref=0) { trace();
     $vecne= 0;
     $velky= $par->velky;
     $velci= $par->velci;
-    $ucty= isset($par->ucty) ? select('GROUP_CONCAT(data)','_cis',
-        "druh='b_ucty' AND FIND_IN_SET(zkratka,'$par->ucty') ") : '';
-    $neucty= isset($par->neucty) ? select('GROUP_CONCAT(data)','_cis',
-        "druh='b_ucty' AND FIND_IN_SET(zkratka,'$par->neucty') ") : '';
-    $cond= "zpusob!=4";
-    $cond.= isset($par->kdo) ? ($cond?' AND ':'')."osoba IN ($par->kdo)" : '';
-    $cond.= $ucty ? ($cond?' AND ':'')."FIND_IN_SET(nas_ucet,'$ucty')" : '';
-    $cond.= $neucty ? ($cond?' AND ':'')."NOT FIND_IN_SET(nas_ucet,'$neucty')" : '';
     $note_kdo= strtr($par->kdo,
         array('0,1'=>'firemní i individuální','0'=>'firemní','1'=>'individuální'));
     $note= "výběr obsahuje $note_kdo dárce finančních darů ";
-    $note.= $par->ucty ? "na účty $par->ucty" : '';
-    $note.= $par->neucty ? "ale ne na účty $par->neucty" : '';
+    $cond= "zpusob!=4";
+    $cond.= isset($par->kdo) ? ($cond?' AND ':'')."osoba IN ($par->kdo)" : '';
+    if (isset($par->kategorie)) {
+      // dárci určení kategorií
+      $cond.= " AND FIND_IN_SET('$par->kategorie',kategorie)";
+    }
+    else {
+      // dárci určení účtem
+      $ucty= isset($par->ucty) ? select('GROUP_CONCAT(data)','_cis',
+          "druh='b_ucty' AND FIND_IN_SET(zkratka,'$par->ucty') ") : '';
+      $neucty= isset($par->neucty) ? select('GROUP_CONCAT(data)','_cis',
+          "druh='b_ucty' AND FIND_IN_SET(zkratka,'$par->neucty') ") : '';
+      $cond.= $ucty ? ($cond?' AND ':'')."FIND_IN_SET(nas_ucet,'$ucty')" : '';
+      $cond.= $neucty ? ($cond?' AND ':'')."NOT FIND_IN_SET(nas_ucet,'$neucty')" : '';
+      $note.= $par->ucty ? "na účty $par->ucty" : '';
+      $note.= $par->neucty ? "ale ne na účty $par->neucty" : '';
+    }
     $note.= $velky ? ", s hranicí významnosti daru $velky" : ', bez hranice významnosti daru';
   }
   // přehled darů
