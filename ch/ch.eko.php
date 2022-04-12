@@ -491,7 +491,7 @@ function eko_histogram($export,$od,$do,$vecne,$par,$deleni) { trace();
 }
 # ----------------------------------------------------------------------------------- eko_mesic_dary
 # $export=1 způsobí export do Excelu
-function eko_mesic_dary($export,$od,$do,$vecne,$VS='') { trace();
+function eko_mesic_dary($export,$osoby,$firmy,$od,$do,$vecne,$VS='') { trace();
   $html= '';
   $err= '';
   $tab= array();
@@ -504,6 +504,10 @@ function eko_mesic_dary($export,$od,$do,$vecne,$VS='') { trace();
   $map_stredisko= map_cis('stredisko','hodnota');
   $flds= 'id_clen,titul,prijmeni,jmeno,osoba,ulice,obec,psc,castka,_pro,castka_kdy';
   $flds.= $vecne ? ",popis" : ",zpusob,_ucet";
+  // osoba nebo firma
+  if (!($osoby && $firmy)) {
+    $cond.= $osoby ? " AND osoba=1" : " AND osoba=0";
+  }
 //  $AND_VS= $symbol= '';
 //  if ( $VS!='' ) {
 //    $symbol= " s variabilním symbolem $VS";
@@ -579,8 +583,10 @@ function eko_mesic_dary($export,$od,$do,$vecne,$VS='') { trace();
   $titl= "Přehled $jakych darů za období od $od do $do";
   $html.= "<h2 class='CTitle'>$titl</h2>";
   // případný export do Excelu
-  if ( $export )
-    $html.= tab_xls($tab,"Dar:8",$clmn,$algn,$titl,"dary_{$od_sql}_{$do_sql}");
+  if ( $export ) {
+    $of= ($osoby ? 'o' : '').($firmy ? 'f' : '');
+    $html.= tab_xls($tab,"Dar:8",$clmn,$algn,$titl,"dary_{$od_sql}_{$do_sql}_$of");
+  }
   // zobrazení tabulky
   $html.= tab_show($tab,"Dar",$clmn,$algn,'stat');
   // reakce na chybu

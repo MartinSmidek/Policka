@@ -18,7 +18,7 @@ panel pre {type:'right', title:"[fa-pie-chart] Přehledy", _sys:'pri'
         this_item.set(i);
         rp.get.display(0,i.par.off); rp.get.display(1,i.par.on);
         rp.fill(replace_fa(conc(i.owner.title,' - ',i.title)),'... počkejte prosím, provádím výpočet');
-        tab.set(ask('eko_mesic_dary',  this_export.get,rp.den_od.get,rp.den_do.get,i.par.dary));
+        tab.set(ask('eko_mesic_dary',this_export.get,rp.os.get,rp.fy.get,rp.den_od.get,rp.den_do.get,i.par.dary));
         rp.fill('',tab);
         this_export.set(0);
       }
@@ -76,14 +76,14 @@ panel pre {type:'right', title:"[fa-pie-chart] Přehledy", _sys:'pri'
   form _eko {//[,,750,600] {
     label head [0,0,*,50] { title:'' }
     label note [0,50,*,500] { title:'' }
-    label [-81,0,327,30] { tag:'den', css:'parm', style:'zIndex:1' }
+    label [-81,0,364,30] { tag:'den', css:'parm', style:'zIndex:1' }
     button export [-20,5,,] { title:'Export', style:'zIndex:2'
       proc onclick() { this_export.set(1); this_item.click; } }
     button go [-88,5,,] { tag:'den,rok', title:'[fa-refresh]', style:'zIndex:2'
       proc onclick() { this_item.click } }
     // rok
     label [-79,0,163,30] { tag:'rok', css:'parm', style:'zIndex:1' }
-    check nuly [-112,6,50,] { tag:'rok', title:'nuly', format:'t', value:'0' }
+//    check nuly [-112,6,50,] { tag:'rok', title:'nuly', format:'t', value:'0' }
     field rok [-167,6,50,] { tag:'rok', title:'rok', type:'date', format:'Rrt:y', help:'volba roku' }
     // VS
 //    field VS [-336,6,45,] { tag:'VS', title:'VS:', format:'rt', help:'variabilní symbol: lze zapisovat pomocí ?,*'}
@@ -95,6 +95,9 @@ panel pre {type:'right', title:"[fa-pie-chart] Přehledy", _sys:'pri'
         ask('eko_uzaverka',date2sql(this.get));
         this.set(sql2date(ask('eko_uzaverka_den')));
     }}
+    // osoby, firmy
+    check fy [-331,4,50,] { title:'firmy' value:'1' }
+    check os [-388,4,58,] { title:'osoby' value:'1' }
     // ode dne po den
     field den_od [-224,6,87,] {tag:'den', title:'od:', type:'date', format:'Rrt', help:'počáteční datum včetně'}
     field den_do [-115,6,87,] {tag:'den', title:'do:', type:'date', format:'Rrt', help:'koncové datum včetně'}
