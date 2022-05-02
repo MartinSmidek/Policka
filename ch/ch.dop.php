@@ -70,7 +70,9 @@ function dop_gener_stitky($komu,$par,$report) {
     foreach ($par->kat AS $k) {
       $cond.= " OR FIND_IN_SET($k,kategorie)";
     }
-    $rc= pdo_qry("SELECT id_clen,psc,email FROM clen WHERE deleted='' AND ($cond) $firmy");
+    $rc= pdo_qry("SELECT id_clen,psc,email 
+      FROM clen WHERE deleted='' AND ($cond) $firmy
+      ORDER BY CONCAT(firma,prijmeni)  ");
     while ($rc && (list($idc,$psc,$email)=pdo_fetch_row($rc))) {
       if (trim($psc) || trim($email)) 
         if (!in_array($idc,$idcs)) $idcs[]= $idc;
@@ -87,6 +89,7 @@ function dop_gener_stitky($komu,$par,$report) {
       FROM clen AS c JOIN dar AS d USING (id_clen)
       WHERE c.deleted='' AND d.deleted='' AND castka_kdy BETWEEN '$od' AND '$do' $firmy
       GROUP BY id_clen HAVING _celkem>='$par->aspon'
+      ORDER BY CONCAT(firma,prijmeni)
       ");
     while ($rc && (list($idc,$psc,$email,$celkem)=pdo_fetch_row($rc))) {
       if (trim($psc) || trim($email)) {
@@ -106,9 +109,9 @@ function dop_gener_stitky($komu,$par,$report) {
     // generování seznamu
     $fname= "seznam_".date('ymd_Hi');
     $flds= $par->firmy 
-        ? "firma,firma_info,jmeno,prijmeni,ulice,psc,obec,email" 
-        : "jmeno,prijmeni,ulice,psc,obec,email";
-    $xls= dop_rep_seznam($fname,$flds,$idcs);
+        ? "id_clen,firma,firma_info,jmeno,prijmeni,ulice,psc,obec,email" 
+        : "id_clen,jmeno,prijmeni,ulice,psc,obec,email";
+    $xls= dop_rep_seznam($fname,$flds,$idcs,"Seznam ke štítkům");
     $ret->pdf.= ", <b>seznam: </b> $xls";
   }
   // vytvoření zprávy
@@ -132,9 +135,7 @@ function dop_gener_stitky($komu,$par,$report) {
 # struktura pole $adresy
 #   array(-$idc,$osloveni,$titul,$jmeno,$prijmeni,$organizace,$ulice,$obec,$psc,$kusy,$konto)
 # $report_json obsahuje: jmeno, adresa
-function dop_rep_seznam($fname,$flds,$idcs) { trace();
-  $map_osloveni= map_cis('k_osloveni','zkratka');
-  $title= "Seznam ke štítkům";
+function dop_rep_seznam($fname,$flds,$idcs,$title) { trace();
   // vlastní export do Excelu
   $xls= <<<__XLS
     |open $fname
@@ -147,24 +148,34 @@ __XLS;
   $lc= 0;
   if ( $flds ) foreach (explode(',',$flds) as $fld) {
     $A= Excel5_n2col($lc);
+    $w= strtr($fld,array('psc'=>7,'email'=>30,'firma'=>20,'firma_info'=>15,
+        'prijmeni'=>15,'ulice'=>15,'id_clen'=>7)); 
+    $fld= $fld=='id_clen' ? 'ID' : $fld;
     $xls.= "|$A$n $fld";
+    if ( $w!=$fld ) {
+      $clmns.= "$del$A=$w";
+      $del= ',';
+    }
     $lc++;
   }
   if ( $clmns ) $xls.= "\n|columns $clmns ";
   $xls.= "\n|A$n:$A$n bcolor=ffc0e2c2 wrap border=+h|A$n:$A$n border=t\n";
-  $n1= $n= 5;                                   // první řádek dat (pro sumy)
+  $n= 5;                                   // první řádek dat (pro sumy)
   // datové řádky
 
   // projdi kontakty
-  foreach ($idcs as $i=>$idc) {
+  foreach ($idcs as $idc) {
     $xls.= "\n";
     $lc= 0;
     $row= select_object($flds,'clen',"id_clen=$idc");
-                                                  debug($row);
+//                                                  debug($row);
     foreach (explode(',',$flds) as $fld) {
       $A= Excel5_n2col($lc);
       $val= strtr($row->$fld,array("\n\r"=>"  ","®"=>""));
       $val= str_replace("\n","{}",$val);        // ochrana proti řádkům v hodnotě - viz ae_slib
+      if ($fld=='psc') {
+        $val= str_replace(" ","",$val);
+      }
       $xls.= "|$A$n $val";
       $lc++;
     }
@@ -173,7 +184,7 @@ __XLS;
   // předání ke generování
   $xls.= "\n|close";
   require_once "ezer3.1/server/vendor/autoload.php";
-  $err= @Excel2007($xls,1);
+  Excel2007($xls,1);
   $ref= "<a href='docs/$fname.xlsx' target='xls'>$fname.xlsx</a>";
   return $ref;
 }
@@ -215,6 +226,83 @@ function dop_rep_stitky($fname,$idcs,$report_json,$ramecek=0) { trace();
   tc_report($report,$texty,$fpath);
   $ref= "<a href='docs/$fname' target='pdf'>$fname</a>";
   return $ref;
+}
+# =========================================================================================> SEZNAMY
+# --------------------------------------------------------------------------------------- dop seznam
+# seznam dárců podle zadaných parametrů
+#   vecny=1 - jen věcné dary
+#     nazev - titulek
+#   vecny=0 - finanční dary
+#     ucty - které mají být zahrnuty
+#     neucty - které mají být vynechány
+#     kdo - 0|1|0,1
+#     velky - mez významého daru
+#     nazev - titulek
+function dop_seznam($par,$ref=0) { trace(); 
+  $html= '';
+  $idcs= array();
+  // společné parametry
+  $nazev= $par->nazev;
+  $i_firmy= $par->kdo=='1' ? 0 : 1;
+  if (isset($par->vecne) || $par->vecne==1) {
+    // parametry věcných darů    
+    $vecne= 1;
+    $cond= "zpusob=4";
+    $HAVING= '';
+    $note= " obsahuje všechny dárce věcných darů";
+  }
+  else {
+    // parametry finančních darů
+    $vecne= 0;
+    $velky= $par->velky;
+    $note_kdo= strtr($par->kdo,
+        array('0,1'=>'firemní i individuální','0'=>'firemní','1'=>'individuální'));
+    $note= " obsahuje $note_kdo dárce finančních darů";
+    $cond= "zpusob!=4";
+    $cond.= isset($par->kdo) ? ($cond?' AND ':'')."osoba IN ($par->kdo)" : '';
+    // dárci určení účtem
+    $ucty= isset($par->ucty) ? select('GROUP_CONCAT(data)','_cis',
+        "druh='b_ucty' AND FIND_IN_SET(zkratka,'$par->ucty') ") : '';
+    $neucty= isset($par->neucty) ? select('GROUP_CONCAT(data)','_cis',
+        "druh='b_ucty' AND FIND_IN_SET(zkratka,'$par->neucty') ") : '';
+    $cond.= $ucty ? ($cond?' AND ':'')."FIND_IN_SET(nas_ucet,'$ucty')" : '';
+    $cond.= $neucty ? ($cond?' AND ':'')."NOT FIND_IN_SET(nas_ucet,'$neucty')" : '';
+    $HAVING= $velky ? "HAVING _celkem>=$velky" : '';
+    $note.= $par->ucty ? " na účty $par->ucty" : '';
+    $note.= $par->neucty ? " ale ne na účty $par->neucty" : '';
+    $note.= $velky ? ", celkem darujících aspoň $velky Kč" : ', jakkoliv velkých';
+  }
+  // přehled darů
+  $darci= array();
+  $html.= "<h3>$nazev</h3>";
+  $rd= pdo_qry("
+    SELECT id_clen, SUM(castka) AS _celkem, 
+      IF(osoba=1,CONCAT(titul,' ',prijmeni,' ',jmeno,' ',titul_za),firma) AS _jmeno,
+      IF(osoba=1,CONCAT(prijmeni,' ',jmeno),firma) AS _order
+    FROM dar AS d JOIN clen AS c USING (id_clen)
+    WHERE $cond AND c.deleted='' AND d.deleted='' 
+    GROUP BY id_clen $HAVING
+    ORDER BY _order
+  ");
+  while ($rd && (list($idc,$dar,$jmeno,$ord)= pdo_fetch_row($rd))) {
+    $idcs[]= $idc;
+    $jmeno= trim($jmeno);
+    $darci[]= $ref ? klub_ukaz_clena($idc)." $jmeno": $jmeno;
+  }
+  if (count($darci)) {
+    $del= '';
+    foreach($darci as $jmeno) {
+      $html.= "$del$jmeno"; $del= '; ';
+    }
+    $html.= '<br>';
+  }
+  // generování seznamu
+  $fname= "seznam_".date('ymd_Hi');
+  $flds= $i_firmy 
+      ? "id_clen,firma,firma_info,jmeno,prijmeni,ulice,psc,obec,email" 
+      : "id_clen,jmeno,prijmeni,ulice,psc,obec,email";
+  $xls= dop_rep_seznam($fname,$flds,$idcs,$nazev);
+  return "<b>vygnerovaný $xls</b> $note<br>$html";
 }
 # ============================================================================> JEDNOTLIVÁ POTVRZENI
 # ---------------------------------------------------------------------------------==> dop show_vars
