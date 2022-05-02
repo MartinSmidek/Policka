@@ -154,7 +154,7 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
   # --------------------------------------------------------------------------------------==> ŠTÍTKY
   form _stitky [0,0,180,267] {
     func Init() {
-      pdf= 'zde bude po stisku [Generuj] odkaz na PDF s vygenerovanými štítky';
+      pdf= 'zde bude po stisku [Generuj] odkaz na PDF se štítky a na seznam v Excelu ';
       msg= '';
       form.enable(0,'k|d');
       kateg= 0;

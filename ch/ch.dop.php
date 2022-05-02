@@ -63,7 +63,7 @@ function dop_gener_stitky($komu,$par,$report) {
   // generování podle komu+kat
   $idcs= $err_idcs= array();
   // vynechat firmy?
-  $firmy= $par->firmy ? '1' : 'AND osoba=1';
+  $firmy= $par->firmy ? '' : 'AND osoba=1';
   // --------------------- podle kategorie
   if ($par->kateg) {
     $cond= '0';
