@@ -163,7 +163,7 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
       stitek.report_init(); stitek.report_check();  
     }
     // ==> . položky
-    label  [0,0,531,133] {css:'work'}
+    label  [0,0,531,153] {css:'work'}
     label  [440,14,74,34] {css:'parm'}
     label  [10,6,140,20] {title:'vybrat adresáty štítků'}
     // kategorie
@@ -179,19 +179,22 @@ panel dop {type:'right', title:"[fa-envelope] Dopisy", _sys:'*'
     field aspon [180,65,50,] {tag:'d', title:'^dali aspoň', format:'rt', help:'dali v období aspoň tolik'}
     field od [240,65,90,] {tag:'d', type:'date', title:'^v období od', format:'rt'}
     field do [340,65,90,] {tag:'d', type:'date', title:'^do', format:'rt'}
-    label pdf [10,99,514,20]
+    // firmy
+    check firmy [10,85,150,] { title:'včetně firem', format:'t' }
+    // výsledek
+    label pdf [10,120,514,20]
     button [450,22,,] {title:'Generuj'
       func onclick() { var typ:number, par:object, ret:object
         clear(); 
-        par= {kateg:kateg,kat:kat.key(),darci:darci,aspon:aspon,od:od,do:do}; 
+        par= {kateg:kateg,kat:kat.key(),darci:darci,aspon:aspon,od:od,do:do,firmy:firmy}; 
         ret= php.dop_gener_stitky(typ,par,stitek.get_json());
         pdf= ret.pdf;
         msg= ret.msg;
     }}
-    label [15,145,436,33] {title:"Poznámka: tisk je optimalizován pro štítky velikosti 70x41 
+    label [15,165,436,33] {title:"Poznámka: tisk je optimalizován pro štítky velikosti 70x41 
         (21 štítků na listu). <br>Tento typ se prodává např. pod označením RAYFILM R0100.0533A"
     }
-    label msg [0,188,600,600] 
+    label msg [0,208,600,600] 
   }
   // ==> . štítky
   report stitek [0,0,200,287] { format:'A4:0,5,70,41',

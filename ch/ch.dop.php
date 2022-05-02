@@ -56,37 +56,40 @@ function dop_sab_nahled($druh) { trace();
 # --------------------------------------------------------------------------------- dop gener_stitky
 # ASK
 # vytvoření souboru se štítky
-# par = {kateg:0|1,kat:kategorie,darci:0|1,aspon:částka,od:datum,do:datum}
+# par = {kateg:0|1,kat:kategorie,darci:0|1,aspon:částka,od:datum,do:datum,firmy:0|1}
 function dop_gener_stitky($komu,$par,$report) { 
   debug($par,"dop_gener_stitky");
   $ret= (object)array(pdf=>'',msg=>'');
   // generování podle komu+kat
   $idcs= $err_idcs= array();
+  // vynechat firmy?
+  $firmy= $par->firmy ? '1' : 'AND osoba=1';
   // --------------------- podle kategorie
   if ($par->kateg) {
     $cond= '0';
     foreach ($par->kat AS $k) {
       $cond.= " OR FIND_IN_SET($k,kategorie)";
     }
-    $rc= pdo_qry("SELECT id_clen,psc FROM clen WHERE deleted='' AND ($cond)");
-    while ($rc && (list($idc,$psc)=pdo_fetch_row($rc))) {
-      if (trim($psc)) 
+    $rc= pdo_qry("SELECT id_clen,psc,email FROM clen WHERE deleted='' AND ($cond) $firmy");
+    while ($rc && (list($idc,$psc,$email)=pdo_fetch_row($rc))) {
+      if (trim($psc) || trim($email)) 
         if (!in_array($idc,$idcs)) $idcs[]= $idc;
       else
         if (!in_array($idc,$err_idcs)) $err_idcs[]= $idc;
     }
   }
-  // --------------------- dárci, kteří dali alespoň ... od ... do
+  // --------------------- dárci {a=>vynechat když nemají kat | nebo=>přidat} 
+  //                       dali alespoň ... od ... do
   if ($par->darci) {
     $od= sql_date1($par->od,1);
     $do= sql_date1($par->do,1);
-    $rc= pdo_qry("SELECT id_clen,psc,SUM(castka) AS _celkem 
+    $rc= pdo_qry("SELECT id_clen,psc,email,SUM(castka) AS _celkem 
       FROM clen AS c JOIN dar AS d USING (id_clen)
-      WHERE c.deleted='' AND d.deleted='' AND castka_kdy BETWEEN '$od' AND '$do' 
-      GROUP BY id_clen HAVING _celkem>=$par->aspon
+      WHERE c.deleted='' AND d.deleted='' AND castka_kdy BETWEEN '$od' AND '$do' $firmy
+      GROUP BY id_clen HAVING _celkem>='$par->aspon'
       ");
-    while ($rc && (list($idc,$psc,$celkem)=pdo_fetch_row($rc))) {
-      if (trim($psc)) {
+    while ($rc && (list($idc,$psc,$email,$celkem)=pdo_fetch_row($rc))) {
+      if (trim($psc) || trim($email)) {
         if (!in_array($idc,$idcs)) $idcs[]= $idc;
       }
       else
@@ -100,6 +103,11 @@ function dop_gener_stitky($komu,$par,$report) {
     $fname= "stitky_".date('ymd_Hi').".pdf";
     $pdf= dop_rep_stitky($fname,$idcs,$report);
     $ret->pdf= "<b>adresní štítky: </b> $pdf";
+    // generování seznamu
+    $fname= "seznam_".date('ymd_Hi');
+    $flds= "jmeno,prijmeni,ulice,psc,obec,email";
+    $xls= dop_rep_seznam($fname,$flds,$idcs);
+    $ret->pdf.= ", <b>seznam: </b> $xls";
   }
   // vytvoření zprávy
   $stitku= kolik_1_2_5($ok,'Byl vytvořen $ štítek,Byly vytvořeny $ štítky,Bylo vytvořeno $ štítků');
@@ -107,7 +115,7 @@ function dop_gener_stitky($komu,$par,$report) {
   $ko= count($err_idcs);
   if ($ko) {
   $stitku= kolik_1_2_5($ko,'štítek přeskočen,štítky přeskočeny,štítků přeskočeno');
-    $ret->msg.= ", $stitku - v adrese chybí PSČ. 
+    $ret->msg.= ", $stitku - kontakt nemá ani PSČ ani email. 
       <br><br>Přeskočeni byli dárci:";
     foreach ($err_idcs as $idc) {
       list($osoba,$prijmeni,$jmeno,$firma)= 
@@ -116,6 +124,56 @@ function dop_gener_stitky($komu,$par,$report) {
     }
   }
   return $ret;
+}
+# ----------------------------------------------------------------------------------- dop rep_seznam
+# tisk seznamu členů do Excelu
+# struktura pole $adresy
+#   array(-$idc,$osloveni,$titul,$jmeno,$prijmeni,$organizace,$ulice,$obec,$psc,$kusy,$konto)
+# $report_json obsahuje: jmeno, adresa
+function dop_rep_seznam($fname,$flds,$idcs) { trace();
+  $map_osloveni= map_cis('k_osloveni','zkratka');
+  $title= "Seznam ke štítkům";
+  // vlastní export do Excelu
+  $xls= <<<__XLS
+    |open $fname
+    |sheet vypis;;L;page
+    |A1 $title ::bold size=14
+__XLS;
+  $n= 4;
+  $lc= 0;
+  $clmns= $del= '';
+  $lc= 0;
+  if ( $flds ) foreach (explode(',',$flds) as $fld) {
+    $A= Excel5_n2col($lc);
+    $xls.= "|$A$n $fld";
+    $lc++;
+  }
+  if ( $clmns ) $xls.= "\n|columns $clmns ";
+  $xls.= "\n|A$n:$A$n bcolor=ffc0e2c2 wrap border=+h|A$n:$A$n border=t\n";
+  $n1= $n= 5;                                   // první řádek dat (pro sumy)
+  // datové řádky
+
+  // projdi kontakty
+  foreach ($idcs as $i=>$idc) {
+    $xls.= "\n";
+    $lc= 0;
+    $row= select_object($flds,'clen',"id_clen=$idc");
+                                                  debug($row);
+    foreach (explode(',',$flds) as $fld) {
+      $A= Excel5_n2col($lc);
+      $val= strtr($row->$fld,array("\n\r"=>"  ","®"=>""));
+      $val= str_replace("\n","{}",$val);        // ochrana proti řádkům v hodnotě - viz ae_slib
+      $xls.= "|$A$n $val";
+      $lc++;
+    }
+    $n++;
+  }
+  // předání ke generování
+  $xls.= "\n|close";
+  require_once "ezer3.1/server/vendor/autoload.php";
+  $err= @Excel2007($xls,1);
+  $ref= "<a href='docs/$fname.xlsx' target='xls'>$fname.xlsx</a>";
+  return $ref;
 }
 # ----------------------------------------------------------------------------------- dop rep_stitky
 # tisk adresních štítků pro seznam členů (přes TCPDF)
