@@ -105,7 +105,9 @@ function dop_gener_stitky($komu,$par,$report) {
     $ret->pdf= "<b>adresní štítky: </b> $pdf";
     // generování seznamu
     $fname= "seznam_".date('ymd_Hi');
-    $flds= "jmeno,prijmeni,ulice,psc,obec,email";
+    $flds= $par->firmy 
+        ? "firma,firma_info,jmeno,prijmeni,ulice,psc,obec,email" 
+        : "jmeno,prijmeni,ulice,psc,obec,email";
     $xls= dop_rep_seznam($fname,$flds,$idcs);
     $ret->pdf.= ", <b>seznam: </b> $xls";
   }
