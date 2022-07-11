@@ -1,4 +1,47 @@
 <?php # (c) 2007-2008 Martin Smidek <martin@smidek.eu>
+# -------------------------------------------------------------------------------------- eko downoad
+# export celé databáze
+function eko_download() {
+  global $abs_root;
+  $html= ' ';
+  $LIMIT= '';
+//  $LIMIT= "LIMIT 10";
+  $file= fopen("$abs_root/docs/databaze.csv",'w');
+  $flds= explode(',',"ID,JE-OSOBA,Firma,IČO,Titul před,Jméno,Příjmení,Titul za,Ulice + čp,PSČ,Město,"
+      . "Telefony,Email,Narození,Úmrtí,Poznámka,"
+      . "ID-DAR,Hodnota daru,Kdy došel,Kdy bylo poděkováno,Kdy posláno potvrzení,Účel daru,Pro středisko,Číslo účtu");
+  fputcsv($file,$flds);
+  $qry= "SELECT id_clen,osoba,firma,ico,titul,jmeno,prijmeni,titul_za,ulice,psc,obec,
+            telefony,email,narozeni,umrti,poznamka,
+            id_dar,castka,castka_kdy,diky_kdy,potvrz_kdy,pozn,stredisko,d.ucet
+         FROM dar AS d JOIN clen AS c USING (id_clen)
+         WHERE NOT left(d.deleted,1)='D' AND NOT left(c.deleted,1)='D' 
+         ORDER BY c.id_clen,d.id_dar 
+         $LIMIT";
+  $res= pdo_qry($qry);
+  $n= 0;
+  while ( $res && $flds= pdo_fetch_row($res) ) {
+//    debug($flds);
+    $n++;
+    fputcsv($file,$flds);
+  }
+  fclose($file);
+  $href= "<a href='docs/databaze.csv'>docs/databaze.csv</a>";
+  $html.= "Bylo exportováno $n záznamů, ke stáhnutí jsou nabídnuta v souboru $href
+      ve tvaru vhodném pro import do nové databáze
+      <br><br>V Excelu si soubor po stáhnutí zobrazíte následovně<ol>
+      <li>Otevřete si prázdný sešit v Excelu
+      <li>Přepněte na záložku DATA a klikněte na ikonu <b>Z text/CSV</b>
+      <li>Najděte ve svém počítači stažený CSV soubor
+      <li>Otevře se průvodce importem textu. Na prvním kroku zvolte Typ souboru Unicode (UTF-8). 
+        <br>Po jeho zvolení byste hned měli v náhledu vidět, že se diakritika zobrazuje správně
+      <li>Pokud není náhled zobrazen ve sloupečcích, vyberte oddělovač <b>čárka</b>
+      <li>Klikněte na Dokončit. Soubor se již otevře tak, jak má. 
+      <li>Pokud se to nepovedlo, podívejte se na návod na 
+      <a href='https://napoveda.napojse.cz/article/37-jak-otevrit-nebo-ulozit-csv-v-excelu' target='x'>této adrese</a>
+      </ol>";
+  return $html;
+}
 /** =======================================================================================> VÝROČKA */
 # -------------------------------------------------------------------------------------- eko vyrocka
 # seznam loňských dárců do výroční zprávy podle zadaných parametrů

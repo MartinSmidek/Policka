@@ -22,6 +22,17 @@ panel pre {type:'right', title:"[fa-pie-chart] Přehledy", _sys:'pri'
         rp.fill('',tab);
         this_export.set(0);
       }
+      item  {title:'[fa-download] Download kontaktů a darů' par:°{typ:'D',off:'uz|his|rok|VS|den',on:''}
+        proc onclick (i) { var tab:text
+          clear; rp.display(1); vz.display(0);
+          this_item.set(i);
+          rp.get.display(0,i.par.off); rp.get.display(1,i.par.on);
+          rp.fill(replace_fa(conc(i.owner.title,' - ',i.title)),'... počkejte prosím, provádím výpočet');
+          tab.set(ask('eko_download'));
+          rp.fill('',tab);
+          this_export.set(0);
+        }
+      }
     }
     menu {title:'Statistika',type:'group', _sys:'dar'
       item dar {title:'[fa-bar-chart] Histogram finančních darů',
