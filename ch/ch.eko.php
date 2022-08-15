@@ -9,11 +9,11 @@ function eko_download() {
   $file= fopen("$abs_root/docs/databaze.csv",'w');
   $flds= explode(',',"ID,JE-OSOBA,Firma,IČO,Titul před,Jméno,Příjmení,Titul za,Ulice + čp,PSČ,Město,"
       . "Telefony,Email,Narození,Úmrtí,Poznámka,Kategorie,"
-      . "ID-DAR,Hodnota daru,Kdy došel,Kdy bylo poděkováno,Kdy posláno potvrzení,Účel daru,Pro středisko,Číslo účtu");
+      . "ID-DAR,Hodnota daru,Způsob daru,Kdy došel,Kdy bylo poděkováno,Kdy posláno potvrzení,Účel daru,Pro středisko,Číslo účtu");
   fputcsv($file,$flds);
   $qry= "SELECT id_clen,osoba,firma,ico,titul,jmeno,prijmeni,titul_za,ulice,psc,obec,
             telefony,email,narozeni,umrti,poznamka,IF(kategorie!='',CONCAT('=',kategorie),''),
-            id_dar,castka,castka_kdy,diky_kdy,potvrz_kdy,pozn,stredisko,d.ucet
+            id_dar,castka,zpusob,castka_kdy,diky_kdy,potvrz_kdy,pozn,stredisko,d.ucet
          FROM dar AS d JOIN clen AS c USING (id_clen)
          WHERE NOT left(d.deleted,1)='D' AND NOT left(c.deleted,1)='D' 
          ORDER BY c.id_clen,d.id_dar 
@@ -49,7 +49,9 @@ function eko_download() {
       1:Granty a dotace, 2:Dobrovolník, 3:Nebeská aukce, 4:Spolupracovníci, 5:Města a obce, 
       6:Údržba, 7:Koordinátoři TKS, 8:Kruh přátel Ch, 9:Školy a školky, 10:Benefiční koncert, 
       11:Běh Jarmila Běhoděje, 12:Běh pro hospic, 13:Online dárci TKS, 14:Farnosti a sbory, 
-      15:Narozeniny, 16:IT, 17:Nájemní prostory, 18:Koně TKS, 19:DARUJME.CZ
+      15:Narozeniny, 16:IT, 17:Nájemní prostory, 18:Koně TKS, 19:DARUJME.CZ<br><br>
+      <b>Způsob daru</b><br>
+      0:?, 1:pokladnou, 2:bankou, 3:složenkou, 4:věcný, 5:on-line
       ";
   return $html;
 }
